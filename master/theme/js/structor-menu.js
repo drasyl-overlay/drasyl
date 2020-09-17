@@ -1,8 +1,9 @@
 const versions = [
-  {path: "master", text: "Experimental", selected: true },
+  {path: "master", text: "v0.3 (unreleased)", selected: true },
   {path: "", text: "v0.2 Latest", selected: false },
 ];
 
+  
 // Material theme
 
 function addMaterialMenu(elt, versions) {
@@ -12,6 +13,7 @@ function addMaterialMenu(elt, versions) {
 
   const rootLi = document.createElement('li');
   rootLi.classList.add('md-nav__item');
+  rootLi.classList.add('md-nav__item--version');
   rootLi.classList.add('md-nav__item--nested');
 
   const input = document.createElement('input');
@@ -61,9 +63,12 @@ function addMaterialMenu(elt, versions) {
     if (versions[i].selected) {
       a.classList.add('md-nav__link--active');
     }
-    a.href = window.location.protocol + "//" + window.location.host + "/" + window.location.pathname.split("/")[1] + "/";
+    a.href = window.location.protocol + "//" + window.location.host + "/";
+    if (window.location.host.includes(".github.io")) {
+      a.href = a.href + window.location.pathname.split("/")[1] + "/";
+    }
     if (versions[i].path) {
-      a.href = a.href + "/" + versions[i].path + "/"
+      a.href = a.href + versions[i].path + "/"
     }
     a.title = versions[i].text;
     a.text = versions[i].text;
@@ -88,9 +93,9 @@ function addMenu(elt, versions){
 
   for (let i = 0; i < versions.length; i++) {
     let opt = document.createElement('option');
-    opt.value = window.location.protocol + "//" + window.location.host + "/" + window.location.pathname.split("/")[1] + "/";
+    opt.value = window.location.protocol + "//" + window.location.host + "/";
     if (versions[i].path) {
-        opt.value = opt.value + "/" + versions[i].path + "/"
+        opt.value = opt.value + versions[i].path + "/"
     }
     opt.text = versions[i].text;
     opt.selected = versions[i].selected;
