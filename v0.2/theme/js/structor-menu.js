@@ -1,6 +1,6 @@
 const versions = [
-  {path: "master", text: "Experimental", selected: true },
-  {path: "", text: "v0.2 Latest", selected: false },
+  {path: "master", text: "Experimental", selected: false },
+  {path: "", text: "v0.2 Latest", selected: true },
 ];
 
 // Material theme
