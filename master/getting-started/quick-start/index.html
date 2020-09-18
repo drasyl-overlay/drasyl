@@ -299,13 +299,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#customize-configuration" class="md-nav__link">
-    Customize Configuration
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -319,7 +312,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../build/" title="Build" class="md-nav__link">
+    <a href="../build.md" title="Build" class="md-nav__link">
       Build
     </a>
   </li>
@@ -581,13 +574,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#customize-configuration" class="md-nav__link">
-    Customize Configuration
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -619,7 +605,8 @@
     &lt;version&gt;0.2.0&lt;/version&gt;
 &lt;/dependency&gt;</code></pre></p>
 <p>Gradle:</p>
-<p><code>compile group: 'org.drasyl', name: 'drasyl-core', version: '0.2.0'</code></p>
+<pre class="highlight"><code class="language-gradle">compile group: 'org.drasyl', name: 'drasyl-core', version: '0.2.0'</code></pre>
+
 <h2 id="implementing-drasylnode">Implementing <code>DrasylNode</code><a class="headerlink" href="#implementing-drasylnode" title="Permanent link">&para;</a></h2>
 <p>Next, you can create your own drasyl node by implementing <a href="https://github.com/drasyl-overlay/drasyl/tree/master/drasyl-core/src/main/java/org/drasyl/DrasylNode.java"><code>DrasylNode</code></a>.</p>
 <p>This class contains the following methods that are now relevant for you:</p>
@@ -654,7 +641,7 @@ Currently, addresses of recipient nodes must be known, as drasyl currently has n
 <p>The <code>send()</code> method needs the recipient as first argument and the message payload as second argument.</p>
 <div class="admonition info">
 <p class="admonition-title">Example</p>
-<pre class="highlight"><code class="language-java">    node.send("0229041b273dd5ee1c2bef2d77ae17dbd00d2f0a2e939e22d42ef1c4bf05147ea9", "Hello World")</code></pre>
+<pre class="highlight"><code class="language-java">node.send("0229041b273dd5ee1c2bef2d77ae17dbd00d2f0a2e939e22d42ef1c4bf05147ea9", "Hello World")</code></pre>
 
 </div>
 <p>The method does not give any feedback on whether the message could be delivered. However, it can throw an exception if the local node has no connection to the
@@ -680,18 +667,6 @@ Then, once it has successfully connected to the overlay network, an <code>NodeOn
 An <code>NodeDownEvent</code> is emitted immediately after this call. The application should now no longer attempt to send messages.
 As soon as the connection to the drasyl network is terminated, an <code>NodeOfflineEvent</code> is emitted.
 An <code>NodeNormalTerminationEvent</code> is created when the shutdown is done.</p>
-<h2 id="customize-configuration">Customize Configuration<a class="headerlink" href="#customize-configuration" title="Permanent link">&para;</a></h2>
-<p>drasyl is designed to work with zero-configuration. However, some use cases require configuration customization.</p>
-<p>There are many ways to customize the drasyl (e.g. via environment variables, config file, start parameters, <a href="https://github.com/drasyl-overlay/drasyl/tree/master/drasyl-core/src/main/java/org/drasyl/DrasylConfig.java"><code>DrasylConfig.Builder</code></a> class) </p>
-<p>The following example shows the usage of the <code>DrasyConfig.Builder</code>:
-<pre class="highlight"><code class="language-java">DrasylConfig config = DrasylConfig.newBuilder()
-        .loglevel(Level.DEBUG)
-        .serverEnabled(false)
-        .build();</code></pre></p>
-<p>The created <code>DrasylConfig</code> object can then be passed to the <code>DrasylNode</code> constructor.</p>
-<p>An overview of all available configuration parameters, their meaning and all default values can be found in the <a href="https://github.com/drasyl-overlay/drasyl/tree/master/drasyl-core/src/main/resources/reference.conf"><code>reference.conf</code></a> file
-and/or at the <a href="../../configuration/">configuration</a> section.</p>
-<p>Further information can be taken directly from the configuration library that is used internally by drasyl: <a href="https://github.com/lightbend/config">https://github.com/lightbend/config</a></p>
                 
                   
                     
@@ -738,13 +713,13 @@ and/or at the <a href="../../configuration/">configuration</a> section.</p>
           </a>
         
         
-          <a href="../build/" title="Build" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../snapshots/" title="Snapshots" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Build
+                Snapshots
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">
