@@ -237,30 +237,6 @@
 
 
   <li class="md-nav__item">
-    <a href="../../getting-started/build.md" title="Build" class="md-nav__link">
-      Build
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../getting-started/snapshots/" title="Snapshots" class="md-nav__link">
-      Snapshots
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
     <a href="../../getting-started/cli/" title="CLI" class="md-nav__link">
       CLI
     </a>
@@ -555,78 +531,72 @@
                 <h1 id="sequence-diagrams">Sequence Diagrams<a class="headerlink" href="#sequence-diagrams" title="Permanent link">&para;</a></h1>
 <h2 id="node-events">Node Events<a class="headerlink" href="#node-events" title="Permanent link">&para;</a></h2>
 <p>The state diagram below shows which events occur in which order during the lifetime of a drasyl node:</p>
-<div class="mermaid">
-stateDiagram-v2
-    state started <<fork>>
-        [*] --> started
-        started --> NodeUpEvent
-        NodeUpEvent --> NodeDownEvent
-        NodeUpEvent --> NodeOnlineEvent
-        NodeOnlineEvent --> NodeOfflineEvent
-        NodeOfflineEvent --> NodeOnlineEvent
-        NodeOfflineEvent --> NodeDownEvent
-        NodeOfflineEvent --> NodeIdentityCollisionEvent
-        NodeUpEvent --> NodeIdentityCollisionEvent
-        NodeIdentityCollisionEvent --> NodeOnlineEvent
-        NodeIdentityCollisionEvent --> NodeDownEvent
-        NodeDownEvent --> NodeNormalTerminationEvent
-        started --> NodeUnrecoverableErrorEvent
+<div class="mermaid">stateDiagram-v2
+    state started &lt;&lt;fork&gt;&gt;
+        [*] --&gt; started
+        started --&gt; NodeUpEvent
+        NodeUpEvent --&gt; NodeDownEvent
+        NodeUpEvent --&gt; NodeOnlineEvent
+        NodeOnlineEvent --&gt; NodeOfflineEvent
+        NodeOfflineEvent --&gt; NodeOnlineEvent
+        NodeOfflineEvent --&gt; NodeDownEvent
+        NodeOfflineEvent --&gt; NodeIdentityCollisionEvent
+        NodeUpEvent --&gt; NodeIdentityCollisionEvent
+        NodeIdentityCollisionEvent --&gt; NodeOnlineEvent
+        NodeIdentityCollisionEvent --&gt; NodeDownEvent
+        NodeDownEvent --&gt; NodeNormalTerminationEvent
+        started --&gt; NodeUnrecoverableErrorEvent
 
-    state join <<join>>
-        NodeNormalTerminationEvent --> join
-        NodeUnrecoverableErrorEvent --> join
-        join --> [*]
-</div>
+    state join &lt;&lt;join&gt;&gt;
+        NodeNormalTerminationEvent --&gt; join
+        NodeUnrecoverableErrorEvent --&gt; join
+        join --&gt; [*]</div>
 
 <h2 id="client-server-communication">Client Server Communication<a class="headerlink" href="#client-server-communication" title="Permanent link">&para;</a></h2>
-<div class="mermaid">
-sequenceDiagram
+<div class="mermaid">sequenceDiagram
   Note over Client,Server: Session State: New
   par Session Request
-    Client->>Server: JoinMessage
+    Client-&gt;&gt;Server: JoinMessage
     alt Session Created
-        Server-->>Client: WelcomeMessage
+        Server--&gt;&gt;Client: WelcomeMessage
       alt Session Confirmed
-        Client-->>Server: StatusMessage.OK
+        Client--&gt;&gt;Server: StatusMessage.OK
 
         Note over Client,Server: Session State: Established
 
         alt Serverside Close
-            Server->>Client: QuitMessage.$REASON
+            Server-&gt;&gt;Client: QuitMessage.$REASON
         else Clientside Close
-            Client->>Server: QuitMessage.$REASON
+            Client-&gt;&gt;Server: QuitMessage.$REASON
         end
 
         Note over Client,Server: Session State: Terminated
       else Session Declined
-        Client-->>Server: ???
+        Client--&gt;&gt;Server: ???
       end  
     else Session Declined
-        Server-->>Client: ???
+        Server--&gt;&gt;Client: ???
     end
   and Healtcheck
     loop Every n Seconds
-      Server->>Client: PingMessage
-      Client-->>Server: PongMessage
+      Server-&gt;&gt;Client: PingMessage
+      Client--&gt;&gt;Server: PongMessage
 
       opt Ping Timeout
-        Server->>Client: ConnectionExceptionMessage.PING_PONG 
+        Server-&gt;&gt;Client: ConnectionExceptionMessage.PING_PONG 
       end
     end
-  end
-</div>
+  end</div>
 
 <h2 id="peer-session-states">Peer Session States<a class="headerlink" href="#peer-session-states" title="Permanent link">&para;</a></h2>
-<div class="mermaid">
-stateDiagram
-    [*] --> Initialization
-    Initialization --> Errored
-    Initialization --> Active
-    Active --> Errored
-    Active --> Terminated
-    Terminated --> [*]
-    Errored --> [*]
-</div>
+<div class="mermaid">stateDiagram
+    [*] --&gt; Initialization
+    Initialization --&gt; Errored
+    Initialization --&gt; Active
+    Active --&gt; Errored
+    Active --&gt; Terminated
+    Terminated --&gt; [*]
+    Errored --&gt; [*]</div>
                 
                   
                     

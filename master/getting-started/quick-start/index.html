@@ -258,6 +258,13 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#add-snapshot-repository" class="md-nav__link">
+    Add Snapshot Repository
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#add-dependency" class="md-nav__link">
     Add Dependency
   </a>
@@ -303,30 +310,6 @@
   
 </nav>
     
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../build.md" title="Build" class="md-nav__link">
-      Build
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../snapshots/" title="Snapshots" class="md-nav__link">
-      Snapshots
-    </a>
   </li>
 
         
@@ -533,6 +516,13 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#add-snapshot-repository" class="md-nav__link">
+    Add Snapshot Repository
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#add-dependency" class="md-nav__link">
     Add Dependency
   </a>
@@ -595,17 +585,35 @@
                 
                 
                 <h1 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h1>
+<div class="admonition important">
+<p class="admonition-title">Nightly Version</p>
+<p>You're currently on a nightly version branch. If you're only interested  in the latest stable version, please click <a href="/">here</a>.</p>
+</div>
 <p>This guide describes the necessary steps to create your first drasyl node and how to integrate it into your application.</p>
 <p>Once the node is set up, it and therefore your application can participate in the drasyl Overlay Network and communicate with other nodes and applications.</p>
+<h2 id="add-snapshot-repository">Add Snapshot Repository<a class="headerlink" href="#add-snapshot-repository" title="Permanent link">&para;</a></h2>
+<pre class="highlight"><code class="language-xml">&lt;repositories&gt;
+    &lt;repository&gt;
+        &lt;id&gt;oss.sonatype.org-snapshot&lt;/id&gt;
+        &lt;url&gt;https://oss.sonatype.org/content/repositories/snapshots/&lt;/url&gt;
+        &lt;releases&gt;
+            &lt;enabled&gt;false&lt;/enabled&gt;
+        &lt;/releases&gt;
+        &lt;snapshots&gt;
+            &lt;enabled&gt;true&lt;/enabled&gt;
+        &lt;/snapshots&gt;
+    &lt;/repository&gt;
+&lt;/repositories&gt;</code></pre>
+
 <h2 id="add-dependency">Add Dependency<a class="headerlink" href="#add-dependency" title="Permanent link">&para;</a></h2>
 <p>Maven:
 <pre class="highlight"><code class="language-xml">&lt;dependency&gt;
     &lt;groupId&gt;org.drasyl&lt;/groupId&gt;
     &lt;artifactId&gt;drasyl-core&lt;/artifactId&gt;
-    &lt;version&gt;0.2.0&lt;/version&gt;
+    &lt;version&gt;0.2.1-SNAPSHOT&lt;/version&gt;
 &lt;/dependency&gt;</code></pre></p>
 <p>Gradle:</p>
-<pre class="highlight"><code class="language-gradle">compile group: 'org.drasyl', name: 'drasyl-core', version: '0.2.0'</code></pre>
+<pre class="highlight"><code class="language-gradle">compile group: 'org.drasyl', name: 'drasyl-core', version: '0.2.1-SNAPSHOT'</code></pre>
 
 <h2 id="implementing-drasylnode">Implementing <code>DrasylNode</code><a class="headerlink" href="#implementing-drasylnode" title="Permanent link">&para;</a></h2>
 <p>Next, you can create your own drasyl node by implementing <a href="https://github.com/drasyl-overlay/drasyl/tree/master/drasyl-core/src/main/java/org/drasyl/DrasylNode.java"><code>DrasylNode</code></a>.</p>
@@ -641,9 +649,10 @@ Currently, addresses of recipient nodes must be known, as drasyl currently has n
 <p>The <code>send()</code> method needs the recipient as first argument and the message payload as second argument.</p>
 <div class="admonition info">
 <p class="admonition-title">Example</p>
-<pre class="highlight"><code class="language-java">node.send("0229041b273dd5ee1c2bef2d77ae17dbd00d2f0a2e939e22d42ef1c4bf05147ea9", "Hello World")</code></pre>
-
+<p>```java</p>
 </div>
+<p>node.send("0229041b273dd5ee1c2bef2d77ae17dbd00d2f0a2e939e22d42ef1c4bf05147ea9", "Hello World");
+    ```</p>
 <p>The method does not give any feedback on whether the message could be delivered. However, it can throw an exception if the local node has no connection to the
 drasyl network.</p>
 <h2 id="receiving-messages">Receiving Messages<a class="headerlink" href="#receiving-messages" title="Permanent link">&para;</a></h2>
@@ -713,13 +722,13 @@ An <code>NodeNormalTerminationEvent</code> is created when the shutdown is done.
           </a>
         
         
-          <a href="../snapshots/" title="Snapshots" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../cli/" title="CLI" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Snapshots
+                CLI
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">
