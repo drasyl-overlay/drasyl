@@ -649,10 +649,9 @@ Currently, addresses of recipient nodes must be known, as drasyl currently has n
 <p>The <code>send()</code> method needs the recipient as first argument and the message payload as second argument.</p>
 <div class="admonition info">
 <p class="admonition-title">Example</p>
-<p>```java</p>
+<pre class="highlight"><code class="language-java">node.send("0229041b273dd5ee1c2bef2d77ae17dbd00d2f0a2e939e22d42ef1c4bf05147ea9", "Hello World");</code></pre>
+
 </div>
-<p>node.send("0229041b273dd5ee1c2bef2d77ae17dbd00d2f0a2e939e22d42ef1c4bf05147ea9", "Hello World");
-    ```</p>
 <p>The method does not give any feedback on whether the message could be delivered. However, it can throw an exception if the local node has no connection to the
 drasyl network.</p>
 <h2 id="receiving-messages">Receiving Messages<a class="headerlink" href="#receiving-messages" title="Permanent link">&para;</a></h2>
