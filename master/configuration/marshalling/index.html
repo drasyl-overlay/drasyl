@@ -332,29 +332,29 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#allowed-types" class="md-nav__link">
-    allowed-types
+  <a href="#marshallinginboundallowed-types-marshallingoutboundallowed-types" class="md-nav__link">
+    marshalling.inbound.allowed-types / marshalling.outbound.allowed-types
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#allow-all-primitives" class="md-nav__link">
-    allow-all-primitives
+  <a href="#marshallinginboundallow-all-primitives-marshallingoutboundallow-all-primitives" class="md-nav__link">
+    marshalling.inbound.allow-all-primitives / marshalling.outbound.allow-all-primitives
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#allow-array-of-defined-types" class="md-nav__link">
-    allow-array-of-defined-types
+  <a href="#marshallinginboundallow-array-of-defined-types-marshallingoutboundallow-array-of-defined-types" class="md-nav__link">
+    marshalling.inbound.allow-array-of-defined-types / marshalling.outbound.allow-array-of-defined-types
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#allowed-packages" class="md-nav__link">
-    allowed-packages
+  <a href="#marshallinginboundallowed-packages-marshallingoutboundallowed-packages" class="md-nav__link">
+    marshalling.inbound.allowed-packages / marshalling.outbound.allowed-packages
   </a>
   
 </li>
@@ -495,29 +495,29 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#allowed-types" class="md-nav__link">
-    allowed-types
+  <a href="#marshallinginboundallowed-types-marshallingoutboundallowed-types" class="md-nav__link">
+    marshalling.inbound.allowed-types / marshalling.outbound.allowed-types
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#allow-all-primitives" class="md-nav__link">
-    allow-all-primitives
+  <a href="#marshallinginboundallow-all-primitives-marshallingoutboundallow-all-primitives" class="md-nav__link">
+    marshalling.inbound.allow-all-primitives / marshalling.outbound.allow-all-primitives
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#allow-array-of-defined-types" class="md-nav__link">
-    allow-array-of-defined-types
+  <a href="#marshallinginboundallow-array-of-defined-types-marshallingoutboundallow-array-of-defined-types" class="md-nav__link">
+    marshalling.inbound.allow-array-of-defined-types / marshalling.outbound.allow-array-of-defined-types
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#allowed-packages" class="md-nav__link">
-    allowed-packages
+  <a href="#marshallinginboundallowed-packages-marshallingoutboundallowed-packages" class="md-nav__link">
+    marshalling.inbound.allowed-packages / marshalling.outbound.allowed-packages
   </a>
   
 </li>
@@ -544,10 +544,14 @@
                 
                 <h1 id="marshalling">Marshalling<a class="headerlink" href="#marshalling" title="Permanent link">&para;</a></h1>
 <p>drasyl can automatically (un-) marshall given objects. To prevent security risks through unrestricted marshalling, types and packages can be defined in the config that are handled automatically.</p>
-<h2 id="allowed-types"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingAllowedTypes(java.util.List)"><code>allowed-types</code></a><a class="headerlink" href="#allowed-types" title="Permanent link">&para;</a></h2>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>Since version 3, drasyl differs between in- and outbound messages. </p>
+</div>
+<h2 id="marshallinginboundallowed-types-marshallingoutboundallowed-types"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingInboundAllowedTypes(java.util.List)"><code>marshalling.inbound.allowed-types</code></a> / <a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingOutboundAllowedTypes(java.util.List)"><code>marshalling.outbound.allowed-types</code></a><a class="headerlink" href="#marshallinginboundallowed-types-marshallingoutboundallowed-types" title="Permanent link">&para;</a></h2>
 <p>This property is a list of all types that are supported by the codec for the drasyl pipeline.</p>
 <p>With this list, a developer guarantees that all classes are secure and cannot be misused as a deserialization gadget in the context of the marshaller.
-A reckless implementation of this interface can leave the entire application and all executing machines vulnerable to remote code execution.</p>
+A reckless implementation of a permitted class can leave the entire application and all executing machines vulnerable to remote code execution.</p>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
 <p>An attacker is in general interested in all "non-pure" methods, which have promising side
@@ -566,7 +570,7 @@ An attacker can choose the URL arbitrarily. By calling getConnection, Server Sid
 <li><a href="https://frohoff.github.io/appseccali-marshalling-pickles/">Marshalling Pickles by Chris Frohoff and Garbriel Lawrence</a></li>
 </ul>
 </div>
-<h2 id="allow-all-primitives"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingAllowAllPrimitives(boolean)"><code>allow-all-primitives</code></a><a class="headerlink" href="#allow-all-primitives" title="Permanent link">&para;</a></h2>
+<h2 id="marshallinginboundallow-all-primitives-marshallingoutboundallow-all-primitives"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingInboundAllowAllPrimitives(boolean)"><code>marshalling.inbound.allow-all-primitives</code></a> / <a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingOutboundAllowAllPrimitives(boolean)"><code>marshalling.outbound.allow-all-primitives</code></a><a class="headerlink" href="#marshallinginboundallow-all-primitives-marshallingoutboundallow-all-primitives" title="Permanent link">&para;</a></h2>
 <p>Whether Java's primitive data types should automatically be allowed. If this setting is activated, drasyl automatically (de-)serializes the types: </p>
 <ul>
 <li><code>java.lang.Boolean</code></li>
@@ -588,9 +592,9 @@ An attacker can choose the URL arbitrarily. By calling getConnection, Server Sid
 <li><code>java.lang.Double#TYPE</code></li>
 <li><code>java.lang.Void#TYPE</code></li>
 </ul>
-<h2 id="allow-array-of-defined-types"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingAllowArrayOfDefinedTypes(boolean)"><code>allow-array-of-defined-types</code></a><a class="headerlink" href="#allow-array-of-defined-types" title="Permanent link">&para;</a></h2>
+<h2 id="marshallinginboundallow-array-of-defined-types-marshallingoutboundallow-array-of-defined-types"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingOutboundAllowArrayOfDefinedTypes(boolean)"><code>marshalling.inbound.allow-array-of-defined-types</code></a> / <a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingOutboundAllowArrayOfDefinedTypes(boolean)"><code>marshalling.outbound.allow-array-of-defined-types</code></a><a class="headerlink" href="#marshallinginboundallow-array-of-defined-types-marshallingoutboundallow-array-of-defined-types" title="Permanent link">&para;</a></h2>
 <p>Whether of all allowed data types their array representations should be allowed automatically.</p>
-<h2 id="allowed-packages"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingAllowedPackages(java.util.List)"><code>allowed-packages</code></a><a class="headerlink" href="#allowed-packages" title="Permanent link">&para;</a></h2>
+<h2 id="marshallinginboundallowed-packages-marshallingoutboundallowed-packages"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingInboundAllowedPackages(java.util.List)"><code>marshalling.inbound.allowed-packages</code></a> / <a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingOutboundAllowedPackages(java.util.List)"><code>marshalling.outbound.allowed-packages</code></a><a class="headerlink" href="#marshallinginboundallowed-packages-marshallingoutboundallowed-packages" title="Permanent link">&para;</a></h2>
 <p>A list of all packages whose classes automatically supported by the default codec of drasyl.</p>
 <div class="admonition danger">
 <p class="admonition-title">Attention</p>
