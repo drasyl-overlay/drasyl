@@ -618,7 +618,6 @@ group will be automatically notified about the entry and exit of other nodes.</p
 &lt;/dependency&gt;</code></pre></p>
 <p>Gradle:</p>
 <pre class="highlight"><code class="language-gradle">compile group: 'org.drasyl', name: 'drasyl-plugin-groups-client', version: '0.3.0-SNAPSHOT'</code></pre>
-
 <h3 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h3>
 <p>Make sure that the following entry is included in your configuration under <code>drasyl.plugins</code>:</p>
 <pre class="highlight"><code class="language-hocon">"org.drasyl.plugin.groups.client.GroupsClientPlugin" {
@@ -627,7 +626,6 @@ group will be automatically notified about the entry and exit of other nodes.</p
     "groups://my-shared-secret@023d34f317616c3bb0fa1e4b425e9419d1704ef57f6e53afe9790e00998134f5ff/steezy-vips?timeout=60"
   ]
 }</code></pre>
-
 <p>With this configuration, the client will connect to the Groups Manager on the node
 <code>023d34f317616c3bb0fa1e4b425e9419d1704ef57f6e53afe9790e00998134f5ff</code> at startup and will join the
 group <code>steezy-vips</code>. Authentication is done via the shared secret <code>my-shared-secret</code>.</p>
@@ -644,7 +642,6 @@ group <code>steezy-vips</code>. Authentication is done via the shared secret <co
 &lt;/dependency&gt;</code></pre></p>
 <p>Gradle:</p>
 <pre class="highlight"><code class="language-gradle">compile group: 'org.drasyl', name: 'drasyl-plugin-groups-manager', version: '0.3.0-SNAPSHOT'</code></pre>
-
 <h3 id="configuration_1">Configuration<a class="headerlink" href="#configuration_1" title="Permanent link">&para;</a></h3>
 <p>Make sure that the following entry is included in your configuration under <code>drasyl.plugins</code>:</p>
 <pre class="highlight"><code class="language-hocon">"org.drasyl.plugin.groups.manager.GroupsManagerPlugin" {
@@ -658,7 +655,6 @@ group <code>steezy-vips</code>. Authentication is done via the shared secret <co
     }
   }
 }</code></pre>
-
 <p>With this configuration the manager is created with the group <code>steezy-vips</code>, whose members must
 authenticate themselves using the shared secret <code>my-shared-secret</code>.</p>
                 
@@ -669,7 +665,7 @@ authenticate themselves using the shared secret <code>my-shared-secret</code>.</
 <div class="md-source-date">
   <small>
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 6, 2020</span>
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 8, 2020</span>
     
   </small>
 </div>

@@ -616,7 +616,6 @@
         &lt;/snapshots&gt;
     &lt;/repository&gt;
 &lt;/repositories&gt;</code></pre>
-
 <h2 id="add-dependency">Add Dependency<a class="headerlink" href="#add-dependency" title="Permanent link">&para;</a></h2>
 <p>Maven:
 <pre class="highlight"><code class="language-xml">&lt;dependency&gt;
@@ -626,7 +625,6 @@
 &lt;/dependency&gt;</code></pre></p>
 <p>Gradle:</p>
 <pre class="highlight"><code class="language-gradle">compile group: 'org.drasyl', name: 'drasyl-core', version: '0.3.0-SNAPSHOT'</code></pre>
-
 <h2 id="implementing-drasylnode">Implementing <code>DrasylNode</code><a class="headerlink" href="#implementing-drasylnode" title="Permanent link">&para;</a></h2>
 <p>Next, you can create your own drasyl node by implementing <a href="https://github.com/drasyl-overlay/drasyl/tree/master/drasyl-core/src/main/java/org/drasyl/DrasylNode.java"><code>DrasylNode</code></a>.</p>
 <p>This class contains the following methods that are now relevant for you:</p>
@@ -662,7 +660,6 @@ Currently, addresses of recipient nodes must be known, as drasyl currently has n
 <div class="admonition info">
 <p class="admonition-title">Example</p>
 <pre class="highlight"><code class="language-java">node.send("0229041b273dd5ee1c2bef2d77ae17dbd00d2f0a2e939e22d42ef1c4bf05147ea9", "Hello World");</code></pre>
-
 </div>
 <p>The method does not give any feedback on whether the message could be delivered. However, it can throw an exception if the local node has no connection to the
 drasyl network.</p>
@@ -695,7 +692,7 @@ An <code>NodeNormalTerminationEvent</code> is created when the shutdown is done.
 <div class="md-source-date">
   <small>
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 6, 2020</span>
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 8, 2020</span>
     
   </small>
 </div>
