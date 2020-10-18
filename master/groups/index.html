@@ -249,8 +249,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../getting-started/super-peers/" title="Super-Peers" class="md-nav__link">
-      Super-Peers
+    <a href="../getting-started/public-super-peers/" title="Public Super Peers" class="md-nav__link">
+      Public Super Peers
     </a>
   </li>
 
@@ -647,7 +647,7 @@ group <code>steezy-vips</code>. Authentication is done via the shared secret <co
 <pre class="highlight"><code class="language-hocon">"org.drasyl.plugin.groups.manager.GroupsManagerPlugin" {
   enabled = true
   database {
-    uri: "jdbc:sqlite::memory:"
+    uri = "jdbc:sqlite::memory:"
   }
   groups {
     "steezy-vips" {
@@ -656,7 +656,9 @@ group <code>steezy-vips</code>. Authentication is done via the shared secret <co
   }
 }</code></pre>
 <p>With this configuration the manager is created with the group <code>steezy-vips</code>, whose members must
-authenticate themselves using the shared secret <code>my-shared-secret</code>.</p>
+authenticate themselves using the shared secret <code>my-shared-secret</code>. 
+The manager stores all groups, nodes and their memberships in memory. To persistent the data on
+file system, <code>database.uri</code> can be set to <code>jdbc:sqlite:groups-manager.sqlite</code>.</p>
                 
                   
                     
