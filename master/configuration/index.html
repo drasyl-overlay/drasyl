@@ -544,7 +544,7 @@ Available builder methods can be obtained from the <a href="https://www.javadoc.
 <pre class="highlight"><code class="language-java">DrasylConfig config = DrasylConfig.newBuilder()
     .identityPath(Path.of("/Users/heiko/drasyl.identity.json"))
     .networkId(-25421)
-    .superPeerEndpoints(Set.of(Endpoint.of("wss://staging.env.drasyl.org#03096ae3080a369829a44847d5af1f652bef3f9921e9e1bbad64970babe6d3c502")))
+    .superPeerEndpoint(Endpoint.of("wss://staging.env.drasyl.org#03096ae3080a369829a44847d5af1f652bef3f9921e9e1bbad64970babe6d3c502"))
     .serverEnabled(false)
     .build();</code></pre></p>
 <p>The resulting <a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.html"><code>DrasylConfig</code></a> object can now be passed to the <a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylNode.html#%3Cinit%3E(org.drasyl.DrasylConfig)"><code>DrasylNode</code> constructor</a>.</p>
