@@ -544,8 +544,8 @@ Available builder methods can be obtained from the <a href="https://www.javadoc.
 <pre class="highlight"><code class="language-java">DrasylConfig config = DrasylConfig.newBuilder()
     .identityPath(Path.of("/Users/heiko/drasyl.identity.json"))
     .networkId(-25421)
-    .superPeerEndpoint(Endpoint.of("wss://staging.env.drasyl.org#03096ae3080a369829a44847d5af1f652bef3f9921e9e1bbad64970babe6d3c502"))
-    .serverEnabled(false)
+    .remoteSuperPeerEndpoint(Endpoint.of("udp://staging.env.drasyl.org#03096ae3080a369829a44847d5af1f652bef3f9921e9e1bbad64970babe6d3c502"))
+    .remoteEnabled(false)
     .build();</code></pre></p>
 <p>The resulting <a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.html"><code>DrasylConfig</code></a> object can now be passed to the <a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylNode.html#%3Cinit%3E(org.drasyl.DrasylConfig)"><code>DrasylNode</code> constructor</a>.</p>
 <h3 id="use-applicationconf-file">Use <code>application.conf</code> file<a class="headerlink" href="#use-applicationconf-file" title="Permanent link">&para;</a></h3>
@@ -555,8 +555,7 @@ The file only needs to contain the parameters you want to overwrite because it w
 <p>Example:
 <pre class="highlight"><code class="language-hocon">drasyl.identity.path = /Users/heiko/drasyl.identity.json
 drasyl.network.id = -25421
-drasyl.super-peer.endpoints = ["wss://staging.env.drasyl.org#03096ae3080a369829a44847d5af1f652bef3f9921e9e1bbad64970babe6d3c502"]
-drasyl.server.enabled = false</code></pre></p>
+drasyl.remote.super-peer.endpoint = "udp://staging.env.drasyl.org#03096ae3080a369829a44847d5af1f652bef3f9921e9e1bbad64970babe6d3c502"</code></pre></p>
 <h3 id="use-environment-variables">Use environment variables<a class="headerlink" href="#use-environment-variables" title="Permanent link">&para;</a></h3>
 <p>By setting the JVM property <code>-Dconfig.override_with_env_vars=true</code> it is possible to override any configuration value using environment variables.</p>
 <p>With this option enabled only environment variables starting with <code>CONFIG_FORCE_</code> are considered, and the name is mangled as follows:</p>
@@ -570,8 +569,7 @@ drasyl.server.enabled = false</code></pre></p>
 <p>Example:
 <pre class="highlight"><code class="language-bash">$ CONFIG_FORCE_drasyl_identity_path=/Users/heiko/drasyl.identity.json \
     CONFIG_FORCE_drasyl_network_id=-25421 \
-    CONFIG_FORCE_drasyl_super__peer_endpoints_0=wss://staging.env.drasyl.org#03096ae3080a369829a44847d5af1f652bef3f9921e9e1bbad64970babe6d3c502 \
-    CONFIG_FORCE_drasyl_server_enabled=false \
+    CONFIG_FORCE_drasyl_remote_super__peer_endpoint=udp://staging.env.drasyl.org#03096ae3080a369829a44847d5af1f652bef3f9921e9e1bbad64970babe6d3c502 \
     your-application.jar</code></pre></p>
 <div class="admonition info">
 <p class="admonition-title">Advanced References</p>
@@ -585,7 +583,7 @@ drasyl.server.enabled = false</code></pre></p>
 <div class="md-source-date">
   <small>
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 30, 2020</span>
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 1, 2020</span>
     
   </small>
 </div>

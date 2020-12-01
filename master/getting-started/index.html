@@ -592,7 +592,7 @@
 <p>This class contains the following methods that are now relevant for you:</p>
 <ul>
 <li><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylNode.html#send(java.lang.String,java.lang.Object)"><code>send(...)</code></a>: allows your application to send arbitrary messages to other drasyl nodes.</li>
-<li><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylNode.html#onEvent(org.drasyl.event.Event)"><code>onEvent(...)</code></a>: allows your application to react to certain events (e.g. process received messages). This method must be implemented.</li>
+<li><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylNode.html#onEvent(org.drasyl.event.Event)"><code>onEvent(...)</code></a>: allows your application to react to certain events (e.g. process received messages, connection to the network established/lost). This method must be implemented.</li>
 <li><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylNode.html#start()"><code>start()</code></a>: starts the node, which will then automatically connect to the drasyl network.</li>
 <li><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylNode.html#shutdown()"><code>shutdown()</code></a>: disconnects from the drasyl network and shuts down the node.</li>
 </ul>
@@ -621,12 +621,12 @@ From the public key, a 10 hex digit address is derived, by which each node can b
 <p>Example:
 <pre class="highlight"><code class="language-java">CompletableFuture&lt;Void&gt; result = node.send("0229041b273dd5ee1c2bef2d77ae17dbd00d2f0a2e939e22d42ef1c4bf05147ea9", "Hello World".getBytes());</code></pre></p>
 <p>The returned <a href="https://www.baeldung.com/java-completablefuture">Future</a> does not give any feedback on whether the message could be delivered. 
-The future is successfully completed if the local node could deliver the message itself or forward it to a super peer.
+The future is successfully completed if the local node could deliver the message itself or forward it to a super peer that acts as a default gateway.
 Otherwise the future is completed exceptionally.</p>
 <div class="admonition info">
 <p class="admonition-title">Advanced References</p>
 <p>The addresses of recipient nodes must be known, as drasyl-core has no function for querying available addresses.
-The <a href="../plugins/groups/">Groups Plugin</a> can be used to get automatically notified about nodes joining and leaving the network.</p>
+The <a href="../plugins/groups/">Groups Plugin</a> can be used to get automatically notified about other nodes joining and leaving the network.</p>
 </div>
 <h2 id="receiving-messages">Receiving Messages<a class="headerlink" href="#receiving-messages" title="Permanent link">&para;</a></h2>
 <p>Each received message is announced by an <a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/event/MessageEvent.html"><code>MessageEvent</code></a> to the application.
@@ -661,7 +661,7 @@ A <a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/e
 <div class="md-source-date">
   <small>
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 30, 2020</span>
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 1, 2020</span>
     
   </small>
 </div>
