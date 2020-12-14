@@ -544,6 +544,9 @@ An attacker can choose the URL arbitrarily. By calling getConnection, Server Sid
 <li><a href="https://frohoff.github.io/appseccali-marshalling-pickles/">Marshalling Pickles by Chris Frohoff and Garbriel Lawrence</a></li>
 </ul>
 </div>
+<p>By default, this list contains the types <code>java.lang.String</code> and <code>java.lang.Number</code>. 
+If you set this property in your configuration, all existing entries will be removed.
+Therefore, make sure that you re-add these types to the list if needed.</p>
 <h2 id="marshallinginboundallow-all-primitives-marshallingoutboundallow-all-primitives"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingInboundAllowAllPrimitives(boolean)"><code>marshalling.inbound.allow-all-primitives</code></a> / <a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingOutboundAllowAllPrimitives(boolean)"><code>marshalling.outbound.allow-all-primitives</code></a><a class="headerlink" href="#marshallinginboundallow-all-primitives-marshallingoutboundallow-all-primitives" title="Permanent link">&para;</a></h2>
 <p>Whether Java's primitive data types should automatically be allowed. If this setting is activated, drasyl automatically (de-)serializes the types: </p>
 <ul>
@@ -582,7 +585,7 @@ An attacker can choose the URL arbitrarily. By calling getConnection, Server Sid
 <div class="md-source-date">
   <small>
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 11, 2020</span>
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 14, 2020</span>
     
   </small>
 </div>
