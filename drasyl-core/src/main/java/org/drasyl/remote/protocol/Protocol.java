@@ -215,6 +215,16 @@ public final class Protocol {
      * @return The signature.
      */
     com.google.protobuf.ByteString getSignature();
+
+    /**
+     * <pre>
+     * 1 byte
+     * </pre>
+     *
+     * <code>bool fragment = 9;</code>
+     * @return The fragment.
+     */
+    boolean getFragment();
   }
   /**
    * Protobuf type {@code org.drasyl.remote.protocol.PublicHeader}
@@ -305,6 +315,11 @@ public final class Protocol {
             case 66: {
 
               signature_ = input.readBytes();
+              break;
+            }
+            case 72: {
+
+              fragment_ = input.readBool();
               break;
             }
             default: {
@@ -451,6 +466,21 @@ public final class Protocol {
       return signature_;
     }
 
+    public static final int FRAGMENT_FIELD_NUMBER = 9;
+    private boolean fragment_;
+    /**
+     * <pre>
+     * 1 byte
+     * </pre>
+     *
+     * <code>bool fragment = 9;</code>
+     * @return The fragment.
+     */
+    @java.lang.Override
+    public boolean getFragment() {
+      return fragment_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -488,6 +518,9 @@ public final class Protocol {
       }
       if (!signature_.isEmpty()) {
         output.writeBytes(8, signature_);
+      }
+      if (fragment_ != false) {
+        output.writeBool(9, fragment_);
       }
       unknownFields.writeTo(output);
     }
@@ -530,6 +563,10 @@ public final class Protocol {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(8, signature_);
       }
+      if (fragment_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(9, fragment_);
+      }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
       return size;
@@ -561,6 +598,8 @@ public final class Protocol {
           .equals(other.getHopCount())) return false;
       if (!getSignature()
           .equals(other.getSignature())) return false;
+      if (getFragment()
+          != other.getFragment()) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -588,6 +627,9 @@ public final class Protocol {
       hash = (53 * hash) + getHopCount().hashCode();
       hash = (37 * hash) + SIGNATURE_FIELD_NUMBER;
       hash = (53 * hash) + getSignature().hashCode();
+      hash = (37 * hash) + FRAGMENT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getFragment());
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -737,6 +779,8 @@ public final class Protocol {
 
         signature_ = com.google.protobuf.ByteString.EMPTY;
 
+        fragment_ = false;
+
         return this;
       }
 
@@ -771,6 +815,7 @@ public final class Protocol {
         result.recipient_ = recipient_;
         result.hopCount_ = hopCount_;
         result.signature_ = signature_;
+        result.fragment_ = fragment_;
         onBuilt();
         return result;
       }
@@ -842,6 +887,9 @@ public final class Protocol {
         }
         if (other.getSignature() != com.google.protobuf.ByteString.EMPTY) {
           setSignature(other.getSignature());
+        }
+        if (other.getFragment() != false) {
+          setFragment(other.getFragment());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -1206,6 +1254,49 @@ public final class Protocol {
       public Builder clearSignature() {
         
         signature_ = getDefaultInstance().getSignature();
+        onChanged();
+        return this;
+      }
+
+      private boolean fragment_ ;
+      /**
+       * <pre>
+       * 1 byte
+       * </pre>
+       *
+       * <code>bool fragment = 9;</code>
+       * @return The fragment.
+       */
+      @java.lang.Override
+      public boolean getFragment() {
+        return fragment_;
+      }
+      /**
+       * <pre>
+       * 1 byte
+       * </pre>
+       *
+       * <code>bool fragment = 9;</code>
+       * @param value The fragment to set.
+       * @return This builder for chaining.
+       */
+      public Builder setFragment(boolean value) {
+        
+        fragment_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * 1 byte
+       * </pre>
+       *
+       * <code>bool fragment = 9;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearFragment() {
+        
+        fragment_ = false;
         onChanged();
         return this;
       }
@@ -6181,24 +6272,24 @@ public final class Protocol {
   static {
     java.lang.String[] descriptorData = {
       "\n\016protocol.proto\022\032org.drasyl.remote.prot" +
-      "ocol\"\235\001\n\014PublicHeader\022\n\n\002id\030\001 \001(\014\022\021\n\tuse" +
+      "ocol\"\257\001\n\014PublicHeader\022\n\n\002id\030\001 \001(\014\022\021\n\tuse" +
       "rAgent\030\002 \001(\014\022\021\n\tnetworkId\030\003 \001(\005\022\016\n\006sende" +
       "r\030\004 \001(\014\022\023\n\013proofOfWork\030\005 \001(\005\022\021\n\trecipien" +
       "t\030\006 \001(\014\022\020\n\010hopCount\030\007 \001(\014\022\021\n\tsignature\030\010" +
-      " \001(\014\"F\n\rPrivateHeader\0225\n\004type\030\001 \001(\0162\'.or" +
-      "g.drasyl.remote.protocol.MessageType\"*\n\017" +
-      "Acknowledgement\022\027\n\017correspondingId\030\001 \001(\014" +
-      "\",\n\013Application\022\017\n\007payload\030\001 \001(\014\022\014\n\004type" +
-      "\030\002 \001(\t\"!\n\tDiscovery\022\024\n\014childrenTime\030\001 \001(" +
-      "\004\"9\n\005Unite\022\021\n\tpublicKey\030\001 \001(\014\022\017\n\007address" +
-      "\030\002 \001(\t\022\014\n\004port\030\003 \001(\014\"Q\n\013ChunkHeader\022\n\n\002i" +
-      "d\030\001 \001(\014\022\021\n\tnetworkId\030\003 \001(\005\022\021\n\trecipient\030" +
-      "\006 \001(\014\022\020\n\010hopCount\030\007 \001(\014\"2\n\nFirstChunk\022\023\n" +
-      "\013totalLength\030\001 \001(\r\022\017\n\007payload\030\002 \001(\014\"\'\n\005C" +
-      "hunk\022\r\n\005count\030\001 \001(\r\022\017\n\007payload\030\002 \001(\014*M\n\013" +
-      "MessageType\022\023\n\017ACKNOWLEDGEMENT\020\000\022\017\n\013APPL" +
-      "ICATION\020\001\022\r\n\tDISCOVERY\020\002\022\t\n\005UNITE\020\003b\006pro" +
-      "to3"
+      " \001(\014\022\020\n\010fragment\030\t \001(\010\"F\n\rPrivateHeader\022" +
+      "5\n\004type\030\001 \001(\0162\'.org.drasyl.remote.protoc" +
+      "ol.MessageType\"*\n\017Acknowledgement\022\027\n\017cor" +
+      "respondingId\030\001 \001(\014\",\n\013Application\022\017\n\007pay" +
+      "load\030\001 \001(\014\022\014\n\004type\030\002 \001(\t\"!\n\tDiscovery\022\024\n" +
+      "\014childrenTime\030\001 \001(\004\"9\n\005Unite\022\021\n\tpublicKe" +
+      "y\030\001 \001(\014\022\017\n\007address\030\002 \001(\t\022\014\n\004port\030\003 \001(\014\"Q" +
+      "\n\013ChunkHeader\022\n\n\002id\030\001 \001(\014\022\021\n\tnetworkId\030\003" +
+      " \001(\005\022\021\n\trecipient\030\006 \001(\014\022\020\n\010hopCount\030\007 \001(" +
+      "\014\"2\n\nFirstChunk\022\023\n\013totalLength\030\001 \001(\r\022\017\n\007" +
+      "payload\030\002 \001(\014\"\'\n\005Chunk\022\r\n\005count\030\001 \001(\r\022\017\n" +
+      "\007payload\030\002 \001(\014*M\n\013MessageType\022\023\n\017ACKNOWL" +
+      "EDGEMENT\020\000\022\017\n\013APPLICATION\020\001\022\r\n\tDISCOVERY" +
+      "\020\002\022\t\n\005UNITE\020\003b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -6209,7 +6300,7 @@ public final class Protocol {
     internal_static_org_drasyl_remote_protocol_PublicHeader_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_org_drasyl_remote_protocol_PublicHeader_descriptor,
-        new java.lang.String[] { "Id", "UserAgent", "NetworkId", "Sender", "ProofOfWork", "Recipient", "HopCount", "Signature", });
+        new java.lang.String[] { "Id", "UserAgent", "NetworkId", "Sender", "ProofOfWork", "Recipient", "HopCount", "Signature", "Fragment", });
     internal_static_org_drasyl_remote_protocol_PrivateHeader_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_org_drasyl_remote_protocol_PrivateHeader_fieldAccessorTable = new
