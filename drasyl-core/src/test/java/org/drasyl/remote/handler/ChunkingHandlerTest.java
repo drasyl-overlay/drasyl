@@ -18,15 +18,44 @@
  */
 package org.drasyl.remote.handler;
 
+import io.reactivex.rxjava3.observers.TestObserver;
+import org.drasyl.DrasylConfig;
+import org.drasyl.crypto.CryptoException;
+import org.drasyl.identity.CompressedPublicKey;
+import org.drasyl.identity.Identity;
+import org.drasyl.identity.ProofOfWork;
+import org.drasyl.peer.PeersManager;
+import org.drasyl.pipeline.EmbeddedPipeline;
+import org.drasyl.pipeline.Handler;
+import org.drasyl.pipeline.address.Address;
+import org.drasyl.pipeline.codec.TypeValidator;
+import org.drasyl.remote.protocol.IntermediateEnvelope;
+import org.drasyl.util.Pair;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.drasyl.remote.handler.ChunkingHandler.MTU;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ChunkingHandlerTest {
+    @Mock
+    private DrasylConfig config;
+    @Mock
+    private Identity identity;
+    @Mock
+    private PeersManager peersManager;
+    @Mock
+    private TypeValidator inboundValidator;
+    @Mock
+    private TypeValidator outboundValidator;
+
     @Nested
     class OnIngoingMessage {
         @Nested
@@ -71,8 +100,29 @@ class ChunkingHandlerTest {
             }
 
             @Test
-            void shouldChunkMessageExceedingMtuSize() {
+            void shouldDropMessageExceedingMaximumMessageSize() {
                 fail("not implemented");
+            }
+
+            @Test
+            @Timeout(value = 5_000, unit = MILLISECONDS)
+            void shouldChunkMessageExceedingMtuSize(@Mock final Address address) throws CryptoException {
+                final CompressedPublicKey sender = CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22");
+                final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
+                when(identity.getPublicKey()).thenReturn(sender);
+
+                final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[MTU * 2]);
+                final Handler handler = new ChunkingHandler();
+                final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
+                final TestObserver<Pair<Address, Object>> outboundMessages = pipeline.outboundMessages().test();
+
+                pipeline.processOutbound(address, msg).join();
+
+                outboundMessages.awaitCount(3)
+                        .assertValueCount(3)
+                        .assertValueAt(0, p -> ((IntermediateEnvelope) p.second()).getFragmentNo() == 0)
+                        .assertValueAt(1, p -> ((IntermediateEnvelope) p.second()).getFragmentNo() == 1)
+                        .assertValueAt(2, p -> ((IntermediateEnvelope) p.second()).getFragmentNo() == 2);
             }
         }
 
