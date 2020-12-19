@@ -43,9 +43,10 @@ import org.drasyl.remote.protocol.Protocol.Application;
 import org.drasyl.remote.protocol.Protocol.Discovery;
 import org.drasyl.remote.protocol.Protocol.Unite;
 import org.drasyl.util.Pair;
+import org.drasyl.util.ReferenceCountUtil;
 import org.drasyl.util.UnsignedShort;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -157,10 +158,7 @@ public class UdpDiscoveryHandler extends SimpleDuplexHandler<IntermediateEnvelop
         final CompressedPublicKey superPeerKey = ctx.config().getRemoteSuperPeerEndpoint().getPublicKey();
         new HashMap<>(peers).forEach(((publicKey, peer) -> {
             if (!peer.hasControlTraffic(ctx.config())) {
-                if (LOG.isDebugEnabled()) {
-                    final long lastInboundControlTrafficTime = peer.getLastInboundControlTrafficTime();
-                    LOG.debug("Last contact from {} is {}ms ago. Remove peer.", publicKey, System.currentTimeMillis() - lastInboundControlTrafficTime);
-                }
+                LOG.debug("Last contact from {} is {}ms ago. Remove peer.", () -> publicKey, () -> System.currentTimeMillis() - peer.getLastInboundControlTrafficTime());
                 if (publicKey.equals(superPeerKey)) {
                     ctx.peersManager().unsetSuperPeerAndRemovePath(path);
                 }
@@ -203,10 +201,7 @@ public class UdpDiscoveryHandler extends SimpleDuplexHandler<IntermediateEnvelop
             }
             // remove trivial communications, that does not send any user generated messages
             else {
-                final long lastCommunicationTime = peer.getLastApplicationTrafficTime();
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Last application communication to {} is {}ms ago. Remove peer.", publicKey, System.currentTimeMillis() - lastCommunicationTime);
-                }
+                LOG.debug("Last application communication to {} is {}ms ago. Remove peer.", () -> publicKey, () -> System.currentTimeMillis() - peer.getLastApplicationTrafficTime());
                 ctx.peersManager().removeChildrenAndPath(publicKey, path);
                 directConnectionPeers.remove(publicKey);
             }
@@ -222,15 +217,10 @@ public class UdpDiscoveryHandler extends SimpleDuplexHandler<IntermediateEnvelop
         final CompressedPublicKey sender = ctx.identity().getPublicKey();
         final ProofOfWork proofOfWork = ctx.identity().getProofOfWork();
 
-        try {
-            final IntermediateEnvelope<Discovery> messageEnvelope = IntermediateEnvelope.discovery(networkId, sender, proofOfWork, publicKey, isChildrenJoin ? System.currentTimeMillis() : 0);
-            openPingsCache.put(messageEnvelope.getId(), new OpenPing(recipientAddress, isChildrenJoin));
-            LOG.trace("Send {} to {}", messageEnvelope, recipientAddress);
-            ctx.write(recipientAddress, messageEnvelope, future);
-        }
-        catch (final IOException e) {
-            future.completeExceptionally(new Exception("Unable to serialize " + Discovery.class.getSimpleName() + " message", e));
-        }
+        final IntermediateEnvelope<Discovery> messageEnvelope = IntermediateEnvelope.discovery(networkId, sender, proofOfWork, publicKey, isChildrenJoin ? System.currentTimeMillis() : 0);
+        openPingsCache.put(messageEnvelope.getId(), new OpenPing(recipientAddress, isChildrenJoin));
+        LOG.trace("Send {} to {}", messageEnvelope, recipientAddress);
+        ctx.write(recipientAddress, messageEnvelope, future);
     }
 
     @Override
@@ -245,13 +235,8 @@ public class UdpDiscoveryHandler extends SimpleDuplexHandler<IntermediateEnvelop
         }
 
         if (recipient instanceof CompressedPublicKey) {
-            try {
-                final IntermediateEnvelope<Application> remoteMessageEnvelope = IntermediateEnvelope.application(ctx.config().getNetworkId(), ctx.identity().getPublicKey(), ctx.identity().getProofOfWork(), msg.getRecipient(), msg.getContent().getClazzAsString(), msg.getContent().getObject());
-                processMessage(ctx, (CompressedPublicKey) recipient, remoteMessageEnvelope, future);
-            }
-            catch (final IOException e) {
-                future.completeExceptionally(new Exception("Unable to serialize " + Application.class.getSimpleName() + " message", e));
-            }
+            final IntermediateEnvelope<Application> remoteMessageEnvelope = IntermediateEnvelope.application(ctx.config().getNetworkId(), ctx.identity().getPublicKey(), ctx.identity().getProofOfWork(), msg.getRecipient(), msg.getContent().getClazzAsString(), msg.getContent().getObject());
+            processMessage(ctx, (CompressedPublicKey) recipient, remoteMessageEnvelope, future);
         }
         else {
             // passthrough message
@@ -292,7 +277,7 @@ public class UdpDiscoveryHandler extends SimpleDuplexHandler<IntermediateEnvelop
                 LOG.trace("Relay message from {} to {}.", msg.getSender(), recipient);
 
                 if (shouldTryUnite(msg.getSender(), msg.getRecipient())) {
-                    ctx.scheduler().scheduleDirect(() -> sendUnites(ctx, msg, recipientSocketAddress, senderSocketAddress));
+                    ctx.scheduler().scheduleDirect(() -> sendUnites(ctx, msg.getSender(), msg.getRecipient(), recipientSocketAddress, senderSocketAddress));
                 }
             }
 
@@ -326,34 +311,26 @@ public class UdpDiscoveryHandler extends SimpleDuplexHandler<IntermediateEnvelop
      * This method initiates a unite between the {@code sender} and {@code recipient}, by sending
      * both the required information to establish a direct (P2P) connection.
      *
-     * @param ctx       the handler context
-     * @param msg       the message
-     * @param recipient the recipient socket address
-     * @param sender    the sender socket address
+     * @param ctx          the handler context
+     * @param senderKey    the sender's public key
+     * @param recipientKey the recipient's public key
+     * @param recipient    the recipient socket address
+     * @param sender       the sender socket address
      */
     private void sendUnites(final HandlerContext ctx,
-                            final IntermediateEnvelope<? extends MessageLite> msg,
+                            final CompressedPublicKey senderKey,
+                            final CompressedPublicKey recipientKey,
                             final InetSocketAddressWrapper recipient,
                             final InetSocketAddressWrapper sender) {
         // send recipient's information to sender
-        try {
-            final IntermediateEnvelope<Unite> senderRendezvousEnvelope = IntermediateEnvelope.unite(ctx.config().getNetworkId(), ctx.identity().getPublicKey(), ctx.identity().getProofOfWork(), msg.getSender(), msg.getRecipient(), recipient.getAddress());
-            LOG.trace("Send {} to {}", senderRendezvousEnvelope, sender);
-            ctx.write(sender, senderRendezvousEnvelope, new CompletableFuture<>());
-        }
-        catch (final IOException e) {
-            LOG.warn("Unable to serialize message `{}`", msg, e);
-        }
+        final IntermediateEnvelope<Unite> senderRendezvousEnvelope = IntermediateEnvelope.unite(ctx.config().getNetworkId(), ctx.identity().getPublicKey(), ctx.identity().getProofOfWork(), senderKey, recipientKey, recipient.getAddress());
+        LOG.trace("Send {} to {}", senderRendezvousEnvelope, sender);
+        ctx.write(sender, senderRendezvousEnvelope, new CompletableFuture<>());
 
         // send sender's information to recipient
-        try {
-            final IntermediateEnvelope<Unite> recipientRendezvousEnvelope = IntermediateEnvelope.unite(ctx.config().getNetworkId(), ctx.identity().getPublicKey(), ctx.identity().getProofOfWork(), msg.getRecipient(), msg.getSender(), sender.getAddress());
-            LOG.trace("Send {} to {}", recipientRendezvousEnvelope, recipient);
-            ctx.write(recipient, recipientRendezvousEnvelope, new CompletableFuture<>());
-        }
-        catch (final IOException e) {
-            LOG.warn("Unable to serialize message `{}`", msg, e);
-        }
+        final IntermediateEnvelope<Unite> recipientRendezvousEnvelope = IntermediateEnvelope.unite(ctx.config().getNetworkId(), ctx.identity().getPublicKey(), ctx.identity().getProofOfWork(), recipientKey, senderKey, sender.getAddress());
+        LOG.trace("Send {} to {}", recipientRendezvousEnvelope, recipient);
+        ctx.write(recipient, recipientRendezvousEnvelope, new CompletableFuture<>());
     }
 
     @Override
@@ -373,17 +350,15 @@ public class UdpDiscoveryHandler extends SimpleDuplexHandler<IntermediateEnvelop
                 if (!ctx.config().isRemoteSuperPeerEnabled()) {
                     processMessage(ctx, envelope.getRecipient(), envelope, future);
                 }
-                else if (LOG.isDebugEnabled()) {
+                else {
                     LOG.debug("We're not a super peer. Message {} from {} for relaying was dropped.", envelope, sender);
                 }
             }
         }
         catch (final IOException | CryptoException | IllegalArgumentException e) {
-            LOG.warn("Unable to deserialize '{}': {}", sanitizeLogArg(envelope.getByteBuf()), e);
+            LOG.warn("Unable to deserialize '{}': {}", () -> sanitizeLogArg(envelope.getByteBuf()), e::getMessage);
             future.completeExceptionally(new Exception("Message could not be deserialized.", e));
-            if (envelope.getByteBuf().refCnt() != 0) {
-                envelope.getByteBuf().release();
-            }
+            ReferenceCountUtil.safeRelease(envelope);
         }
     }
 
@@ -406,14 +381,13 @@ public class UdpDiscoveryHandler extends SimpleDuplexHandler<IntermediateEnvelop
                 handleApplication(ctx, sender, (IntermediateEnvelope<Application>) envelope, future);
             }
             else {
+                envelope.retain();
                 // passthrough message
                 ctx.fireRead(sender, envelope, future);
             }
         }
         finally {
-            if (envelope.getByteBuf().refCnt() != 0) {
-                envelope.getByteBuf().release();
-            }
+            ReferenceCountUtil.safeRelease(envelope);
         }
     }
 
@@ -423,7 +397,7 @@ public class UdpDiscoveryHandler extends SimpleDuplexHandler<IntermediateEnvelop
                             final CompletableFuture<Void> future) throws IOException, CryptoException {
         final CompressedPublicKey sender = requireNonNull(CompressedPublicKey.of(envelope.getPublicHeader().getSender().toByteArray()));
         final MessageId id = requireNonNull(MessageId.of(envelope.getPublicHeader().getId().toByteArray()));
-        final boolean childrenJoin = envelope.getBody().getChildrenTime() > 0;
+        final boolean childrenJoin = envelope.getBodyAndRelease().getChildrenTime() > 0;
         LOG.trace("Got {} from {}", envelope, senderSocketAddress);
         final Peer peer = peers.computeIfAbsent(sender, key -> new Peer());
         peer.setAddress(senderSocketAddress);
@@ -442,21 +416,16 @@ public class UdpDiscoveryHandler extends SimpleDuplexHandler<IntermediateEnvelop
         final int networkId = ctx.config().getNetworkId();
         final CompressedPublicKey myPublicKey = ctx.identity().getPublicKey();
         final ProofOfWork myProofOfWork = ctx.identity().getProofOfWork();
-        try {
-            final IntermediateEnvelope<Acknowledgement> responseEnvelope = IntermediateEnvelope.acknowledgement(networkId, myPublicKey, myProofOfWork, sender, id);
-            LOG.trace("Send {} to {}", responseEnvelope, senderSocketAddress);
-            ctx.write(senderSocketAddress, responseEnvelope, future);
-        }
-        catch (final IOException e) {
-            future.completeExceptionally(new Exception("Unable to serialize " + Acknowledgement.class.getSimpleName() + " message", e));
-        }
+        final IntermediateEnvelope<Acknowledgement> responseEnvelope = IntermediateEnvelope.acknowledgement(networkId, myPublicKey, myProofOfWork, sender, id);
+        LOG.trace("Send {} to {}", responseEnvelope, senderSocketAddress);
+        ctx.write(senderSocketAddress, responseEnvelope, future);
     }
 
     private void handlePong(final HandlerContext ctx,
                             final InetSocketAddressWrapper senderSocketAddress,
                             final IntermediateEnvelope<Acknowledgement> envelope,
                             final CompletableFuture<Void> future) throws IOException, CryptoException {
-        final MessageId correspondingId = requireNonNull(MessageId.of(envelope.getBody().getCorrespondingId().toByteArray()));
+        final MessageId correspondingId = requireNonNull(MessageId.of(envelope.getBodyAndRelease().getCorrespondingId().toByteArray()));
         final CompressedPublicKey sender = requireNonNull(CompressedPublicKey.of(envelope.getPublicHeader().getSender().toByteArray()));
         LOG.trace("Got {} from {}", envelope, senderSocketAddress);
         final OpenPing openPing = openPingsCache.remove(correspondingId);
@@ -486,8 +455,8 @@ public class UdpDiscoveryHandler extends SimpleDuplexHandler<IntermediateEnvelop
     private void handleUnite(final HandlerContext ctx,
                              final IntermediateEnvelope<Unite> envelope,
                              final CompletableFuture<Void> future) throws IOException, CryptoException {
-        final CompressedPublicKey publicKey = requireNonNull(CompressedPublicKey.of(envelope.getBody().getPublicKey().toByteArray()));
-        final InetSocketAddress address = new InetSocketAddress(envelope.getBody().getAddress(), UnsignedShort.of(envelope.getBody().getPort().toByteArray()).getValue());
+        final CompressedPublicKey publicKey = requireNonNull(CompressedPublicKey.of(envelope.getBodyAndRelease().getPublicKey().toByteArray()));
+        final InetSocketAddress address = new InetSocketAddress(envelope.getBodyAndRelease().getAddress(), UnsignedShort.of(envelope.getBodyAndRelease().getPort().toByteArray()).getValue());
         LOG.trace("Got {}", envelope);
         final InetSocketAddressWrapper socketAddress = new InetSocketAddressWrapper(address);
         final Peer peer = peers.computeIfAbsent(publicKey, key -> new Peer());
@@ -508,7 +477,7 @@ public class UdpDiscoveryHandler extends SimpleDuplexHandler<IntermediateEnvelop
         }
 
         // convert to ApplicationMessage
-        final ApplicationMessage applicationMessage = new ApplicationMessage(envelope.getSender(), envelope.getRecipient(), ObjectHolder.of(requireNonNull(envelope.getBody().getType()), requireNonNull(envelope.getBody().getPayload().toByteArray())));
+        final ApplicationMessage applicationMessage = new ApplicationMessage(envelope.getSender(), envelope.getRecipient(), ObjectHolder.of(requireNonNull(envelope.getBodyAndRelease().getType()), requireNonNull(envelope.getBodyAndRelease().getPayload().toByteArray())));
         ctx.fireRead(sender, applicationMessage, future);
     }
 

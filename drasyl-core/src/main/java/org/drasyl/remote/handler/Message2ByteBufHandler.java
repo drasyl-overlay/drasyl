@@ -24,8 +24,9 @@ import org.drasyl.pipeline.HandlerContext;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.skeleton.SimpleOutboundHandler;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.ReferenceCountUtil;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -49,14 +50,12 @@ public class Message2ByteBufHandler extends SimpleOutboundHandler<IntermediateEn
                                 final CompletableFuture<Void> future) {
         ByteBuf byteBuf = null;
         try {
-            byteBuf = msg.getByteBuf();
+            byteBuf = msg.getOrBuildByteBuf();
 
             write(ctx, recipient, byteBuf, future);
         }
         catch (final Exception e) {
-            if (byteBuf != null) {
-                byteBuf.release();
-            }
+            ReferenceCountUtil.safeRelease(byteBuf);
             LOG.error("Unable to serialize '{}': {}", sanitizeLogArg(msg), e.getMessage());
             future.completeExceptionally(new Exception("Message could not be serialized. This could indicate a bug in drasyl.", e));
         }

@@ -25,8 +25,8 @@ import org.drasyl.identity.Identity;
 import org.drasyl.peer.PeersManager;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.codec.TypeValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -132,9 +132,7 @@ abstract class AbstractHandlerContext implements HandlerContext {
             throw e;
         }
         catch (final Exception e) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("Failed to invoke exceptionCaught() on next handler `{}` do to the following error: ", inboundCtx.name(), e);
-            }
+            LOG.warn("Failed to invoke exceptionCaught() on next handler `{}` do to the following error: ", inboundCtx::name, () -> e);
         }
     }
 
@@ -187,9 +185,7 @@ abstract class AbstractHandlerContext implements HandlerContext {
             }
         }
         catch (final Exception e) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("Failed to invoke read() on next handler `{}` do to the following error: ", inboundCtx.name(), e);
-            }
+            LOG.warn("Failed to invoke read() on next handler `{}` do to the following error: ", inboundCtx::name, () -> e);
             future.completeExceptionally(e);
             inboundCtx.fireExceptionCaught(e);
         }
@@ -212,9 +208,7 @@ abstract class AbstractHandlerContext implements HandlerContext {
             }
         }
         catch (final Exception e) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("Failed to invoke eventTriggered() on next handler `{}` do to the following error: ", inboundCtx.name(), e);
-            }
+            LOG.warn("Failed to invoke eventTriggered() on next handler `{}` do to the following error: ", inboundCtx::name, () -> e);
             future.completeExceptionally(e);
             inboundCtx.fireExceptionCaught(e);
         }
@@ -239,9 +233,7 @@ abstract class AbstractHandlerContext implements HandlerContext {
             }
         }
         catch (final Exception e) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("Failed to invoke write() on next handler `{}` do to the following error: ", outboundCtx.name(), e);
-            }
+            LOG.warn("Failed to invoke write() on next handler `{}` do to the following error: ", outboundCtx::name, () -> e);
             future.completeExceptionally(e);
             outboundCtx.fireExceptionCaught(e);
         }

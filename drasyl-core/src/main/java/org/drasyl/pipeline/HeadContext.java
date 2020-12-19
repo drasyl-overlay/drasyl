@@ -18,15 +18,15 @@
  */
 package org.drasyl.pipeline;
 
-import io.netty.util.ReferenceCountUtil;
 import io.reactivex.rxjava3.core.Scheduler;
 import org.drasyl.DrasylConfig;
 import org.drasyl.identity.Identity;
 import org.drasyl.peer.PeersManager;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.codec.TypeValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.ReferenceCountUtil;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -51,16 +51,12 @@ class HeadContext extends AbstractEndHandler {
 
     @Override
     public void handlerAdded(final HandlerContext ctx) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Pipeline head was added.");
-        }
+        LOG.debug("Pipeline head was added.");
     }
 
     @Override
     public void handlerRemoved(final HandlerContext ctx) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Pipeline head was removed.");
-        }
+        LOG.debug("Pipeline head was removed.");
     }
 
     @Override
@@ -75,21 +71,17 @@ class HeadContext extends AbstractEndHandler {
             }
 
             if (future.isDone()) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Message `{}` with recipient `{}` has arrived at the end of the pipeline and was already completed.", msg, recipient);
-                }
+                LOG.debug("Message `{}` with recipient `{}` has arrived at the end of the pipeline and was already completed.", msg, recipient);
             }
             else {
-                if (LOG.isWarnEnabled()) {
-                    LOG.warn("Message `{}` with recipient `{}` has arrived at the end of the pipeline and was not consumed before by a handler. Therefore the message was dropped.\n" +
-                            "This can happen due to a missing codec. You can find more information regarding this here: " +
-                            "https://docs.drasyl.org/configuration/marshalling/", msg, recipient);
-                }
+                LOG.warn("Message `{}` with recipient `{}` has arrived at the end of the pipeline and was not consumed before by a handler. Therefore the message was dropped.\n" +
+                        "This can happen due to a missing codec. You can find more information regarding this here: " +
+                        "https://docs.drasyl.org/configuration/marshalling/", msg, recipient);
                 future.completeExceptionally(new IllegalStateException("Message has arrived at the end of the pipeline and was not consumed before by a handler. Therefore the message was dropped. This can happen due to a missing codec. You can find more information regarding this here: https://docs.drasyl.org/configuration/marshalling/"));
             }
         }
         finally {
-            ReferenceCountUtil.release(msg);
+            ReferenceCountUtil.safeRelease(msg);
         }
     }
 }

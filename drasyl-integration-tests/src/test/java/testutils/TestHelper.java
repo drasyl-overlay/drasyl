@@ -19,8 +19,8 @@
 package testutils;
 
 import org.drasyl.util.AnsiColor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import static org.drasyl.util.AnsiColor.COLOR_RESET;
 

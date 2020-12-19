@@ -37,10 +37,10 @@ import org.drasyl.pipeline.skeleton.HandlerAdapter;
 import org.drasyl.pipeline.skeleton.SimpleOutboundHandler;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
 import org.drasyl.remote.protocol.Protocol.Application;
+import org.drasyl.util.ReferenceCountUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -102,7 +102,7 @@ class DrasylPipelineIT {
     }
 
     @Test
-    void passMessageThroughThePipeline() throws CryptoException, IOException {
+    void passMessageThroughThePipeline() {
         final TestObserver<Event> events = receivedEvents.test();
 
         final byte[] newPayload = new byte[]{
@@ -121,16 +121,18 @@ class DrasylPipelineIT {
             }
         });
 
-        final IntermediateEnvelope<Application> message = IntermediateEnvelope.application(0, identity2.getPublicKey(), identity2.getProofOfWork(), identity1.getPublicKey(), byte[].class.getName(), new byte[]{}).arm(identity2.getPrivateKey());
+        final IntermediateEnvelope<Application> message = IntermediateEnvelope.application(0, identity2.getPublicKey(), identity2.getProofOfWork(), identity1.getPublicKey(), byte[].class.getName(), new byte[]{}).armAndRelease(identity2.getPrivateKey());
 
         pipeline.processInbound(message.getSender(), message);
 
         events.awaitCount(1).assertValueCount(1);
         events.assertValue(new MessageEvent(identity2.getPublicKey(), newPayload));
+
+        ReferenceCountUtil.safeRelease(message);
     }
 
     @Test
-    void passEventThroughThePipeline() throws CryptoException, IOException {
+    void passEventThroughThePipeline() {
         final TestObserver<Event> events = receivedEvents.test();
 
         final Event testEvent = new Event() {
@@ -149,17 +151,19 @@ class DrasylPipelineIT {
             }
         });
 
-        final IntermediateEnvelope<Application> message = IntermediateEnvelope.application(0, identity2.getPublicKey(), identity2.getProofOfWork(), identity1.getPublicKey(), byte[].class.getName(), "Hallo Welt".getBytes()).arm(identity2.getPrivateKey());
+        final IntermediateEnvelope<Application> message = IntermediateEnvelope.application(0, identity2.getPublicKey(), identity2.getProofOfWork(), identity1.getPublicKey(), byte[].class.getName(), "Hallo Welt".getBytes()).armAndRelease(identity2.getPrivateKey());
 
         pipeline.processInbound(message.getSender(), message);
 
         events.awaitCount(2);
         events.assertValueAt(0, new MessageEvent(message.getSender(), "Hallo Welt".getBytes()));
         events.assertValueAt(1, testEvent);
+
+        ReferenceCountUtil.safeRelease(message);
     }
 
     @Test
-    void exceptionShouldPassThroughThePipeline() throws CryptoException, IOException {
+    void exceptionShouldPassThroughThePipeline() {
         final PublishSubject<Throwable> receivedExceptions = PublishSubject.create();
         final TestObserver<Throwable> exceptions = receivedExceptions.test();
 
@@ -192,12 +196,14 @@ class DrasylPipelineIT {
             }
         });
 
-        final IntermediateEnvelope<Application> message = IntermediateEnvelope.application(0, identity2.getPublicKey(), identity2.getProofOfWork(), identity1.getPublicKey(), byte[].class.getName(), new byte[]{}).arm(identity2.getPrivateKey());
+        final IntermediateEnvelope<Application> message = IntermediateEnvelope.application(0, identity2.getPublicKey(), identity2.getProofOfWork(), identity1.getPublicKey(), byte[].class.getName(), new byte[]{}).armAndRelease(identity2.getPrivateKey());
 
         pipeline.processInbound(message.getSender(), message);
 
         exceptions.awaitCount(1).assertValueCount(1);
         exceptions.assertValue(exception);
+
+        ReferenceCountUtil.safeRelease(message);
     }
 
     @Test
@@ -231,7 +237,7 @@ class DrasylPipelineIT {
     }
 
     @Test
-    void shouldNotPassthroughsMessagesWithDoneFuture() throws IOException {
+    void shouldNotPassthroughsMessagesWithDoneFuture() {
         final TestObserver<Object> outbounds = outboundMessages.test();
         final IntermediateEnvelope<Application> msg = IntermediateEnvelope.application(0, identity1.getPublicKey(), identity1.getProofOfWork(), identity2.getPublicKey(), byte[].class.getName(), payload);
 
@@ -255,10 +261,12 @@ class DrasylPipelineIT {
         assertTrue(future.isDone());
         assertFalse(future.isCancelled());
         assertFalse(future.isCompletedExceptionally());
+
+        ReferenceCountUtil.safeRelease(msg);
     }
 
     @Test
-    void shouldNotPassthroughsMessagesWithExceptionallyFuture() throws IOException {
+    void shouldNotPassthroughsMessagesWithExceptionallyFuture() {
         final TestObserver<Object> outbounds = outboundMessages.test();
         final IntermediateEnvelope<Application> msg = IntermediateEnvelope.application(0, identity1.getPublicKey(), identity1.getProofOfWork(), identity2.getPublicKey(), byte[].class.getName(), payload);
 
@@ -282,5 +290,7 @@ class DrasylPipelineIT {
         assertTrue(future.isDone());
         assertFalse(future.isCancelled());
         assertTrue(future.isCompletedExceptionally());
+
+        ReferenceCountUtil.safeRelease(msg);
     }
 }

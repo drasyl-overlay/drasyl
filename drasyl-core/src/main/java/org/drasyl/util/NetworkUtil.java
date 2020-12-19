@@ -19,8 +19,8 @@
 package org.drasyl.util;
 
 import org.drasyl.crypto.Crypto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;

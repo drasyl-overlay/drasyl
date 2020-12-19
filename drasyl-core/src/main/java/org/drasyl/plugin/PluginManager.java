@@ -21,8 +21,8 @@ package org.drasyl.plugin;
 import org.drasyl.DrasylConfig;
 import org.drasyl.identity.Identity;
 import org.drasyl.pipeline.Pipeline;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 /**
  * The {@code PluginManager} notifies all enabled plugins about specific node events (like startup

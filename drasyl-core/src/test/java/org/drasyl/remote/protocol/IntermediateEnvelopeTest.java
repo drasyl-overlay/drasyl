@@ -34,6 +34,7 @@ import org.drasyl.remote.protocol.Protocol.Discovery;
 import org.drasyl.remote.protocol.Protocol.PrivateHeader;
 import org.drasyl.remote.protocol.Protocol.PublicHeader;
 import org.drasyl.remote.protocol.Protocol.Unite;
+import org.drasyl.util.ReferenceCountUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
@@ -51,6 +52,7 @@ import static org.drasyl.remote.protocol.Protocol.MessageType.DISCOVERY;
 import static org.drasyl.remote.protocol.Protocol.MessageType.UNITE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -121,7 +123,7 @@ class IntermediateEnvelopeTest {
             assertEquals((publicHeaderLength + privateHeaderLength + bodyLength), message.readableBytes());
         }
         finally {
-            message.release();
+            ReferenceCountUtil.safeRelease(message);
         }
     }
 
@@ -136,7 +138,7 @@ class IntermediateEnvelopeTest {
             assertEquals((publicHeaderLength + privateHeaderLength + bodyLength), message.readableBytes());
         }
         finally {
-            message.release();
+            ReferenceCountUtil.safeRelease(message);
         }
     }
 
@@ -151,8 +153,43 @@ class IntermediateEnvelopeTest {
             assertEquals((publicHeaderLength + privateHeaderLength + bodyLength), message.readableBytes());
         }
         finally {
-            message.release();
+            ReferenceCountUtil.safeRelease(message);
         }
+    }
+
+    @Test
+    void shouldBuildByteBufOnMissingByteBuf() throws IOException {
+        try {
+            final IntermediateEnvelope<MessageLite> envelope = IntermediateEnvelope.of(message);
+
+            assertNotNull(envelope.getByteBuf());
+            assertNotNull(envelope.getInternalByteBuf());
+            assertNotNull(envelope.getBodyAndRelease());
+
+            assertNull(envelope.getByteBuf());
+            assertNull(envelope.getInternalByteBuf());
+
+            assertNotNull(envelope.getOrBuildInternalByteBuf());
+            assertNotNull(envelope.getByteBuf());
+            assertNotNull(envelope.getInternalByteBuf());
+            assertNotNull(envelope.getBodyAndRelease());
+        }
+        finally {
+            ReferenceCountUtil.safeRelease(message);
+        }
+    }
+
+    @Test
+    void shouldShareRefCnt() {
+        final IntermediateEnvelope<MessageLite> envelope = IntermediateEnvelope.of(message);
+
+        assertEquals(envelope.getByteBuf().refCnt(), envelope.getInternalByteBuf().refCnt());
+        assertEquals(1, envelope.getInternalByteBuf().refCnt());
+        assertEquals(1, envelope.getByteBuf().refCnt());
+        envelope.release();
+        assertEquals(envelope.getByteBuf().refCnt(), envelope.getInternalByteBuf().refCnt());
+        assertEquals(0, envelope.getInternalByteBuf().refCnt());
+        assertEquals(0, envelope.getByteBuf().refCnt());
     }
 
     @Nested
@@ -237,7 +274,7 @@ class IntermediateEnvelopeTest {
                 assertNotNull(envelope.toString());
             }
             finally {
-                message.release();
+                ReferenceCountUtil.safeRelease(message);
             }
         }
     }
@@ -252,7 +289,7 @@ class IntermediateEnvelopeTest {
                 assertEquals(messageId, envelope.getId());
             }
             finally {
-                message.release();
+                ReferenceCountUtil.safeRelease(message);
             }
         }
 
@@ -265,7 +302,7 @@ class IntermediateEnvelopeTest {
                 assertThrows(IllegalArgumentException.class, envelope::getId);
             }
             finally {
-                message.release();
+                ReferenceCountUtil.safeRelease(message);
             }
         }
     }
@@ -280,7 +317,7 @@ class IntermediateEnvelopeTest {
                 assertEquals(UserAgent.generate(), envelope.getUserAgent());
             }
             finally {
-                message.release();
+                ReferenceCountUtil.safeRelease(message);
             }
         }
 
@@ -293,7 +330,7 @@ class IntermediateEnvelopeTest {
                 assertThrows(IllegalArgumentException.class, envelope::getUserAgent);
             }
             finally {
-                message.release();
+                ReferenceCountUtil.safeRelease(message);
             }
         }
     }
@@ -308,7 +345,7 @@ class IntermediateEnvelopeTest {
                 assertEquals(1, envelope.getNetworkId());
             }
             finally {
-                message.release();
+                ReferenceCountUtil.safeRelease(message);
             }
         }
 
@@ -321,7 +358,7 @@ class IntermediateEnvelopeTest {
                 assertThrows(IllegalArgumentException.class, envelope::getNetworkId);
             }
             finally {
-                message.release();
+                ReferenceCountUtil.safeRelease(message);
             }
         }
     }
@@ -336,7 +373,7 @@ class IntermediateEnvelopeTest {
                 assertEquals(ProofOfWork.of(6657650), envelope.getProofOfWork());
             }
             finally {
-                message.release();
+                ReferenceCountUtil.safeRelease(message);
             }
         }
 
@@ -349,7 +386,7 @@ class IntermediateEnvelopeTest {
                 assertThrows(IllegalArgumentException.class, envelope::getProofOfWork);
             }
             finally {
-                message.release();
+                ReferenceCountUtil.safeRelease(message);
             }
         }
     }
@@ -364,7 +401,7 @@ class IntermediateEnvelopeTest {
                 assertEquals(recipientPublicKey, envelope.getRecipient());
             }
             finally {
-                message.release();
+                ReferenceCountUtil.safeRelease(message);
             }
         }
 
@@ -377,7 +414,7 @@ class IntermediateEnvelopeTest {
                 assertThrows(IllegalArgumentException.class, envelope::getRecipient);
             }
             finally {
-                message.release();
+                ReferenceCountUtil.safeRelease(message);
             }
         }
     }
@@ -393,7 +430,7 @@ class IntermediateEnvelopeTest {
                 assertThrows(IllegalArgumentException.class, envelope::getSender);
             }
             finally {
-                message.release();
+                ReferenceCountUtil.safeRelease(message);
             }
         }
     }
@@ -408,7 +445,7 @@ class IntermediateEnvelopeTest {
                 assertEquals((byte) 0, envelope.getHopCount());
             }
             finally {
-                message.release();
+                ReferenceCountUtil.release(message);
             }
         }
 
@@ -421,7 +458,7 @@ class IntermediateEnvelopeTest {
                 assertThrows(IllegalArgumentException.class, envelope::getHopCount);
             }
             finally {
-                message.release();
+                ReferenceCountUtil.safeRelease(message);
             }
         }
     }
@@ -436,7 +473,7 @@ class IntermediateEnvelopeTest {
                 assertEquals(new Signature(new byte[]{}), envelope.getSignature());
             }
             finally {
-                message.release();
+                ReferenceCountUtil.safeRelease(message);
             }
         }
 
@@ -449,7 +486,7 @@ class IntermediateEnvelopeTest {
                 assertThrows(IllegalArgumentException.class, envelope::getSignature);
             }
             finally {
-                message.release();
+                ReferenceCountUtil.safeRelease(message);
             }
         }
     }
@@ -459,42 +496,42 @@ class IntermediateEnvelopeTest {
         @Test
         void shouldReturnSignedMessage() throws IOException {
             final IntermediateEnvelope<MessageLite> envelope = IntermediateEnvelope.of(message);
-            final IntermediateEnvelope<MessageLite> armedEnvelop = envelope.arm(senderPrivateKey);
+            final IntermediateEnvelope<MessageLite> armedEnvelop = envelope.armAndRelease(senderPrivateKey);
 
             try {
                 assertNotNull(armedEnvelop.getPublicHeader().getSignature());
             }
             finally {
-                message.release();
-                armedEnvelop.release();
+                ReferenceCountUtil.safeRelease(message);
+                ReferenceCountUtil.safeRelease(armedEnvelop);
             }
         }
 
         @Test
         void getPrivatHeaderShouldFailOnArmedMessage() {
             final IntermediateEnvelope<MessageLite> envelope = IntermediateEnvelope.of(message);
-            final IntermediateEnvelope<MessageLite> armedEnvelop = envelope.arm(senderPrivateKey);
+            final IntermediateEnvelope<MessageLite> armedEnvelop = envelope.armAndRelease(senderPrivateKey);
 
             try {
                 assertThrows(IOException.class, armedEnvelop::getPrivateHeader);
             }
             finally {
-                message.release();
-                armedEnvelop.release();
+                ReferenceCountUtil.safeRelease(message);
+                ReferenceCountUtil.safeRelease(armedEnvelop);
             }
         }
 
         @Test
         void getBodyShouldFailOnArmedMessage() {
             final IntermediateEnvelope<MessageLite> envelope = IntermediateEnvelope.of(message);
-            final IntermediateEnvelope<MessageLite> armedEnvelop = envelope.arm(senderPrivateKey);
+            final IntermediateEnvelope<MessageLite> armedEnvelop = envelope.armAndRelease(senderPrivateKey);
 
             try {
                 assertThrows(IOException.class, armedEnvelop::getBody);
             }
             finally {
-                message.release();
-                armedEnvelop.release();
+                ReferenceCountUtil.safeRelease(message);
+                ReferenceCountUtil.safeRelease(armedEnvelop);
             }
         }
     }
@@ -507,31 +544,34 @@ class IntermediateEnvelopeTest {
         @BeforeEach
         void setUp() {
             envelope = IntermediateEnvelope.of(message);
-            armedEnvelop = envelope.arm(senderPrivateKey);
+            armedEnvelop = envelope.armAndRelease(senderPrivateKey);
         }
 
         @Test
         void shouldReturnDisarmedMessageIfSignatureIsValid() {
+            final IntermediateEnvelope<MessageLite> disarmedMessage = armedEnvelop.disarmAndRelease(senderPrivateKey);
+
             try {
-                assertNotNull(armedEnvelop.disarm(senderPrivateKey));
+                assertNotNull(disarmedMessage);
             }
             finally {
-                message.release();
-                armedEnvelop.release();
+                ReferenceCountUtil.safeRelease(message);
+                ReferenceCountUtil.safeRelease(armedEnvelop);
+                ReferenceCountUtil.safeRelease(disarmedMessage);
             }
         }
 
         @Test
         void shouldThrowExceptionIfSignatureIsNotValid() {
+            final IntermediateEnvelope<MessageLite> rearmed = envelope.armAndRelease(recipientPrivateKey);
             try {
                 // arm with wrong private key
-                armedEnvelop = envelope.arm(recipientPrivateKey);
-
-                assertThrows(IllegalStateException.class, () -> armedEnvelop.disarm(recipientPrivateKey));
+                assertThrows(IllegalStateException.class, () -> rearmed.disarmAndRelease(recipientPrivateKey));
             }
             finally {
-                message.release();
-                armedEnvelop.release();
+                ReferenceCountUtil.safeRelease(message);
+                ReferenceCountUtil.safeRelease(armedEnvelop);
+                ReferenceCountUtil.safeRelease(rearmed);
             }
         }
 
@@ -539,38 +579,38 @@ class IntermediateEnvelopeTest {
         @Disabled("Encryption not implemented yet")
         void shouldThrowExceptionIfWrongPrivatKeyIsGiven() {
             try {
-                assertThrows(IllegalStateException.class, () -> armedEnvelop.disarm(recipientPrivateKey));
+                assertThrows(IllegalStateException.class, () -> armedEnvelop.disarmAndRelease(recipientPrivateKey));
             }
             finally {
-                message.release();
-                armedEnvelop.release();
+                ReferenceCountUtil.safeRelease(message);
+                ReferenceCountUtil.safeRelease(armedEnvelop);
             }
         }
 
         @Test
         void getPrivatHeaderShouldNotFailOnDisarmedMessage() throws IOException {
-            final IntermediateEnvelope<MessageLite> disarmedEnvelope = armedEnvelop.disarm(recipientPrivateKey);
+            final IntermediateEnvelope<MessageLite> disarmedEnvelope = armedEnvelop.disarmAndRelease(recipientPrivateKey);
 
             try {
                 assertNotNull(disarmedEnvelope.getPrivateHeader());
             }
             finally {
-                message.release();
-                armedEnvelop.release();
-                disarmedEnvelope.release();
+                ReferenceCountUtil.safeRelease(message);
+                ReferenceCountUtil.safeRelease(armedEnvelop);
+                ReferenceCountUtil.safeRelease(disarmedEnvelope);
             }
         }
 
         @Test
         void getBodyShouldNotFailOnDisarmedMessage() throws IOException {
-            final IntermediateEnvelope<MessageLite> disarmedEnvelope = armedEnvelop.disarm(recipientPrivateKey);
+            final IntermediateEnvelope<MessageLite> disarmedEnvelope = armedEnvelop.disarmAndRelease(recipientPrivateKey);
 
             try {
-                assertNotNull(disarmedEnvelope.getBody());
+                assertNotNull(disarmedEnvelope.getBodyAndRelease());
             }
             finally {
-                message.release();
-                disarmedEnvelope.release();
+                ReferenceCountUtil.safeRelease(message);
+                ReferenceCountUtil.safeRelease(disarmedEnvelope);
             }
         }
     }
@@ -583,7 +623,7 @@ class IntermediateEnvelopeTest {
 
             assertEquals(1, acknowledgement.getPublicHeader().getNetworkId());
             assertEquals(ACKNOWLEDGEMENT, acknowledgement.getPrivateHeader().getType());
-            assertEquals(ByteString.copyFrom(messageId.byteArrayValue()), acknowledgement.getBody().getCorrespondingId());
+            assertEquals(ByteString.copyFrom(messageId.byteArrayValue()), acknowledgement.getBodyAndRelease().getCorrespondingId());
         }
     }
 
@@ -595,7 +635,7 @@ class IntermediateEnvelopeTest {
 
             assertEquals(1, application.getPublicHeader().getNetworkId());
             assertEquals(APPLICATION, application.getPrivateHeader().getType());
-            assertEquals(String.class.getName(), application.getBody().getType());
+            assertEquals(String.class.getName(), application.getBodyAndRelease().getType());
         }
     }
 
@@ -607,7 +647,7 @@ class IntermediateEnvelopeTest {
 
             assertEquals(1, discovery.getPublicHeader().getNetworkId());
             assertEquals(DISCOVERY, discovery.getPrivateHeader().getType());
-            assertEquals(1337L, discovery.getBody().getChildrenTime());
+            assertEquals(1337L, discovery.getBodyAndRelease().getChildrenTime());
         }
     }
 
@@ -619,7 +659,7 @@ class IntermediateEnvelopeTest {
 
             assertEquals(1, unite.getPublicHeader().getNetworkId());
             assertEquals(UNITE, unite.getPrivateHeader().getType());
-            assertEquals(ByteString.copyFrom(senderPublicKey.byteArrayValue()), unite.getBody().getPublicKey());
+            assertEquals(ByteString.copyFrom(senderPublicKey.byteArrayValue()), unite.getBodyAndRelease().getPublicKey());
         }
     }
 }

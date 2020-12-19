@@ -19,14 +19,14 @@
 package org.drasyl.plugin.groups.manager;
 
 import com.typesafe.config.Config;
+import org.drasyl.plugin.DrasylPlugin;
+import org.drasyl.plugin.PluginEnvironment;
 import org.drasyl.plugin.groups.manager.data.Group;
 import org.drasyl.plugin.groups.manager.database.DatabaseAdapter;
 import org.drasyl.plugin.groups.manager.database.DatabaseAdapterManager;
 import org.drasyl.plugin.groups.manager.database.DatabaseException;
-import org.drasyl.plugin.DrasylPlugin;
-import org.drasyl.plugin.PluginEnvironment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import java.util.Map;
 
@@ -68,14 +68,10 @@ public class GroupsManagerPlugin implements DrasylPlugin {
                 final String name = entry.getKey();
                 final Group group = entry.getValue();
                 if (!database.addGroup(group)) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Group '{}' already exists.", name);
-                    }
+                    LOG.debug("Group '{}' already exists.", name);
                 }
                 else {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Group '{}' was added.", name);
-                    }
+                    LOG.debug("Group '{}' was added.", name);
                 }
             }
         }
@@ -109,13 +105,9 @@ public class GroupsManagerPlugin implements DrasylPlugin {
             database = null;
         }
         catch (final DatabaseException e) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("Error occurred during closing the groups database: ", e);
-            }
+            LOG.warn("Error occurred during closing the groups database: ", e);
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Groups Manager Plugin was stopped.");
-        }
+        LOG.debug("Groups Manager Plugin was stopped.");
     }
 }

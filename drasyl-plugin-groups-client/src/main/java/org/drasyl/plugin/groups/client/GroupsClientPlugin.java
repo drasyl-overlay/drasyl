@@ -21,8 +21,8 @@ package org.drasyl.plugin.groups.client;
 import com.typesafe.config.Config;
 import org.drasyl.plugin.DrasylPlugin;
 import org.drasyl.plugin.PluginEnvironment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 /**
  * The Groups Membership Client Plugin allows drasyl nodes to connect to membership managers at
@@ -49,18 +49,14 @@ public class GroupsClientPlugin implements DrasylPlugin {
 
     @Override
     public void onAfterStart(final PluginEnvironment environment) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Start Groups Client Plugin with options: {}", config);
-        }
+        LOG.debug("Start Groups Client Plugin with options: {}", config);
 
         environment.getPipeline().addLast(GROUPS_CLIENT_HANDLER, new GroupsClientHandler(config.getGroups()));
     }
 
     @Override
     public void onBeforeShutdown(final PluginEnvironment environment) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Stop Groups Client Plugin.");
-        }
+        LOG.debug("Stop Groups Client Plugin.");
 
         environment.getPipeline().remove(GROUPS_CLIENT_HANDLER);
     }

@@ -18,19 +18,20 @@
   -->
 
 <component name="ProjectRunConfigurationManager">
-    <configuration default="false" name="Whole project" type="JUnit" factoryName="JUnit" nameIsGenerated="true">
-        <useClassPathOnly/>
-        <option name="PACKAGE_NAME" value=""/>
-        <option name="MAIN_CLASS_NAME" value=""/>
-        <option name="METHOD_NAME" value=""/>
-        <option name="TEST_OBJECT" value="package"/>
-        <option name="PARAMETERS" value=""/>
-        <option name="TEST_SEARCH_SCOPE">
-            <value defaultName="wholeProject"/>
-        </option>
-        <method v="2">
-            <option name="Make" enabled="true"/>
-            <option name="BSP.BeforeRunTask" enabled="true"/>
-        </method>
-    </configuration>
+  <configuration default="false" name="Whole project" type="JUnit" factoryName="JUnit" nameIsGenerated="true">
+    <useClassPathOnly />
+    <option name="PACKAGE_NAME" value="" />
+    <option name="MAIN_CLASS_NAME" value="" />
+    <option name="METHOD_NAME" value="" />
+    <option name="TEST_OBJECT" value="package" />
+    <option name="VM_PARAMETERS" value="-ea -XX:+ShowCodeDetailsInExceptionMessages -Dio.netty.leakDetectionLevel=PARANOID" />
+    <option name="PARAMETERS" value="" />
+    <option name="TEST_SEARCH_SCOPE">
+      <value defaultName="wholeProject" />
+    </option>
+    <method v="2">
+      <option name="Make" enabled="true" />
+      <option name="BSP.BeforeRunTask" enabled="true" />
+    </method>
+  </configuration>
 </component>

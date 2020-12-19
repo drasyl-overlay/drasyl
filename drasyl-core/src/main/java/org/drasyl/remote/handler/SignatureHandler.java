@@ -23,8 +23,9 @@ import org.drasyl.pipeline.HandlerContext;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.skeleton.SimpleDuplexHandler;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.ReferenceCountUtil;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -46,38 +47,44 @@ public class SignatureHandler extends SimpleDuplexHandler<IntermediateEnvelope<M
     @Override
     protected void matchedRead(final HandlerContext ctx,
                                final Address sender,
-                               IntermediateEnvelope<MessageLite> msg,
+                               final IntermediateEnvelope<MessageLite> msg,
                                final CompletableFuture<Void> future) {
         try {
             if (ctx.identity().getPublicKey().equals(msg.getRecipient())) {
                 // disarm all messages addressed to us
-                msg = msg.disarm(ctx.identity().getPrivateKey());
+                final IntermediateEnvelope<MessageLite> disarmedMessage = msg.disarmAndRelease(ctx.identity().getPrivateKey());
+                ctx.fireRead(sender, disarmedMessage, future);
             }
-
-            ctx.fireRead(sender, msg, future);
+            else {
+                ctx.fireRead(sender, msg, future);
+            }
         }
         catch (final IllegalStateException e) {
-            future.completeExceptionally(new Exception("Unable to disarm message", e));
             LOG.debug("Can't disarm message `{}` due to the following error: ", msg, e);
+            ReferenceCountUtil.safeRelease(msg);
+            future.completeExceptionally(new Exception("Unable to disarm message", e));
         }
     }
 
     @Override
     protected void matchedWrite(final HandlerContext ctx,
                                 final Address recipient,
-                                IntermediateEnvelope<MessageLite> msg,
+                                final IntermediateEnvelope<MessageLite> msg,
                                 final CompletableFuture<Void> future) {
         try {
             if (ctx.identity().getPublicKey().equals(msg.getSender())) {
                 // arm all messages from us
-                msg = msg.arm(ctx.identity().getPrivateKey());
+                final IntermediateEnvelope<MessageLite> armedMessage = msg.armAndRelease(ctx.identity().getPrivateKey());
+                ctx.write(recipient, armedMessage, future);
             }
-
-            ctx.write(recipient, msg, future);
+            else {
+                ctx.write(recipient, msg, future);
+            }
         }
         catch (final IllegalStateException e) {
-            future.completeExceptionally(new Exception("Unable to arm message", e));
             LOG.debug("Can't arm message `{}` due to the following error: ", msg, e);
+            ReferenceCountUtil.safeRelease(msg);
+            future.completeExceptionally(new Exception("Unable to arm message", e));
         }
     }
 }

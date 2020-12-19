@@ -32,8 +32,8 @@ import org.drasyl.peer.Endpoint;
 import org.drasyl.peer.PeersManager;
 import org.drasyl.pipeline.Pipeline;
 import org.drasyl.plugin.PluginManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import java.io.PrintStream;
 import java.util.List;
@@ -145,9 +145,7 @@ public class ReceivingWormholeNode extends DrasylNode {
     public void requestText(final CompressedPublicKey sender,
                             final String password,
                             final AtomicInteger remainingRetries) {
-        if (log.isDebugEnabled()) {
-            log.debug("Requesting text from '{}' with password '{}'", sender, maskSecret(password));
-        }
+        log.debug("Requesting text from '{}' with password '{}'", () -> sender, () -> maskSecret(password));
         send(sender, new PasswordMessage(password)).whenComplete((result, e) -> {
             if (e != null) {
                 if (remainingRetries.decrementAndGet() > 0) {

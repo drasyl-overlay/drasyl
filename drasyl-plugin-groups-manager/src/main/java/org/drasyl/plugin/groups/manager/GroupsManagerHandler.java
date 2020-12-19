@@ -36,8 +36,8 @@ import org.drasyl.plugin.groups.manager.data.Member;
 import org.drasyl.plugin.groups.manager.data.Membership;
 import org.drasyl.plugin.groups.manager.database.DatabaseAdapter;
 import org.drasyl.plugin.groups.manager.database.DatabaseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -116,9 +116,7 @@ public class GroupsManagerHandler extends SimpleInboundHandler<GroupsClientMessa
             recipients.forEach(member -> ctx.pipeline().processOutbound(member.getMember().getPublicKey(), msg));
         }
         catch (final DatabaseException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Error occurred on getting members of group '{}': ", group, e);
-            }
+            LOG.debug("Error occurred on getting members of group '{}': ", group, e);
         }
     }
 
@@ -159,26 +157,20 @@ public class GroupsManagerHandler extends SimpleInboundHandler<GroupsClientMessa
                     ctx.pipeline().processOutbound(sender, new GroupJoinFailedMessage(org.drasyl.plugin.groups.client.Group.of(groupName), ERROR_PROOF_TO_WEAK));
                     future.completeExceptionally(new IllegalArgumentException("Member '" + sender + "' does not fulfill requirements of group '" + groupName + "'"));
 
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Member '{}' does not fulfill requirements of group '{}'", sender, groupName);
-                    }
+                    LOG.debug("Member '{}' does not fulfill requirements of group '{}'", sender, groupName);
                 }
             }
             else {
                 ctx.pipeline().processOutbound(sender, new GroupJoinFailedMessage(org.drasyl.plugin.groups.client.Group.of(groupName), ERROR_GROUP_NOT_FOUND));
                 future.completeExceptionally(new IllegalArgumentException("There is no group '" + groupName + "'"));
 
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("There is no group '{}'.", groupName);
-                }
+                LOG.debug("There is no group '{}'.", groupName);
             }
         }
         catch (final DatabaseException e) {
             future.completeExceptionally(e);
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Error occurred on getting group '{}': ", groupName, e);
-            }
+            LOG.debug("Error occurred on getting group '{}': ", groupName, e);
         }
     }
 
@@ -202,16 +194,12 @@ public class GroupsManagerHandler extends SimpleInboundHandler<GroupsClientMessa
             notifyMembers(ctx, msg.getGroup().getName(), leftMessage);
 
             future.complete(null);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Removed member '{}' from group '{}'", sender, msg.getGroup().getName());
-            }
+            LOG.debug("Removed member '{}' from group '{}'", () -> sender, () -> msg.getGroup().getName());
         }
         catch (final DatabaseException e) {
             future.completeExceptionally(e);
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Error occurred during removal of member '{}' from group '{}': ", sender, msg.getGroup().getName(), e);
-            }
+            LOG.debug("Error occurred during removal of member '{}' from group '{}': ", () -> sender, () -> msg.getGroup().getName(), () -> e);
         }
     }
 
@@ -241,23 +229,17 @@ public class GroupsManagerHandler extends SimpleInboundHandler<GroupsClientMessa
                 notifyMembers(ctx, group.getName(), new MemberJoinedMessage(sender, org.drasyl.plugin.groups.client.Group.of(group.getName())));
 
                 future.complete(null);
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Added member '{}' to group '{}'", sender, group.getName());
-                }
+                LOG.debug("Added member '{}' to group '{}'", () -> sender, group::getName);
             }
             else {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Renewed membership of '{}' for group '{}'", sender, group.getName());
-                }
+                LOG.debug("Renewed membership of '{}' for group '{}'", () -> sender, group::getName);
             }
         }
         catch (final DatabaseException e) {
             ctx.pipeline().processOutbound(sender, new GroupJoinFailedMessage(org.drasyl.plugin.groups.client.Group.of(group.getName()), ERROR_UNKNOWN));
             future.completeExceptionally(e);
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Error occurred during join: ", e);
-            }
+            LOG.debug("Error occurred during join: ", e);
         }
     }
 }

@@ -26,8 +26,8 @@ import io.netty.buffer.Unpooled;
 import org.drasyl.identity.CompressedPublicKey;
 import org.drasyl.pipeline.HandlerContext;
 import org.drasyl.util.JSONUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,9 +56,7 @@ public class DefaultCodec extends Codec<ObjectHolder, Object, CompressedPublicKe
             // skip byte arrays
             passOnConsumer.accept(ObjectHolder.of(byte[].class, (byte[]) msg));
 
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("[{}]: Encoded Message '{}'", ctx.name(), msg);
-            }
+            LOG.trace("[{}]: Encoded Message '{}'", ctx::name, () -> msg);
         }
         else if (ctx.outboundValidator().validate(msg.getClass()) && JSONUtil.JACKSON_WRITER.canSerialize(msg.getClass())) {
             final ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer();
@@ -71,12 +69,10 @@ public class DefaultCodec extends Codec<ObjectHolder, Object, CompressedPublicKe
 
                 passOnConsumer.accept(ObjectHolder.of(msg.getClass(), b));
 
-                if (LOG.isTraceEnabled()) {
-                    LOG.trace("[{}]: Encoded Message '{}'", ctx.name(), msg);
-                }
+                LOG.trace("[{}]: Encoded Message '{}'", ctx::name, () -> msg);
             }
             catch (final IOException e) {
-                LOG.warn("[{}]: Unable to serialize '{}': ", ctx.name(), msg, e);
+                LOG.warn("[{}]: Unable to serialize '{}': ", ctx::name, () -> msg, () -> e);
                 passOnConsumer.accept(msg);
             }
             finally {
@@ -98,9 +94,7 @@ public class DefaultCodec extends Codec<ObjectHolder, Object, CompressedPublicKe
                 // skip byte arrays
                 passOnConsumer.accept(msg.getObject());
 
-                if (LOG.isTraceEnabled()) {
-                    LOG.trace("[{}]: Decoded Message '{}'", ctx.name(), msg.getObject());
-                }
+                LOG.trace("[{}]: Decoded Message '{}'", ctx::name, msg::getObject);
             }
             else if (ctx.inboundValidator().validate(msg.getClazz()) && JSONUtil.JACKSON_WRITER.canSerialize(msg.getClazz())) {
                 decodeObjectHolder(ctx, msg, passOnConsumer);
@@ -111,9 +105,7 @@ public class DefaultCodec extends Codec<ObjectHolder, Object, CompressedPublicKe
             }
         }
         catch (final ClassNotFoundException e) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("[{}]: Unable to deserialize '{}': ", ctx.name(), msg, e);
-            }
+            LOG.warn("[{}]: Unable to deserialize '{}': ", ctx::name, () -> msg, () -> e);
             // can't decode, pass message to the next handler in the pipeline
             passOnConsumer.accept(msg);
         }
@@ -127,14 +119,10 @@ public class DefaultCodec extends Codec<ObjectHolder, Object, CompressedPublicKe
             final Object decodedMessage = requireNonNull(JSONUtil.JACKSON_READER.readValue((InputStream) bis, msg.getClazz()));
             passOnConsumer.accept(decodedMessage);
 
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("[{}]: Decoded Message '{}'", ctx.name(), decodedMessage);
-            }
+            LOG.trace("[{}]: Decoded Message '{}'", ctx::name, () -> decodedMessage);
         }
         catch (final IOException | IllegalArgumentException e) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("[{}]: Unable to deserialize '{}': ", ctx.name(), msg, e);
-            }
+            LOG.warn("[{}]: Unable to deserialize '{}': ", ctx::name, () -> msg, () -> e);
             passOnConsumer.accept(msg);
         }
         finally {

@@ -19,6 +19,7 @@
 package org.drasyl.remote.handler;
 
 import com.google.protobuf.MessageLite;
+import io.netty.util.ReferenceCounted;
 import io.reactivex.rxjava3.observers.TestObserver;
 import org.drasyl.DrasylConfig;
 import org.drasyl.crypto.CryptoException;
@@ -47,6 +48,7 @@ import org.drasyl.remote.protocol.Protocol.Application;
 import org.drasyl.remote.protocol.Protocol.Discovery;
 import org.drasyl.remote.protocol.Protocol.Unite;
 import org.drasyl.util.Pair;
+import org.drasyl.util.ReferenceCountUtil;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -158,7 +160,7 @@ class UdpDiscoveryHandlerTest {
 
             when(identity.getPublicKey()).thenReturn(recipient);
 
-            final UdpDiscoveryHandler handler = new UdpDiscoveryHandler(openPingsCache, uniteAttemptsCache, new HashMap<>(Map.of(discoveryMessage.getSender(), peer)), rendezvousPeers);
+            final UdpDiscoveryHandler handler = new UdpDiscoveryHandler(openPingsCache, uniteAttemptsCache, new HashMap<>(Map.of(sender, peer)), rendezvousPeers);
             final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
             final TestObserver<Object> outboundMessages = pipeline.outboundOnlyMessages().test();
 
@@ -252,6 +254,10 @@ class UdpDiscoveryHandlerTest {
             when(ctx.config().getRemoteSuperPeerEndpoint().getHost()).thenReturn("127.0.0.1");
             when(ctx.identity().getPublicKey()).thenReturn(myPublicKey);
             when(ctx.config().getRemoteSuperPeerEndpoint().getPublicKey()).thenReturn(publicKey);
+            when(ctx.write(any(), any(ReferenceCounted.class), any())).then(invocation -> {
+                ReferenceCountUtil.safeRelease(invocation.getArgument(1, ReferenceCounted.class));
+                return null;
+            });
 
             final UdpDiscoveryHandler handler = new UdpDiscoveryHandler(openPingsCache, uniteAttemptsCache, peers, new HashSet<>());
             handler.doHeartbeat(ctx);
@@ -268,6 +274,10 @@ class UdpDiscoveryHandlerTest {
             when(peer.hasControlTraffic(any())).thenReturn(true);
             when(peer.hasApplicationTraffic(any())).thenReturn(true);
             when(ctx.identity().getPublicKey()).thenReturn(myPublicKey);
+            when(ctx.write(any(), any(ReferenceCounted.class), any())).then(invocation -> {
+                ReferenceCountUtil.safeRelease(invocation.getArgument(1, ReferenceCounted.class));
+                return null;
+            });
 
             final UdpDiscoveryHandler handler = new UdpDiscoveryHandler(openPingsCache, uniteAttemptsCache, new HashMap<>(Map.of(publicKey, peer)), new HashSet<>(Set.of(publicKey)));
             handler.doHeartbeat(ctx);
@@ -308,6 +318,8 @@ class UdpDiscoveryHandlerTest {
             pipeline.processInbound(address, uniteMessage).join();
 
             verify(rendezvousPeers).add(any());
+
+            ReferenceCountUtil.safeRelease(uniteMessage);
         }
 
         @Test
@@ -335,8 +347,22 @@ class UdpDiscoveryHandlerTest {
             pipeline.processInbound(sender, message).join();
 
             outboundMessages.awaitCount(3).assertValueCount(3);
-            outboundMessages.assertValueAt(1, p -> p.first().equals(senderSocketAddress) && p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == UNITE);
-            outboundMessages.assertValueAt(2, p -> p.first().equals(recipientSocketAddress) && p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == UNITE);
+            outboundMessages.assertValueAt(1, p -> {
+                try {
+                    return p.first().equals(senderSocketAddress) && p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == UNITE;
+                }
+                finally {
+                    ReferenceCountUtil.safeRelease(p.second());
+                }
+            });
+            outboundMessages.assertValueAt(2, p -> {
+                try {
+                    return p.first().equals(recipientSocketAddress) && p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == UNITE;
+                }
+                finally {
+                    ReferenceCountUtil.safeRelease(p.second());
+                }
+            });
         }
     }
 
@@ -379,7 +405,7 @@ class UdpDiscoveryHandlerTest {
             @Test
             void shouldUpdateLastCommunicationTimeAndConvertToApplicationMessageForRemoteApplicationMessages(
                     @Mock final Peer peer,
-                    @Mock final InetSocketAddressWrapper address) throws CryptoException, IOException {
+                    @Mock final InetSocketAddressWrapper address) throws CryptoException {
                 final CompressedPublicKey sender = CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22");
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 final IntermediateEnvelope<Application> applicationMessage = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[]{});
@@ -395,7 +421,16 @@ class UdpDiscoveryHandlerTest {
 
                 verify(peer).applicationTrafficOccurred();
                 inboundMessages.awaitCount(1).assertValueCount(1);
-                inboundMessages.assertValue(p -> p.second() instanceof ApplicationMessage);
+                inboundMessages.assertValue(p -> {
+                    try {
+                        return p.second() instanceof ApplicationMessage;
+                    }
+                    finally {
+                        ReferenceCountUtil.safeRelease(p.second());
+                    }
+                });
+
+                ReferenceCountUtil.safeRelease(applicationMessage);
             }
         }
 
@@ -419,7 +454,14 @@ class UdpDiscoveryHandlerTest {
                 pipeline.processOutbound(recipient, message).join();
 
                 outboundMessages.awaitCount(1).assertValueCount(1);
-                outboundMessages.assertValue(p -> p.first().equals(recipientSocketAddress) && p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == APPLICATION);
+                outboundMessages.assertValue(p -> {
+                    try {
+                        return p.first().equals(recipientSocketAddress) && p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == APPLICATION;
+                    }
+                    finally {
+                        ReferenceCountUtil.safeRelease(p.second());
+                    }
+                });
             }
 
             @Test
@@ -440,7 +482,14 @@ class UdpDiscoveryHandlerTest {
                 pipeline.processOutbound(recipient, message).join();
 
                 outboundMessages.awaitCount(1).assertValueCount(1);
-                outboundMessages.assertValue(p -> p.first().equals(superPeerSocketAddress) && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == APPLICATION);
+                outboundMessages.assertValue(p -> {
+                    try {
+                        return p.first().equals(superPeerSocketAddress) && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == APPLICATION;
+                    }
+                    finally {
+                        ReferenceCountUtil.safeRelease(p.second());
+                    }
+                });
             }
 
             @Test
@@ -458,7 +507,14 @@ class UdpDiscoveryHandlerTest {
                 pipeline.processOutbound(recipient, message).join();
 
                 outboundMessages.awaitCount(1).assertValueCount(1);
-                outboundMessages.assertValue(p -> p.first().equals(recipient) && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == APPLICATION);
+                outboundMessages.assertValue(p -> {
+                    try {
+                        return p.first().equals(recipient) && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == APPLICATION;
+                    }
+                    finally {
+                        ReferenceCountUtil.safeRelease(p.second());
+                    }
+                });
             }
 
             @Test
@@ -549,6 +605,8 @@ class UdpDiscoveryHandlerTest {
         class HasApplicationTraffic {
             @Test
             void shouldReturnTrueIfTrafficIsPresent(@Mock final DrasylConfig config) {
+                when(config.getRemotePingCommunicationTimeout()).thenReturn(ofSeconds(1));
+
                 final Peer peer = new Peer(address, System.currentTimeMillis(), System.currentTimeMillis(), System.currentTimeMillis());
 
                 assertTrue(peer.hasApplicationTraffic(config));
@@ -559,6 +617,8 @@ class UdpDiscoveryHandlerTest {
         class HasControlTraffic {
             @Test
             void shouldReturnTrueIfTrafficIsPresent(@Mock final DrasylConfig config) {
+                when(config.getRemotePingTimeout()).thenReturn(ofSeconds(1));
+
                 final Peer peer = new Peer(address, System.currentTimeMillis(), System.currentTimeMillis(), System.currentTimeMillis());
 
                 assertTrue(peer.hasControlTraffic(config));
@@ -569,8 +629,9 @@ class UdpDiscoveryHandlerTest {
         class IsReachable {
             @Test
             void shouldReturnTrueIfPeerIsReachable(@Mock final DrasylConfig config) {
-                final Peer peer = new Peer(address, System.currentTimeMillis(), System.currentTimeMillis(), System.currentTimeMillis());
+                when(config.getRemotePingTimeout()).thenReturn(ofSeconds(1));
 
+                final Peer peer = new Peer(address, System.currentTimeMillis(), System.currentTimeMillis(), System.currentTimeMillis());
                 assertTrue(peer.isReachable(config));
             }
         }

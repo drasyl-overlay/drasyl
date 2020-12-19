@@ -30,8 +30,8 @@ import org.apache.commons.cli.ParseException;
 import org.drasyl.DrasylConfig;
 import org.drasyl.DrasylNode;
 import org.drasyl.cli.CliException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -148,7 +148,7 @@ abstract class AbstractCommand implements Command {
             final String levelString = cmd.getOptionValue(OPT_VERBOSE);
             final Level level = Level.valueOf(levelString);
 
-            final ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("org.drasyl");
+            final ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("org.drasyl").delegate();
             root.setLevel(level);
         }
     }

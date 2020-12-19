@@ -29,10 +29,11 @@ import org.drasyl.peer.PeersManager;
 import org.drasyl.pipeline.EmbeddedPipeline;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.codec.TypeValidator;
-import org.drasyl.remote.protocol.MessageId;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
+import org.drasyl.remote.protocol.MessageId;
 import org.drasyl.remote.protocol.Protocol.Acknowledgement;
 import org.drasyl.util.Pair;
+import org.drasyl.util.ReferenceCountUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,7 +69,7 @@ class ByteBuf2MessageHandlerTest {
     @Test
     void shouldConvertByteBufToEnvelope(@Mock final Address sender) throws IOException {
         final IntermediateEnvelope<Acknowledgement> acknowledgementMessage = IntermediateEnvelope.acknowledgement(1337, senderKey, proofOfWork, recipient, correspondingId);
-        final ByteBuf byteBuf = acknowledgementMessage.getByteBuf();
+        final ByteBuf byteBuf = acknowledgementMessage.getOrBuildByteBuf();
 
         final ByteBuf2MessageHandler handler = ByteBuf2MessageHandler.INSTANCE;
         final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
@@ -76,6 +77,15 @@ class ByteBuf2MessageHandlerTest {
         pipeline.processInbound(sender, byteBuf);
 
         inboundMessages.awaitCount(1).assertValueCount(1);
-        inboundMessages.assertValue(pair -> pair.second() instanceof IntermediateEnvelope);
+        inboundMessages.assertValue(pair -> {
+            try {
+                return pair.second() instanceof IntermediateEnvelope;
+            }
+            finally {
+                ReferenceCountUtil.safeRelease(pair.second());
+            }
+        });
+
+        ReferenceCountUtil.safeRelease(byteBuf);
     }
 }

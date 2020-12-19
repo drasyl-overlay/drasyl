@@ -31,8 +31,8 @@ import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.reactivex.rxjava3.subjects.Subject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -87,9 +87,7 @@ public class PortMappingUtil {
                 mappings.add(new PortMapping(mapper, address, protocol));
             }
             catch (final IllegalStateException e) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(e.getMessage());
-                }
+                LOG.debug("Unable to expose port: ", e);
             }
         }
 
@@ -212,18 +210,14 @@ public class PortMappingUtil {
          */
         public synchronized void close() {
             if (mappedPort != null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Close {} port mapping {} -> {} on {} router", mappedPort.getPortType(), currentExternalAddress(), address, mappingMethod());
-                }
+                LOG.debug("Close {} port mapping {} -> {} on {} router", mappedPort::getPortType, this::currentExternalAddress, () -> address, this::mappingMethod);
                 try {
                     refreshDisposable.dispose();
                     refreshDisposable = null;
                     mapper.unmapPort(mappedPort);
                 }
                 catch (final IllegalStateException e) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Unable to close port mapping on {} router for {}: {}", mappingMethod(), address, e.getMessage());
-                    }
+                    LOG.debug("Unable to close port mapping on {} router for {}: {}", this::mappingMethod, () -> address, e::getMessage);
                 }
                 catch (final InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -275,9 +269,7 @@ public class PortMappingUtil {
                     createMapping();
                 }
                 catch (final IllegalStateException e) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Unable to refresh {} port mapping on {} router for {}. Retry in {}ms", mappedPort.getPortType(), mappingMethod(), address, RETRY_DELAY.toMillis());
-                    }
+                    LOG.debug("Unable to refresh {} port mapping on {} router for {}. Retry in {}ms", mappedPort::getPortType, this::mappingMethod, () -> address, RETRY_DELAY::toMillis);
                     externalAddressObservable.onNext(Optional.empty());
                     scheduleMappingRefresh(RETRY_DELAY);
                 }
@@ -288,9 +280,7 @@ public class PortMappingUtil {
             try {
                 mappedPort = mapper.mapPort(protocol.getPortType(), address.getPort(), address.getPort(), PORT_LIFETIME.getSeconds());
                 final InetSocketAddress externalAdded = new InetSocketAddress(mappedPort.getExternalAddress().getHostName(), mappedPort.getExternalPort());
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("{} router has created {} port mapping {} -> {} (lifetime: {}s)", mappingMethod(), mappedPort.getPortType(), externalAdded, address, mappedPort.getLifetime());
-                }
+                LOG.debug("{} router has created {} port mapping {} -> {} (lifetime: {}s)", this::mappingMethod, mappedPort::getPortType, () -> externalAdded, () -> address, mappedPort::getLifetime);
                 externalAddressObservable.onNext(Optional.of(externalAdded));
 
                 scheduleMappingRefresh(min(max(ofSeconds(mappedPort.getLifetime()).dividedBy(2), RETRY_DELAY), PORT_LIFETIME));

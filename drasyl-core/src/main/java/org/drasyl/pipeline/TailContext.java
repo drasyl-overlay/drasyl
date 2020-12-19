@@ -27,8 +27,8 @@ import org.drasyl.identity.Identity;
 import org.drasyl.peer.PeersManager;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.codec.TypeValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -57,16 +57,12 @@ class TailContext extends AbstractEndHandler {
 
     @Override
     public void handlerAdded(final HandlerContext ctx) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Pipeline tail was added.");
-        }
+        LOG.debug("Pipeline tail was added.");
     }
 
     @Override
     public void handlerRemoved(final HandlerContext ctx) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Pipeline tail was removed.");
-        }
+        LOG.debug("Pipeline tail was removed.");
     }
 
     @Override
@@ -81,9 +77,7 @@ class TailContext extends AbstractEndHandler {
 
         // Pass message to Application
         if (future.isDone()) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("Message `{}` was not written to the application, because the corresponding future was already completed.", msg);
-            }
+            LOG.warn("Message `{}` was not written to the application, because the corresponding future was already completed.", msg);
         }
         else if (sender instanceof CompressedPublicKey) {
             final CompressedPublicKey senderAddress = (CompressedPublicKey) sender;
@@ -91,14 +85,10 @@ class TailContext extends AbstractEndHandler {
             eventConsumer.accept(event);
             future.complete(null);
 
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("Event has passed the pipeline: `{}` ", event);
-            }
+            LOG.trace("Event has passed the pipeline: `{}` ", event);
         }
         else {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Message '{}' was not written to the application, because the corresponding address was not of type CompressedPublicKey.", msg);
-            }
+            LOG.debug("Message '{}' was not written to the application, because the corresponding address was not of type CompressedPublicKey.", msg);
         }
     }
 
@@ -108,18 +98,14 @@ class TailContext extends AbstractEndHandler {
                                final CompletableFuture<Void> future) {
         // Pass event to Application
         if (future.isDone()) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("Event `{}` was not written to the application, because the corresponding future was already completed.", event);
-            }
+            LOG.warn("Event `{}` was not written to the application, because the corresponding future was already completed.", event);
         }
         else {
             eventConsumer.accept(event);
             future.complete(null);
         }
 
-        if (LOG.isTraceEnabled()) {
-            LOG.trace("Event has passed the pipeline: `{}` ", event);
-        }
+        LOG.trace("Event has passed the pipeline: `{}` ", event);
     }
 
     @Override

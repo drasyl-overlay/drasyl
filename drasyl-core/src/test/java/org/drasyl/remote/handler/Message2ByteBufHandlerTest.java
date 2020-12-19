@@ -32,6 +32,7 @@ import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.codec.TypeValidator;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
 import org.drasyl.remote.protocol.Protocol.Application;
+import org.drasyl.util.ReferenceCountUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -66,13 +67,15 @@ class Message2ByteBufHandlerTest {
         pipeline.processOutbound(recipient, messageEnvelope);
 
         outboundMessages.awaitCount(1).assertValueCount(1);
-        outboundMessages.assertValue(messageEnvelope.getByteBuf());
+        outboundMessages.assertValue(messageEnvelope.getOrBuildByteBuf());
+
+        ReferenceCountUtil.safeRelease(messageEnvelope);
     }
 
     @Test
     void shouldCompleteFutureExceptionallyWhenConversionFail(@Mock final Address recipient,
-                                                             @Mock final IntermediateEnvelope<MessageLite> messageEnvelope) {
-        when(messageEnvelope.getByteBuf()).thenThrow(RuntimeException.class);
+                                                             @Mock final IntermediateEnvelope<MessageLite> messageEnvelope) throws IOException {
+        when(messageEnvelope.getOrBuildByteBuf()).thenThrow(RuntimeException.class);
 
         final Message2ByteBufHandler handler = Message2ByteBufHandler.INSTANCE;
         final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);

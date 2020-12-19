@@ -32,13 +32,13 @@ import org.drasyl.pipeline.codec.TypeValidator;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
 import org.drasyl.remote.protocol.Protocol.Application;
 import org.drasyl.util.Pair;
+import org.drasyl.util.ReferenceCountUtil;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -68,7 +68,7 @@ class SignatureHandlerTest {
     @Nested
     class OutboundMessages {
         @Test
-        void shouldArmOutgoingMessageFromMe(@Mock final CompressedPublicKey recipient) throws CryptoException, IOException {
+        void shouldArmOutgoingMessageFromMe(@Mock final CompressedPublicKey recipient) throws CryptoException {
             when(identity.getPrivateKey()).thenReturn(CompressedPrivateKey.of("05880bb5848fc8db0d8f30080b8c923860622a340aae55f4509d62f137707e34"));
             when(identity.getPublicKey()).thenReturn(CompressedPublicKey.of("030507fa840cc2f6706f285f5c6c055f0b7b3efb85885227cb306f176209ff6fc3"));
             when(identity.getProofOfWork()).thenReturn(ProofOfWork.of(16425882));
@@ -81,11 +81,20 @@ class SignatureHandlerTest {
             pipeline.processOutbound(recipient, messageEnvelope);
 
             outboundMessages.awaitCount(1).assertValueCount(1);
-            outboundMessages.assertValue(m -> m.getSignature().getBytes().length != 0);
+            outboundMessages.assertValue(m -> {
+                try {
+                    return m.getSignature().getBytes().length != 0;
+                }
+                finally {
+                    ReferenceCountUtil.safeRelease(m);
+                }
+            });
+
+            ReferenceCountUtil.safeRelease(messageEnvelope);
         }
 
         @Test
-        void shouldPassthroughOutgoingMessageNotFromMe(@Mock final CompressedPublicKey recipient) throws CryptoException, IOException {
+        void shouldPassthroughOutgoingMessageNotFromMe(@Mock final CompressedPublicKey recipient) throws CryptoException {
             when(identity.getPrivateKey()).thenReturn(CompressedPrivateKey.of("05880bb5848fc8db0d8f30080b8c923860622a340aae55f4509d62f137707e34"));
             when(identity.getPublicKey()).thenReturn(CompressedPublicKey.of("030507fa840cc2f6706f285f5c6c055f0b7b3efb85885227cb306f176209ff6fc3"));
             when(identity.getProofOfWork()).thenReturn(ProofOfWork.of(16425882));
@@ -98,16 +107,26 @@ class SignatureHandlerTest {
             pipeline.processOutbound(recipient, messageEnvelope);
 
             outboundMessages.awaitCount(1).assertValueCount(1);
-            outboundMessages.assertValue(m -> m.getSignature().getBytes().length == 0);
+            outboundMessages.assertValue(m -> {
+                try {
+                    return m.getSignature().getBytes().length == 0;
+                }
+                finally {
+                    ReferenceCountUtil.safeRelease(m);
+                }
+            });
+
+            ReferenceCountUtil.safeRelease(messageEnvelope);
         }
 
         @Test
-        void shouldCompleteFutureExceptionallyAndNotPassOutgoingMessageIfArmingFailed() throws CryptoException, InterruptedException, IOException {
+        void shouldCompleteFutureExceptionallyAndNotPassOutgoingMessageIfArmingFailed() throws CryptoException, InterruptedException {
             when(identity.getPrivateKey()).thenReturn(CompressedPrivateKey.of("05880bb5848fc8db0d8f30080b8c923860622a340aae55f4509d62f137707e34"));
             when(identity.getPublicKey()).thenReturn(CompressedPublicKey.of("030507fa840cc2f6706f285f5c6c055f0b7b3efb85885227cb306f176209ff6fc3"));
             when(identity.getProofOfWork()).thenReturn(ProofOfWork.of(16425882));
             final IntermediateEnvelope<Application> messageEnvelope = spy(IntermediateEnvelope.application(1, identity.getPublicKey(), proofOfWork, identity.getPublicKey(), byte[].class.getName(), new byte[]{}));
-            when(messageEnvelope.arm(identity.getPrivateKey())).thenThrow(IllegalStateException.class);
+            final IntermediateEnvelope<Application> armedMessage = messageEnvelope.arm(identity.getPrivateKey());
+            when(armedMessage).thenThrow(IllegalStateException.class);
 
             final SignatureHandler handler = SignatureHandler.INSTANCE;
             final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
@@ -116,17 +135,20 @@ class SignatureHandlerTest {
             assertThrows(ExecutionException.class, () -> pipeline.processOutbound(recipient, messageEnvelope).get());
             outboundMessages.await(1, SECONDS);
             outboundMessages.assertNoValues();
+
+            ReferenceCountUtil.safeRelease(messageEnvelope);
+            ReferenceCountUtil.safeRelease(armedMessage);
         }
     }
 
     @Nested
     class InboundMessages {
         @Test
-        void shouldDisarmIngoingMessageAddressedToMe(@Mock final CompressedPublicKey sender) throws CryptoException, IOException {
+        void shouldDisarmIngoingMessageAddressedToMe(@Mock final CompressedPublicKey sender) throws CryptoException {
             when(identity.getPrivateKey()).thenReturn(CompressedPrivateKey.of("05880bb5848fc8db0d8f30080b8c923860622a340aae55f4509d62f137707e34"));
             when(identity.getPublicKey()).thenReturn(CompressedPublicKey.of("030507fa840cc2f6706f285f5c6c055f0b7b3efb85885227cb306f176209ff6fc3"));
             when(identity.getProofOfWork()).thenReturn(ProofOfWork.of(16425882));
-            final IntermediateEnvelope<Application> messageEnvelope = IntermediateEnvelope.application(1, identity.getPublicKey(), proofOfWork, identity.getPublicKey(), byte[].class.getName(), new byte[]{}).arm(identity.getPrivateKey());
+            final IntermediateEnvelope<Application> messageEnvelope = IntermediateEnvelope.application(1, identity.getPublicKey(), proofOfWork, identity.getPublicKey(), byte[].class.getName(), new byte[]{}).armAndRelease(identity.getPrivateKey());
 
             final SignatureHandler handler = SignatureHandler.INSTANCE;
             final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
@@ -135,15 +157,24 @@ class SignatureHandlerTest {
             pipeline.processInbound(sender, messageEnvelope);
 
             inboundMessages.awaitCount(1).assertValueCount(1);
-            inboundMessages.assertValue(p -> p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader() != null);
+            inboundMessages.assertValue(p -> {
+                try {
+                    return p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader() != null;
+                }
+                finally {
+                    ReferenceCountUtil.safeRelease(p.second());
+                }
+            });
+
+            ReferenceCountUtil.safeRelease(messageEnvelope);
         }
 
         @Test
-        void shouldPassthroughIngoingMessageNotAddressedToMe(@Mock final CompressedPublicKey sender) throws CryptoException, IOException {
+        void shouldPassthroughIngoingMessageNotAddressedToMe(@Mock final CompressedPublicKey sender) throws CryptoException {
             when(identity.getPrivateKey()).thenReturn(CompressedPrivateKey.of("05880bb5848fc8db0d8f30080b8c923860622a340aae55f4509d62f137707e34"));
             when(identity.getPublicKey()).thenReturn(CompressedPublicKey.of("030507fa840cc2f6706f285f5c6c055f0b7b3efb85885227cb306f176209ff6fc3"));
             when(identity.getProofOfWork()).thenReturn(ProofOfWork.of(16425882));
-            final IntermediateEnvelope<Application> messageEnvelope = IntermediateEnvelope.application(1, identity.getPublicKey(), proofOfWork, CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22"), byte[].class.getName(), new byte[]{}).arm(identity.getPrivateKey());
+            final IntermediateEnvelope<Application> messageEnvelope = IntermediateEnvelope.application(1, identity.getPublicKey(), proofOfWork, CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22"), byte[].class.getName(), new byte[]{}).armAndRelease(identity.getPrivateKey());
 
             final SignatureHandler handler = SignatureHandler.INSTANCE;
             final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
@@ -153,15 +184,18 @@ class SignatureHandlerTest {
 
             inboundMessages.awaitCount(1).assertValueCount(1);
             inboundMessages.assertValue(p -> p.second().equals(messageEnvelope));
+
+            ReferenceCountUtil.safeRelease(messageEnvelope);
         }
 
         @Test
-        void shouldCompleteFutureExceptionallyAndNotPassIngoingMessageIfDisarmingFailed(@Mock final CompressedPublicKey sender) throws CryptoException, InterruptedException, IOException {
+        void shouldCompleteFutureExceptionallyAndNotPassIngoingMessageIfDisarmingFailed(@Mock final CompressedPublicKey sender) throws CryptoException, InterruptedException {
             when(identity.getPrivateKey()).thenReturn(CompressedPrivateKey.of("05880bb5848fc8db0d8f30080b8c923860622a340aae55f4509d62f137707e34"));
             when(identity.getPublicKey()).thenReturn(CompressedPublicKey.of("030507fa840cc2f6706f285f5c6c055f0b7b3efb85885227cb306f176209ff6fc3"));
             when(identity.getProofOfWork()).thenReturn(ProofOfWork.of(16425882));
-            final IntermediateEnvelope<Application> messageEnvelope = spy(IntermediateEnvelope.application(1, identity.getPublicKey(), proofOfWork, identity.getPublicKey(), byte[].class.getName(), new byte[]{}).arm(identity.getPrivateKey()));
-            when(messageEnvelope.disarm(any())).thenThrow(IllegalStateException.class);
+            final IntermediateEnvelope<Application> messageEnvelope = spy(IntermediateEnvelope.application(1, identity.getPublicKey(), proofOfWork, identity.getPublicKey(), byte[].class.getName(), new byte[]{}).armAndRelease(identity.getPrivateKey()));
+            final var disarmed = messageEnvelope.disarm(any());
+            when(disarmed).thenThrow(IllegalStateException.class);
 
             final SignatureHandler handler = SignatureHandler.INSTANCE;
             final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
@@ -170,6 +204,9 @@ class SignatureHandlerTest {
             assertThrows(ExecutionException.class, () -> pipeline.processInbound(sender, messageEnvelope).get());
             inboundMessages.await(1, SECONDS);
             inboundMessages.assertNoValues();
+
+            ReferenceCountUtil.safeRelease(messageEnvelope);
+            ReferenceCountUtil.safeRelease(disarmed);
         }
     }
 }

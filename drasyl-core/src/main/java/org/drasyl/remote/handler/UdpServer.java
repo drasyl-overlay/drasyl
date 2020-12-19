@@ -31,6 +31,7 @@ import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import org.drasyl.util.ReferenceCountUtil;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Scheduler;
 import org.drasyl.DrasylConfig;
@@ -51,8 +52,8 @@ import org.drasyl.util.Pair;
 import org.drasyl.util.PortMappingUtil;
 import org.drasyl.util.PortMappingUtil.PortMapping;
 import org.drasyl.util.SetUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -178,6 +179,7 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
                         @Override
                         protected void channelRead0(final ChannelHandlerContext channelCtx,
                                                     final DatagramPacket msg) {
+                            LOG.trace("Datagram received {}", msg);
                             final ByteBuf byteBuf = msg.content();
                             byteBuf.retain();
                             ctx.pipeline().processInbound(InetSocketAddressWrapper.of(msg.sender()), byteBuf);
@@ -237,11 +239,12 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
                                 final CompletableFuture<Void> future) {
         if (channel != null && channel.isWritable()) {
             final DatagramPacket packet = new DatagramPacket(byteBuf, recipient.getAddress());
+            LOG.trace("Send Datagram {}", packet);
             FutureUtil.completeOnAllOf(future, FutureUtil.toFuture(channel.writeAndFlush(packet)));
         }
         else {
+            ReferenceCountUtil.safeRelease(byteBuf);
             future.completeExceptionally(new Exception("Udp Channel is not present or is not writable."));
-            byteBuf.release();
         }
     }
 

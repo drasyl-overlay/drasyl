@@ -25,8 +25,8 @@ import org.drasyl.identity.Identity;
 import org.drasyl.peer.PeersManager;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.codec.TypeValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -107,9 +107,7 @@ public abstract class DefaultPipeline implements Pipeline {
         }
         catch (final Exception e) {
             handlerCtx.fireExceptionCaught(e);
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("Error on adding handler `{}`: ", handlerCtx.name(), e);
-            }
+            LOG.warn("Error on adding handler `{}`: ", handlerCtx::name, () -> e);
         }
     }
 
@@ -222,9 +220,7 @@ public abstract class DefaultPipeline implements Pipeline {
         }
         catch (final Exception e) {
             ctx.fireExceptionCaught(e);
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("Error on adding handler `{}`: ", ctx.name(), e);
-            }
+            LOG.warn("Error on adding handler `{}`: ", ctx::name, () -> e);
         }
     }
 

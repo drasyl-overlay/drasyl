@@ -20,8 +20,8 @@ package org.drasyl.pipeline;
 
 import org.drasyl.event.Event;
 import org.drasyl.pipeline.address.Address;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
@@ -120,10 +120,7 @@ public final class HandlerMask {
                     return handlerClass.getMethod(methodName, paramTypes).isAnnotationPresent(Skip.class);
                 }
                 catch (final NoSuchMethodException e) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(
-                                "Class {} missing method {}, assume we can not skip execution", handlerClass, methodName, e);
-                    }
+                    LOG.debug("Class {} missing method {}, assume we can not skip execution", handlerClass, methodName, e);
                     return false;
                 }
             });
