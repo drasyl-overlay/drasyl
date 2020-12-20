@@ -18,6 +18,7 @@
  */
 package org.drasyl.remote.handler;
 
+import com.google.common.cache.CacheBuilder;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
@@ -33,10 +34,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * This handler is responsible for merging incoming message chunks into a single message as well as
@@ -48,7 +54,16 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
     public static final int MAX_MESSAGE_SIZE = 14_000; // must not be more than 256 times MTU!
     public static final String CHUNKING_HANDLER = "CHUNKING_HANDLER";
     private static final Logger LOG = LoggerFactory.getLogger(ChunkingHandler.class);
-    private static final Map<MessageId, ArrayList<ByteBuf>> chunks = new HashMap<>(); // FIXME: remove orphane chunks after some time
+    private final Map<MessageId, ArrayList<ByteBuf>> chunks = new HashMap<>(); // FIXME: remove orphane chunks after some time
+    private final ConcurrentMap<MessageId, IncompleteMessage> incompleteMessagesCache;
+
+    public ChunkingHandler() {
+        incompleteMessagesCache = CacheBuilder.newBuilder()
+                .maximumSize(1_000)
+                .expireAfterWrite(Duration.ofSeconds(60))
+                .<MessageId, IncompleteMessage>build()
+                .asMap();
+    }
 
     @Override
     protected void matchedRead(final HandlerContext ctx,
@@ -75,7 +90,11 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                                     final Address sender,
                                     final IntermediateEnvelope<? extends MessageLite> chunk,
                                     final CompletableFuture<Void> future) throws IOException {
+
         final short totalChunks = chunk.getTotalChunks();
+        final IncompleteMessage incompleteMessage = incompleteMessagesCache.computeIfAbsent(chunk.getId(), k -> new IncompleteMessage(k));
+        incompleteMessage.addChunk(chunk);
+
         final ArrayList<ByteBuf> messageChunks = chunks.computeIfAbsent(chunk.getId(), k -> new ArrayList<>(totalChunks));
         messageChunks.add(chunk.getChunkNo(), chunk.getInternalByteBuf());
 
@@ -139,7 +158,7 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                               final int messageSize) throws IOException {
         try {
             final short totalChunks = (short) (messageSize / MTU + 1);
-            LOG.debug("The message `{}` has a size of {} bytes and must be splitted to {} chunks (MTU = {}).", msg, messageSize, totalChunks, MTU);
+            LOG.debug("The message `{}` has a size of {} bytes and must be split to {} chunks (MTU = {}).", msg, messageSize, totalChunks, MTU);
             final CompletableFuture<Void>[] chunkFutures = new CompletableFuture[totalChunks];
 
             // create & send chunks
@@ -178,6 +197,41 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
         }
         finally {
             messageByteBuf.release();
+        }
+    }
+
+    private static class IncompleteMessage {
+        private final MessageId messageId;
+        private int messageSize = 0;
+        private int totalChunks = 0;
+        private final Map<Short, ByteBuf> chunks;
+
+        public IncompleteMessage(final MessageId messageId) {
+            this.messageId = requireNonNull(messageId);
+            this.chunks = new HashMap<>();
+        }
+
+        public void addChunk(final IntermediateEnvelope<? extends MessageLite> chunk) throws IOException {
+            final int chunkSize = chunk.getInternalByteBuf().readableBytes();
+            final short chunkNo = chunk.getChunkNo();
+
+            // add chunk
+            if (messageSize + chunkSize > MAX_MESSAGE_SIZE) {
+                chunk.release();
+                chunks.values().forEach(ByteBuf::release);
+                LOG.debug("The chunked message with id `{}` has exhausted the max allowed size of {} bytes and was therefore dropped (tried to allocate {} bytes).", messageId, MAX_MESSAGE_SIZE, chunkSize);
+                throw new IllegalStateException("The chunked message with id `" + messageId + "` has exhausted the max allowed size of " + MAX_MESSAGE_SIZE + " bytes and was therefore dropped (tried to allocate " + chunkSize + " bytes).");
+            }
+            messageSize += chunkSize;
+            chunks.putIfAbsent(chunkNo, chunk.getInternalByteBuf());
+            if (totalChunks == 0 && chunk.getTotalChunks() > 0) {
+                totalChunks = chunk.getTotalChunks();
+            }
+
+            // message complete?
+            if (totalChunks > 0 && chunks.size() == totalChunks) {
+                System.out.println();
+            }
         }
     }
 }

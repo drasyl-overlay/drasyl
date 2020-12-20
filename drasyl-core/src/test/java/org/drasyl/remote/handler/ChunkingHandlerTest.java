@@ -129,6 +129,7 @@ class ChunkingHandlerTest {
                 fail();
             }
 
+            // FIXME: out ouf order delivery broken
             @Test
             void shouldBuildMessageAfterReceivingLastMissingChunk() throws CryptoException, IOException, InterruptedException {
                 final CompressedPublicKey sender = CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22");

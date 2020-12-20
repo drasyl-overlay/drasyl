@@ -86,6 +86,7 @@ public class UdpDiscoveryHandler extends SimpleDuplexHandler<IntermediateEnvelop
         directConnectionPeers = new HashSet<>();
         if (config.getRemoteUniteMinInterval().toMillis() > 0) {
             uniteAttemptsCache = CacheBuilder.newBuilder()
+                    .maximumSize(1_000)
                     .expireAfterWrite(config.getRemoteUniteMinInterval())
                     .<Pair<CompressedPublicKey, CompressedPublicKey>, Boolean>build()
                     .asMap();
