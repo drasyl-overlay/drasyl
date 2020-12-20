@@ -11,8 +11,8 @@ message PublicHeader {
     bytes recipient = 6; // 33 bytes fix
     bytes hopCount = 7; // 1 byte
     bytes signature = 8; // 32 bytes fix
-    bytes fragmentNo = 9; // 1 byte
-    bytes totalFragments = 10; // 1 byte
+    bytes chunkNo = 9; // 1 byte
+    bytes totalChunks = 10; // 1 byte
 }
 
 message PrivateHeader {

@@ -35,6 +35,7 @@ import org.drasyl.pipeline.codec.DefaultCodec;
 import org.drasyl.pipeline.codec.ObjectHolder2ApplicationMessageHandler;
 import org.drasyl.pipeline.codec.TypeValidator;
 import org.drasyl.remote.handler.ByteBuf2MessageHandler;
+import org.drasyl.remote.handler.ChunkingHandler;
 import org.drasyl.remote.handler.HopCountGuard;
 import org.drasyl.remote.handler.InvalidProofOfWorkFilter;
 import org.drasyl.remote.handler.Message2ByteBufHandler;
@@ -59,6 +60,7 @@ import static org.drasyl.pipeline.codec.ApplicationMessage2ObjectHolderHandler.A
 import static org.drasyl.pipeline.codec.DefaultCodec.DEFAULT_CODEC;
 import static org.drasyl.pipeline.codec.ObjectHolder2ApplicationMessageHandler.OBJECT_HOLDER2APP_MSG;
 import static org.drasyl.remote.handler.ByteBuf2MessageHandler.BYTE_BUF_2_MESSAGE_HANDLER;
+import static org.drasyl.remote.handler.ChunkingHandler.CHUNKING_HANDLER;
 import static org.drasyl.remote.handler.HopCountGuard.HOP_COUNT_GUARD;
 import static org.drasyl.remote.handler.InvalidProofOfWorkFilter.INVALID_PROOF_OF_WORK_FILTER;
 import static org.drasyl.remote.handler.Message2ByteBufHandler.MESSAGE_2_BYTE_BUF_HANDLER;
@@ -124,6 +126,8 @@ public class DrasylPipeline extends DefaultPipeline {
             // inbound message guards
             addFirst(INVALID_PROOF_OF_WORK_FILTER, InvalidProofOfWorkFilter.INSTANCE);
             addFirst(OTHER_NETWORK_FILTER, OtherNetworkFilter.INSTANCE);
+
+            addFirst(CHUNKING_HANDLER, new ChunkingHandler());
 
             // (de)serialize messages
             addFirst(MESSAGE_2_BYTE_BUF_HANDLER, Message2ByteBufHandler.INSTANCE);

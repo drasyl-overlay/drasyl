@@ -53,6 +53,7 @@ import java.util.concurrent.ExecutionException;
 import static java.time.Duration.ofSeconds;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.awaitility.Awaitility.await;
+import static org.drasyl.remote.handler.ChunkingHandler.MTU;
 import static org.drasyl.util.AnsiColor.COLOR_CYAN;
 import static org.drasyl.util.AnsiColor.STYLE_REVERSED;
 import static org.drasyl.util.NetworkUtil.createInetAddress;
@@ -215,6 +216,37 @@ class DrasylNodeIT {
                     superPeer.first().send(recipient, "Hallo Welt");
                     client1.first().send(recipient, "Hallo Welt");
                     client2.first().send(recipient, "Hallo Welt");
+                }
+
+                //
+                // verify
+                //
+                superPeerMessages.awaitCount(3).assertValueCount(3);
+                client1Messages.awaitCount(3).assertValueCount(3);
+                client2Messages.awaitCount(3).assertValueCount(3);
+            }
+
+            @Test
+            @Timeout(value = TIMEOUT, unit = MILLISECONDS)
+            void applicationMessagesExceedingMtuShouldBeDelivered() {
+                final TestObserver<Event> superPeerMessages = superPeer.second().filter(e -> e instanceof MessageEvent).test();
+                final TestObserver<Event> client1Messages = client1.second().filter(e -> e instanceof MessageEvent).test();
+                final TestObserver<Event> client2Messages = client2.second().filter(e -> e instanceof MessageEvent).test();
+
+//        superPeer.second().filter(e -> e.getCode() == MESSAGE).subscribe(e -> System.err.println("SP: " + e));
+//        client1.second().filter(e -> e.getCode() == MESSAGE).subscribe(e -> System.err.println("C1: " + e));
+//        client2.second().filter(e -> e.getCode() == MESSAGE).subscribe(e -> System.err.println("C2: " + e));
+
+                //
+                // send messages
+                //
+                final Set<String> identities = Set.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22",
+                        "025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4",
+                        "025fd887836759d83b9a5e1bc565e098351fd5b86aaa184e3fb95d6598e9f9398e");
+                for (final String recipient : identities) {
+                    superPeer.first().send(recipient, new byte[MTU]);
+                    client1.first().send(recipient, new byte[MTU]);
+                    client2.first().send(recipient, new byte[MTU]);
                 }
 
                 //

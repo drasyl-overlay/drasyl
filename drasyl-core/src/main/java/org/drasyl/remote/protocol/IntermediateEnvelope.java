@@ -277,7 +277,8 @@ public class IntermediateEnvelope<T extends MessageLite> implements ReferenceCou
         }
     }
 
-    ByteBuf getInternalByteBuf() {
+    // FIXME: remove public!
+    public ByteBuf getInternalByteBuf() {
         synchronized (this) {
             return message;
         }
@@ -740,11 +741,15 @@ public class IntermediateEnvelope<T extends MessageLite> implements ReferenceCou
         );
     }
 
-    public boolean isFragment() throws IOException {
-        return !getPublicHeader().getTotalFragments().isEmpty();
+    public boolean isChunk() throws IOException {
+        return !getPublicHeader().getTotalChunks().isEmpty() || !getPublicHeader().getChunkNo().isEmpty();
     }
 
-    public short getFragmentNo() throws IOException {
-        return getPublicHeader().getFragmentNo().byteAt(0);
+    public short getChunkNo() throws IOException {
+        return getPublicHeader().getChunkNo().byteAt(0);
+    }
+
+    public short getTotalChunks() throws IOException {
+        return getPublicHeader().getTotalChunks().byteAt(0);
     }
 }

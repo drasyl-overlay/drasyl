@@ -49,6 +49,7 @@ import static org.drasyl.pipeline.codec.ApplicationMessage2ObjectHolderHandler.A
 import static org.drasyl.pipeline.codec.DefaultCodec.DEFAULT_CODEC;
 import static org.drasyl.pipeline.codec.ObjectHolder2ApplicationMessageHandler.OBJECT_HOLDER2APP_MSG;
 import static org.drasyl.remote.handler.ByteBuf2MessageHandler.BYTE_BUF_2_MESSAGE_HANDLER;
+import static org.drasyl.remote.handler.ChunkingHandler.CHUNKING_HANDLER;
 import static org.drasyl.remote.handler.HopCountGuard.HOP_COUNT_GUARD;
 import static org.drasyl.remote.handler.InvalidProofOfWorkFilter.INVALID_PROOF_OF_WORK_FILTER;
 import static org.drasyl.remote.handler.Message2ByteBufHandler.MESSAGE_2_BYTE_BUF_HANDLER;
@@ -118,6 +119,7 @@ class DrasylPipelineTest {
         assertNotNull(pipeline.get(SIGNATURE_HANDLER), "This handler is required in the DrasylPipeline");
         assertNotNull(pipeline.get(INVALID_PROOF_OF_WORK_FILTER), "This handler is required in the DrasylPipeline");
         assertNotNull(pipeline.get(OTHER_NETWORK_FILTER), "This handler is required in the DrasylPipeline");
+        assertNotNull(pipeline.get(CHUNKING_HANDLER), "This handler is required in the DrasylPipeline");
         assertNotNull(pipeline.get(MESSAGE_2_BYTE_BUF_HANDLER), "This handler is required in the DrasylPipeline");
         assertNotNull(pipeline.get(BYTE_BUF_2_MESSAGE_HANDLER), "This handler is required in the DrasylPipeline");
         assertNotNull(pipeline.get(UDP_SERVER), "This handler is required in the DrasylPipeline");

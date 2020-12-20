@@ -151,9 +151,9 @@ class ChunkingHandlerTest {
 
                 outboundMessages.awaitCount(3)
                         .assertValueCount(3)
-                        .assertValueAt(0, p -> ((IntermediateEnvelope) p.second()).getFragmentNo() == 0)
-                        .assertValueAt(1, p -> ((IntermediateEnvelope) p.second()).getFragmentNo() == 1)
-                        .assertValueAt(2, p -> ((IntermediateEnvelope) p.second()).getFragmentNo() == 2);
+                        .assertValueAt(0, p -> ((IntermediateEnvelope) p.second()).getChunkNo() == 0)
+                        .assertValueAt(1, p -> ((IntermediateEnvelope) p.second()).getChunkNo() == 1)
+                        .assertValueAt(2, p -> ((IntermediateEnvelope) p.second()).getChunkNo() == 2);
             }
         }
 
