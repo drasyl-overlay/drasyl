@@ -22,7 +22,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
 import org.drasyl.pipeline.HandlerContext;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.skeleton.SimpleDuplexHandler;
@@ -35,14 +34,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * This handler is responsible for merging incoming message chunks into a single message as well as
@@ -50,18 +43,21 @@ import static java.util.Objects.requireNonNull;
  */
 @SuppressWarnings({ "java:S110" })
 public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? extends MessageLite>, IntermediateEnvelope<? extends MessageLite>, Address> {
-    public static final int MTU = 1400;
-    public static final int MAX_MESSAGE_SIZE = 14_000; // must not be more than 256 times MTU!
     public static final String CHUNKING_HANDLER = "CHUNKING_HANDLER";
     private static final Logger LOG = LoggerFactory.getLogger(ChunkingHandler.class);
-    private final Map<MessageId, ArrayList<ByteBuf>> chunks = new HashMap<>(); // FIXME: remove orphane chunks after some time
-    private final ConcurrentMap<MessageId, IncompleteMessage> incompleteMessagesCache;
+    private final int mtu;
+    private final int maxContentLength;
+    private final Map<MessageId, ChunksCollector> chunksCollectors;
 
-    public ChunkingHandler() {
-        incompleteMessagesCache = CacheBuilder.newBuilder()
+    public ChunkingHandler(final int mtu,
+                           final int maxContentLength,
+                           final Duration composedMessageTransferTimeout) {
+        this.mtu = mtu;
+        this.maxContentLength = maxContentLength;
+        chunksCollectors = CacheBuilder.newBuilder()
                 .maximumSize(1_000)
-                .expireAfterWrite(Duration.ofSeconds(60))
-                .<MessageId, IncompleteMessage>build()
+                .expireAfterWrite(composedMessageTransferTimeout)
+                .<MessageId, ChunksCollector>build()
                 .asMap();
     }
 
@@ -90,24 +86,12 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                                     final Address sender,
                                     final IntermediateEnvelope<? extends MessageLite> chunk,
                                     final CompletableFuture<Void> future) throws IOException {
+        final ChunksCollector chunksCollector = chunksCollectors.computeIfAbsent(chunk.getId(), id -> new ChunksCollector(maxContentLength, id));
+        final IntermediateEnvelope<? extends MessageLite> message = chunksCollector.addChunk(chunk);
 
-        final short totalChunks = chunk.getTotalChunks();
-        final IncompleteMessage incompleteMessage = incompleteMessagesCache.computeIfAbsent(chunk.getId(), k -> new IncompleteMessage(k));
-        incompleteMessage.addChunk(chunk);
-
-        final ArrayList<ByteBuf> messageChunks = chunks.computeIfAbsent(chunk.getId(), k -> new ArrayList<>(totalChunks));
-        messageChunks.add(chunk.getChunkNo(), chunk.getInternalByteBuf());
-
-        if (messageChunks.size() == totalChunks) { // FIXME: only use totalChunks from Header-Chunk
-            // we have all chunks, build message
-            final ByteBuf messageByteBuf = PooledByteBufAllocator.DEFAULT.buffer();
-            for (final ByteBuf byteBuf : messageChunks) {
-                messageByteBuf.writeBytes(byteBuf);
-                byteBuf.release();
-            }
-            chunks.remove(chunk.getId());
-
-            final IntermediateEnvelope<MessageLite> message = IntermediateEnvelope.of(messageByteBuf);
+        if (message != null) {
+            // message complete, pass it inbound
+            chunksCollectors.remove(chunk.getId());
             ctx.fireRead(sender, message, future);
         }
         else {
@@ -126,12 +110,12 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                 // message from us, check if we have to chunk it
                 final ByteBuf messageByteBuf = msg.getOrBuildByteBuf();
                 final int messageSize = messageByteBuf.readableBytes();
-                if (messageSize > MAX_MESSAGE_SIZE) {
-                    LOG.debug("The message `{}` has a size of {} bytes and is too large. The max allowed size is {} bytes. Message dropped.", msg, messageSize, MAX_MESSAGE_SIZE);
-                    future.completeExceptionally(new Exception("The message has a size of " + messageSize + " bytes and is too large. The max. allowed size is " + MAX_MESSAGE_SIZE + " bytes. Message dropped."));
+                if (messageSize > maxContentLength) {
+                    LOG.debug("The message `{}` has a size of {} bytes and is too large. The max allowed size is {} bytes. Message dropped.", msg, messageSize, maxContentLength);
+                    future.completeExceptionally(new Exception("The message has a size of " + messageSize + " bytes and is too large. The max. allowed size is " + maxContentLength + " bytes. Message dropped."));
                     messageByteBuf.release();
                 }
-                else if (messageSize > MTU) {
+                else if (messageSize > mtu) {
                     // message is too big, we have to chunk it
                     chunkMessage(ctx, recipient, msg, future, messageByteBuf, messageSize);
                 }
@@ -157,8 +141,8 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                               final ByteBuf messageByteBuf,
                               final int messageSize) throws IOException {
         try {
-            final short totalChunks = (short) (messageSize / MTU + 1);
-            LOG.debug("The message `{}` has a size of {} bytes and must be split to {} chunks (MTU = {}).", msg, messageSize, totalChunks, MTU);
+            final short totalChunks = (short) (messageSize / mtu + 1);
+            LOG.debug("The message `{}` has a size of {} bytes and must be split to {} chunks (MTU = {}).", msg, messageSize, totalChunks, mtu);
             final CompletableFuture<Void>[] chunkFutures = new CompletableFuture[totalChunks];
 
             // create & send chunks
@@ -167,17 +151,26 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
             while (messageByteBuf.readableBytes() > 0) {
                 ByteBuf chunkPayload = null;
                 try {
-                    final PublicHeader chunkHeader = PublicHeader.newBuilder()
+                    final PublicHeader.Builder builder = PublicHeader.newBuilder()
                             .setId(msgPublicHeader.getId())
                             .setUserAgent(msgPublicHeader.getUserAgent())
                             .setSender(msgPublicHeader.getSender()) // TODO: required?
                             .setProofOfWork(msgPublicHeader.getProofOfWork()) // TODO: required?
                             .setRecipient(msgPublicHeader.getRecipient())
-                            .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
-                            .setTotalChunks(ByteString.copyFrom(new byte[]{ (byte) totalChunks })) // TODO: set only on first chunk?
-                            .setChunkNo(ByteString.copyFrom(new byte[]{ (byte) chunkNo }))
+                            .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }));
+
+                    if (chunkNo == 0) {
+                        // set only on first chunk (head chunk)
+                        builder.setTotalChunks(ByteString.copyFrom(new byte[]{ (byte) totalChunks }));
+                    }
+                    else {
+                        // set on all non-head chunks
+                        builder.setChunkNo(ByteString.copyFrom(new byte[]{ (byte) chunkNo }));
+                    }
+
+                    final PublicHeader chunkHeader = builder
                             .build();
-                    chunkPayload = messageByteBuf.readBytes(Math.min(messageByteBuf.readableBytes(), MTU)); // TODO: use messageByteBuf.slice?
+                    chunkPayload = messageByteBuf.readBytes(Math.min(messageByteBuf.readableBytes(), mtu)); // TODO: use messageByteBuf.slice?
 
                     // send
                     final IntermediateEnvelope<MessageLite> chunk = IntermediateEnvelope.of(chunkHeader, chunkPayload);
@@ -197,41 +190,6 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
         }
         finally {
             messageByteBuf.release();
-        }
-    }
-
-    private static class IncompleteMessage {
-        private final MessageId messageId;
-        private int messageSize = 0;
-        private int totalChunks = 0;
-        private final Map<Short, ByteBuf> chunks;
-
-        public IncompleteMessage(final MessageId messageId) {
-            this.messageId = requireNonNull(messageId);
-            this.chunks = new HashMap<>();
-        }
-
-        public void addChunk(final IntermediateEnvelope<? extends MessageLite> chunk) throws IOException {
-            final int chunkSize = chunk.getInternalByteBuf().readableBytes();
-            final short chunkNo = chunk.getChunkNo();
-
-            // add chunk
-            if (messageSize + chunkSize > MAX_MESSAGE_SIZE) {
-                chunk.release();
-                chunks.values().forEach(ByteBuf::release);
-                LOG.debug("The chunked message with id `{}` has exhausted the max allowed size of {} bytes and was therefore dropped (tried to allocate {} bytes).", messageId, MAX_MESSAGE_SIZE, chunkSize);
-                throw new IllegalStateException("The chunked message with id `" + messageId + "` has exhausted the max allowed size of " + MAX_MESSAGE_SIZE + " bytes and was therefore dropped (tried to allocate " + chunkSize + " bytes).");
-            }
-            messageSize += chunkSize;
-            chunks.putIfAbsent(chunkNo, chunk.getInternalByteBuf());
-            if (totalChunks == 0 && chunk.getTotalChunks() > 0) {
-                totalChunks = chunk.getTotalChunks();
-            }
-
-            // message complete?
-            if (totalChunks > 0 && chunks.size() == totalChunks) {
-                System.out.println();
-            }
         }
     }
 }

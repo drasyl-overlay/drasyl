@@ -127,7 +127,7 @@ public class DrasylPipeline extends DefaultPipeline {
             addFirst(INVALID_PROOF_OF_WORK_FILTER, InvalidProofOfWorkFilter.INSTANCE);
             addFirst(OTHER_NETWORK_FILTER, OtherNetworkFilter.INSTANCE);
 
-            addFirst(CHUNKING_HANDLER, new ChunkingHandler());
+            addFirst(CHUNKING_HANDLER, new ChunkingHandler(config.getRemoteMessageMtu(), config.getRemoteMessageMaxContentLength(), config.getRemoteMessageComposedMessageTransferTimeout()));
 
             // (de)serialize messages
             addFirst(MESSAGE_2_BYTE_BUF_HANDLER, Message2ByteBufHandler.INSTANCE);

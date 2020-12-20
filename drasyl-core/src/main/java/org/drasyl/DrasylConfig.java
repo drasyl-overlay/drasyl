@@ -66,9 +66,6 @@ public class DrasylConfig {
     static final String IDENTITY_PUBLIC_KEY = "drasyl.identity.public-key";
     static final String IDENTITY_PRIVATE_KEY = "drasyl.identity.private-key";
     static final String IDENTITY_PATH = "drasyl.identity.path";
-    static final String MESSAGE_MAX_CONTENT_LENGTH = "drasyl.message.max-content-length";
-    static final String MESSAGE_HOP_LIMIT = "drasyl.message.hop-limit";
-    static final String MESSAGE_COMPOSED_MESSAGE_TRANSFER_TIMEOUT = "drasyl.message.composed-message-transfer-timeout";
     static final String REMOTE_ENABLED = "drasyl.remote.enabled";
     static final String REMOTE_BIND_HOST = "drasyl.remote.bind-host";
     static final String REMOTE_BIND_PORT = "drasyl.remote.bind-port";
@@ -81,6 +78,10 @@ public class DrasylConfig {
     static final String REMOTE_UNITE_MIN_INTERVAL = "drasyl.remote.unite.min-interval";
     static final String REMOTE_SUPER_PEER_ENABLED = "drasyl.remote.super-peer.enabled";
     static final String REMOTE_SUPER_PEER_ENDPOINT = "drasyl.remote.super-peer.endpoint";
+    static final String REMOTE_MESSAGE_MTU = "drasyl.remote.message.mtu";
+    static final String REMOTE_MESSAGE_MAX_CONTENT_LENGTH = "drasyl.remote.message.max-content-length";
+    static final String REMOTE_MESSAGE_HOP_LIMIT = "drasyl.remote.message.hop-limit";
+    static final String REMOTE_MESSAGE_COMPOSED_MESSAGE_TRANSFER_TIMEOUT = "drasyl.remote.message.composed-message-transfer-timeout";
     static final String INTRA_VM_DISCOVERY_ENABLED = "drasyl.intra-vm-discovery.enabled";
     static final String LOCAL_HOST_DISCOVERY_ENABLED = "drasyl.local-host-discovery.enabled";
     static final String LOCAL_HOST_DISCOVERY_PATH = "drasyl.local-host-discovery.path";
@@ -117,9 +118,10 @@ public class DrasylConfig {
     private final int remotePingMaxPeers;
     private final Set<Endpoint> remoteEndpoints;
     private final boolean remoteExposeEnabled;
-    private final int messageMaxContentLength;
-    private final byte messageHopLimit;
-    private final Duration messageComposedMessageTransferTimeout;
+    private final int remoteMessageMtu;
+    private final int remoteMessageMaxContentLength;
+    private final byte remoteMessageHopLimit;
+    private final Duration remoteMessageComposedMessageTransferTimeout;
     private final boolean remoteSuperPeerEnabled;
     private final Endpoint remoteSuperPeerEndpoint;
     private final boolean intraVmDiscoveryEnabled;
@@ -191,10 +193,10 @@ public class DrasylConfig {
         this.remoteUniteMinInterval = config.getDuration(REMOTE_UNITE_MIN_INTERVAL);
         this.remoteSuperPeerEnabled = config.getBoolean(REMOTE_SUPER_PEER_ENABLED);
         this.remoteSuperPeerEndpoint = getEndpoint(config, REMOTE_SUPER_PEER_ENDPOINT);
-
-        this.messageMaxContentLength = (int) Math.min(config.getMemorySize(MESSAGE_MAX_CONTENT_LENGTH).toBytes(), Integer.MAX_VALUE);
-        this.messageComposedMessageTransferTimeout = config.getDuration(MESSAGE_COMPOSED_MESSAGE_TRANSFER_TIMEOUT);
-        this.messageHopLimit = getByte(config, MESSAGE_HOP_LIMIT);
+        this.remoteMessageMtu = (int) Math.min(config.getMemorySize(REMOTE_MESSAGE_MTU).toBytes(), Integer.MAX_VALUE);
+        this.remoteMessageMaxContentLength = (int) Math.min(config.getMemorySize(REMOTE_MESSAGE_MAX_CONTENT_LENGTH).toBytes(), Integer.MAX_VALUE);
+        this.remoteMessageComposedMessageTransferTimeout = config.getDuration(REMOTE_MESSAGE_COMPOSED_MESSAGE_TRANSFER_TIMEOUT);
+        this.remoteMessageHopLimit = getByte(config, REMOTE_MESSAGE_HOP_LIMIT);
 
         this.intraVmDiscoveryEnabled = config.getBoolean(INTRA_VM_DISCOVERY_ENABLED);
 
@@ -247,11 +249,12 @@ public class DrasylConfig {
                  final int remotePingMaxPeers,
                  final Set<Endpoint> remoteEndpoints,
                  final boolean remoteExposeEnabled,
-                 final int messageMaxContentLength,
-                 final byte messageHopLimit,
-                 final Duration messageComposedMessageTransferTimeout,
                  final boolean remoteSuperPeerEnabled,
                  final Endpoint remoteSuperPeerEndpoint,
+                 final int remoteMessageMaxContentLength,
+                 final byte remoteMessageHopLimit,
+                 final Duration remoteMessageComposedMessageTransferTimeout,
+                 final int remoteMessageMtu,
                  final boolean intraVmDiscoveryEnabled,
                  final boolean localHostDiscoveryEnabled,
                  final Path localHostDiscoveryPath,
@@ -287,11 +290,12 @@ public class DrasylConfig {
         this.remotePingMaxPeers = remotePingMaxPeers;
         this.remoteEndpoints = remoteEndpoints;
         this.remoteExposeEnabled = remoteExposeEnabled;
-        this.messageMaxContentLength = messageMaxContentLength;
-        this.messageHopLimit = messageHopLimit;
-        this.messageComposedMessageTransferTimeout = messageComposedMessageTransferTimeout;
         this.remoteSuperPeerEnabled = remoteSuperPeerEnabled;
         this.remoteSuperPeerEndpoint = remoteSuperPeerEndpoint;
+        this.remoteMessageMtu = remoteMessageMtu;
+        this.remoteMessageMaxContentLength = remoteMessageMaxContentLength;
+        this.remoteMessageHopLimit = remoteMessageHopLimit;
+        this.remoteMessageComposedMessageTransferTimeout = remoteMessageComposedMessageTransferTimeout;
         this.intraVmDiscoveryEnabled = intraVmDiscoveryEnabled;
         this.localHostDiscoveryEnabled = localHostDiscoveryEnabled;
         this.localHostDiscoveryPath = localHostDiscoveryPath;
@@ -622,11 +626,12 @@ public class DrasylConfig {
                 config.remotePingMaxPeers,
                 config.remoteEndpoints,
                 config.remoteExposeEnabled,
-                config.messageMaxContentLength,
-                config.messageHopLimit,
-                config.messageComposedMessageTransferTimeout,
                 config.remoteSuperPeerEnabled,
                 config.remoteSuperPeerEndpoint,
+                config.remoteMessageMtu,
+                config.remoteMessageMaxContentLength,
+                config.remoteMessageComposedMessageTransferTimeout,
+                config.remoteMessageHopLimit,
                 config.intraVmDiscoveryEnabled,
                 config.localHostDiscoveryEnabled,
                 config.localHostDiscoveryPath,
@@ -652,7 +657,7 @@ public class DrasylConfig {
 
     @Override
     public int hashCode() {
-        return Objects.hash(networkId, identityProofOfWork, identityPublicKey, identityPrivateKey, identityPath, remoteBindHost, remoteEnabled, remoteBindPort, remotePingInterval, remotePingTimeout, remotePingCommunicationTimeout, remoteUniteMinInterval, remotePingMaxPeers, remoteEndpoints, remoteExposeEnabled, messageMaxContentLength, messageHopLimit, messageComposedMessageTransferTimeout, remoteSuperPeerEnabled, remoteSuperPeerEndpoint, intraVmDiscoveryEnabled, localHostDiscoveryEnabled, localHostDiscoveryPath, localHostDiscoveryLeaseTime, monitoringEnabled, monitoringHostTag, monitoringInfluxUri, monitoringInfluxUser, monitoringInfluxPassword, monitoringInfluxDatabase, monitoringInfluxReportingFrequency, pluginSet, marshallingInboundAllowedTypes, marshallingInboundAllowAllPrimitives, marshallingInboundAllowArrayOfDefinedTypes, marshallingInboundAllowedPackages, marshallingOutboundAllowedTypes, marshallingOutboundAllowAllPrimitives, marshallingOutboundAllowArrayOfDefinedTypes, marshallingOutboundAllowedPackages);
+        return Objects.hash(networkId, identityProofOfWork, identityPublicKey, identityPrivateKey, identityPath, remoteBindHost, remoteEnabled, remoteBindPort, remotePingInterval, remotePingTimeout, remotePingCommunicationTimeout, remoteUniteMinInterval, remotePingMaxPeers, remoteEndpoints, remoteExposeEnabled, remoteMessageMtu, remoteMessageMaxContentLength, remoteMessageComposedMessageTransferTimeout, remoteMessageHopLimit, remoteSuperPeerEnabled, remoteSuperPeerEndpoint, intraVmDiscoveryEnabled, localHostDiscoveryEnabled, localHostDiscoveryPath, localHostDiscoveryLeaseTime, monitoringEnabled, monitoringHostTag, monitoringInfluxUri, monitoringInfluxUser, monitoringInfluxPassword, monitoringInfluxDatabase, monitoringInfluxReportingFrequency, pluginSet, marshallingInboundAllowedTypes, marshallingInboundAllowAllPrimitives, marshallingInboundAllowArrayOfDefinedTypes, marshallingInboundAllowedPackages, marshallingOutboundAllowedTypes, marshallingOutboundAllowAllPrimitives, marshallingOutboundAllowArrayOfDefinedTypes, marshallingOutboundAllowedPackages);
     }
 
     @Override
@@ -669,8 +674,9 @@ public class DrasylConfig {
                 remoteBindPort == that.remoteBindPort &&
                 remotePingMaxPeers == that.remotePingMaxPeers &&
                 remoteExposeEnabled == that.remoteExposeEnabled &&
-                messageMaxContentLength == that.messageMaxContentLength &&
-                messageHopLimit == that.messageHopLimit &&
+                remoteMessageMtu == that.remoteMessageMtu &&
+                remoteMessageMaxContentLength == that.remoteMessageMaxContentLength &&
+                remoteMessageHopLimit == that.remoteMessageHopLimit &&
                 remoteSuperPeerEnabled == that.remoteSuperPeerEnabled &&
                 intraVmDiscoveryEnabled == that.intraVmDiscoveryEnabled &&
                 localHostDiscoveryEnabled == that.localHostDiscoveryEnabled &&
@@ -689,7 +695,7 @@ public class DrasylConfig {
                 Objects.equals(remotePingCommunicationTimeout, that.remotePingCommunicationTimeout) &&
                 Objects.equals(remoteUniteMinInterval, that.remoteUniteMinInterval) &&
                 Objects.equals(remoteEndpoints, that.remoteEndpoints) &&
-                Objects.equals(messageComposedMessageTransferTimeout, that.messageComposedMessageTransferTimeout) &&
+                Objects.equals(remoteMessageComposedMessageTransferTimeout, that.remoteMessageComposedMessageTransferTimeout) &&
                 Objects.equals(remoteSuperPeerEndpoint, that.remoteSuperPeerEndpoint) &&
                 Objects.equals(localHostDiscoveryPath, that.localHostDiscoveryPath) &&
                 Objects.equals(localHostDiscoveryLeaseTime, that.localHostDiscoveryLeaseTime) &&
@@ -724,9 +730,10 @@ public class DrasylConfig {
                 ", remotePingMaxPeers=" + remotePingMaxPeers +
                 ", remoteEndpoints=" + remoteEndpoints +
                 ", remoteExposeEnabled=" + remoteExposeEnabled +
-                ", messageMaxContentLength=" + messageMaxContentLength +
-                ", messageHopLimit=" + messageHopLimit +
-                ", messageComposedMessageTransferTimeout=" + messageComposedMessageTransferTimeout +
+                ", remoteMessageMtu=" + remoteMessageMtu +
+                ", remoteMessageMaxContentLength=" + remoteMessageMaxContentLength +
+                ", remoteMessageComposedMessageTransferTimeout=" + remoteMessageComposedMessageTransferTimeout +
+                ", remoteMessageHopLimit=" + remoteMessageHopLimit +
                 ", remoteSuperPeerEnabled=" + remoteSuperPeerEnabled +
                 ", remoteSuperPeerEndpoint=" + remoteSuperPeerEndpoint +
                 ", intraVmDiscoveryEnabled=" + intraVmDiscoveryEnabled +
@@ -848,16 +855,20 @@ public class DrasylConfig {
         return identityPath;
     }
 
-    public int getMessageMaxContentLength() {
-        return messageMaxContentLength;
+    public int getRemoteMessageMtu() {
+        return remoteMessageMtu;
     }
 
-    public byte getMessageHopLimit() {
-        return messageHopLimit;
+    public int getRemoteMessageMaxContentLength() {
+        return remoteMessageMaxContentLength;
     }
 
-    public Duration getMessageComposedMessageTransferTimeout() {
-        return messageComposedMessageTransferTimeout;
+    public Duration getRemoteMessageComposedMessageTransferTimeout() {
+        return remoteMessageComposedMessageTransferTimeout;
+    }
+
+    public byte getRemoteMessageHopLimit() {
+        return remoteMessageHopLimit;
     }
 
     public boolean isIntraVmDiscoveryEnabled() {
@@ -929,9 +940,10 @@ public class DrasylConfig {
         private int remotePingMaxPeers;
         private Set<Endpoint> remoteEndpoints;
         private boolean remoteExposeEnabled;
-        private int messageMaxContentLength;
-        private byte messageHopLimit;
-        private Duration messageComposedMessageTransferTimeout;
+        private int remoteMessageMtu;
+        private int remoteMessageMaxContentLength;
+        private byte remoteMessageHopLimit;
+        private Duration remoteMessageComposedMessageTransferTimeout;
         private boolean remoteSuperPeerEnabled;
         private Endpoint remoteSuperPeerEndpoint;
         private boolean intraVmDiscoveryEnabled;
@@ -974,11 +986,12 @@ public class DrasylConfig {
                        final int remotePingMaxPeers,
                        final Set<Endpoint> remoteEndpoints,
                        final boolean remoteExposeEnabled,
-                       final int messageMaxContentLength,
-                       final byte messageHopLimit,
-                       final Duration messageComposedMessageTransferTimeout,
                        final boolean remoteSuperPeerEnabled,
                        final Endpoint remoteSuperPeerEndpoint,
+                       final int remoteMessageMtu,
+                       final int remoteMessageMaxContentLength,
+                       final Duration remoteMessageComposedMessageTransferTimeout,
+                       final byte remoteMessageHopLimit,
                        final boolean intraVmDiscoveryEnabled,
                        final boolean localHostDiscoveryEnabled,
                        final Path localHostDiscoveryPath,
@@ -1015,9 +1028,10 @@ public class DrasylConfig {
             this.remotePingMaxPeers = remotePingMaxPeers;
             this.remoteEndpoints = remoteEndpoints;
             this.remoteExposeEnabled = remoteExposeEnabled;
-            this.messageMaxContentLength = messageMaxContentLength;
-            this.messageHopLimit = messageHopLimit;
-            this.messageComposedMessageTransferTimeout = messageComposedMessageTransferTimeout;
+            this.remoteMessageMtu = remoteMessageMtu;
+            this.remoteMessageMaxContentLength = remoteMessageMaxContentLength;
+            this.remoteMessageHopLimit = remoteMessageHopLimit;
+            this.remoteMessageComposedMessageTransferTimeout = remoteMessageComposedMessageTransferTimeout;
             this.remoteSuperPeerEnabled = remoteSuperPeerEnabled;
             this.remoteSuperPeerEndpoint = remoteSuperPeerEndpoint;
             this.intraVmDiscoveryEnabled = intraVmDiscoveryEnabled;
@@ -1116,18 +1130,23 @@ public class DrasylConfig {
             return this;
         }
 
-        public Builder messageMaxContentLength(final int messageMaxContentLength) {
-            this.messageMaxContentLength = messageMaxContentLength;
+        public Builder remoteMessageMtu(final int remoteMessageMtu) {
+            this.remoteMessageMtu = remoteMessageMtu;
             return this;
         }
 
-        public Builder messageHopLimit(final byte messageHopLimit) {
-            this.messageHopLimit = messageHopLimit;
+        public Builder remoteMessageMaxContentLength(final int remoteMessageMaxContentLength) {
+            this.remoteMessageMaxContentLength = remoteMessageMaxContentLength;
             return this;
         }
 
-        public Builder messageComposedMessageTransferTimeout(final Duration messageComposedMessageTransferTimeout) {
-            this.messageComposedMessageTransferTimeout = messageComposedMessageTransferTimeout;
+        public Builder remoteMessageHopLimit(final byte remoteMessageHopLimit) {
+            this.remoteMessageHopLimit = remoteMessageHopLimit;
+            return this;
+        }
+
+        public Builder remoteMessageComposedMessageTransferTimeout(final Duration messageComposedMessageTransferTimeout) {
+            this.remoteMessageComposedMessageTransferTimeout = messageComposedMessageTransferTimeout;
             return this;
         }
 
@@ -1242,7 +1261,7 @@ public class DrasylConfig {
         }
 
         public DrasylConfig build() {
-            return new DrasylConfig(networkId, identityProofOfWork, identityPublicKey, identityPrivateKey, identityPath, remoteBindHost, remoteEnabled, remoteBindPort, remotePingInterval, remotePingTimeout, remotePingCommunicationTimeout, remoteUniteMinInterval, remotePingMaxPeers, remoteEndpoints, remoteExposeEnabled, messageMaxContentLength, messageHopLimit, messageComposedMessageTransferTimeout, remoteSuperPeerEnabled, remoteSuperPeerEndpoint, intraVmDiscoveryEnabled, localHostDiscoveryEnabled, localHostDiscoveryPath, localHostDiscoveryLeaseTime, monitoringEnabled, monitoringHost, monitoringInfluxUri, monitoringInfluxUser, monitoringInfluxPassword, monitoringInfluxDatabase, monitoringInfluxReportingFrequency, pluginSet, marshallingInboundAllowedTypes, marshallingInboundAllowAllPrimitives, marshallingInboundAllowArrayOfDefinedTypes, marshallingInboundAllowedPackages, marshallingOutboundAllowedTypes, marshallingOutboundAllowAllPrimitives, marshallingOutboundAllowArrayOfDefinedTypes, marshallingOutboundAllowedPackages);
+            return new DrasylConfig(networkId, identityProofOfWork, identityPublicKey, identityPrivateKey, identityPath, remoteBindHost, remoteEnabled, remoteBindPort, remotePingInterval, remotePingTimeout, remotePingCommunicationTimeout, remoteUniteMinInterval, remotePingMaxPeers, remoteEndpoints, remoteExposeEnabled, remoteSuperPeerEnabled, remoteSuperPeerEndpoint, remoteMessageMaxContentLength, remoteMessageHopLimit, remoteMessageComposedMessageTransferTimeout, remoteMessageMtu, intraVmDiscoveryEnabled, localHostDiscoveryEnabled, localHostDiscoveryPath, localHostDiscoveryLeaseTime, monitoringEnabled, monitoringHost, monitoringInfluxUri, monitoringInfluxUser, monitoringInfluxPassword, monitoringInfluxDatabase, monitoringInfluxReportingFrequency, pluginSet, marshallingInboundAllowedTypes, marshallingInboundAllowAllPrimitives, marshallingInboundAllowArrayOfDefinedTypes, marshallingInboundAllowedPackages, marshallingOutboundAllowedTypes, marshallingOutboundAllowAllPrimitives, marshallingOutboundAllowArrayOfDefinedTypes, marshallingOutboundAllowedPackages);
         }
     }
 }

@@ -46,15 +46,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 
+import static java.time.Duration.ofSeconds;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.drasyl.remote.handler.ChunkingHandler.MAX_MESSAGE_SIZE;
-import static org.drasyl.remote.handler.ChunkingHandler.MTU;
 import static org.drasyl.remote.protocol.MessageId.randomMessageId;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -69,6 +68,9 @@ class ChunkingHandlerTest {
     private TypeValidator inboundValidator;
     @Mock
     private TypeValidator outboundValidator;
+    private final int remoteMessageMtu = 1024;
+    private final int remoteMaxContentLength = 10 * 1024;
+    private final Duration messageComposedMessageTransferTimeout = ofSeconds(10);
 
     @Nested
     class OnIngoingMessage {
@@ -80,8 +82,8 @@ class ChunkingHandlerTest {
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 when(identity.getPublicKey()).thenReturn(recipient);
 
-                final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[MTU / 2]);
-                final Handler handler = new ChunkingHandler();
+                final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[remoteMessageMtu / 2]);
+                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> inboundMessages = pipeline.inboundMessages().test();
 
@@ -101,7 +103,7 @@ class ChunkingHandlerTest {
                 final ProofOfWork proofOfWork = ProofOfWork.of(6518542);
                 when(identity.getPublicKey()).thenReturn(recipient);
 
-                final Handler handler = new ChunkingHandler();
+                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> inboundMessages = pipeline.inboundMessages().test();
 
@@ -113,10 +115,9 @@ class ChunkingHandlerTest {
                         .setProofOfWork(proofOfWork.intValue()) // TODO: required?
                         .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
                         .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
-                        .setTotalChunks(ByteString.copyFrom(new byte[]{ (byte) 2 })) // TODO: set only on first chunk?
-                        .setChunkNo(ByteString.copyFrom(new byte[]{ (byte) 0 }))
+                        .setTotalChunks(ByteString.copyFrom(new byte[]{ (byte) 2 }))
                         .build();
-                final ByteBuf headChunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[MTU / 2]); // TODO: release byte buf?
+                final ByteBuf headChunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[remoteMessageMtu / 2]); // TODO: release byte buf?
 
                 final IntermediateEnvelope<MessageLite> headChunk = IntermediateEnvelope.of(headChunkHeader, headChunkPayload);
                 pipeline.processInbound(sender, headChunk).join();
@@ -125,13 +126,7 @@ class ChunkingHandlerTest {
             }
 
             @Test
-            void shouldDropIncompleteChunksAfterSomeTime() {
-                fail();
-            }
-
-            // FIXME: out ouf order delivery broken
-            @Test
-            void shouldBuildMessageAfterReceivingLastMissingChunk() throws CryptoException, IOException, InterruptedException {
+            void shouldBuildMessageAfterReceivingLastMissingChunk() throws CryptoException, IOException {
                 final CompressedPublicKey sender = CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22");
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 final MessageId messageId = randomMessageId();
@@ -139,25 +134,9 @@ class ChunkingHandlerTest {
                 final ProofOfWork proofOfWork = ProofOfWork.of(6518542);
                 when(identity.getPublicKey()).thenReturn(recipient);
 
-                final Handler handler = new ChunkingHandler();
+                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> inboundMessages = pipeline.inboundMessages().test();
-
-                // head chunk
-                final Protocol.PublicHeader headChunkHeader = Protocol.PublicHeader.newBuilder()
-                        .setId(ByteString.copyFrom(messageId.byteArrayValue()))
-                        .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
-                        .setSender(ByteString.copyFrom(sender.byteArrayValue())) // TODO: required?
-                        .setProofOfWork(proofOfWork.intValue()) // TODO: required?
-                        .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
-                        .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
-                        .setTotalChunks(ByteString.copyFrom(new byte[]{ (byte) 2 })) // TODO: set only on first chunk?
-                        .setChunkNo(ByteString.copyFrom(new byte[]{ (byte) 0 }))
-                        .build();
-                final ByteBuf headChunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[MTU / 2]); // TODO: release byte buf?
-
-                final IntermediateEnvelope<MessageLite> headChunk = IntermediateEnvelope.of(headChunkHeader, headChunkPayload);
-                pipeline.processInbound(sender, headChunk).join();
 
                 // normal chunk
                 final Protocol.PublicHeader chunkHeader = Protocol.PublicHeader.newBuilder()
@@ -167,17 +146,77 @@ class ChunkingHandlerTest {
                         .setProofOfWork(proofOfWork.intValue()) // TODO: required?
                         .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
                         .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
-                        .setTotalChunks(ByteString.copyFrom(new byte[]{ (byte) 2 })) // TODO: set only on first chunk?
                         .setChunkNo(ByteString.copyFrom(new byte[]{ (byte) 1 }))
                         .build();
-                final ByteBuf chunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[MTU / 2]); // TODO: release byte buf?
+                final ByteBuf chunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[remoteMessageMtu / 2]); // TODO: release byte buf?
 
                 final IntermediateEnvelope<MessageLite> chunk = IntermediateEnvelope.of(chunkHeader, chunkPayload);
                 pipeline.processInbound(sender, chunk).join();
 
+                // head chunk
+                final Protocol.PublicHeader headChunkHeader = Protocol.PublicHeader.newBuilder()
+                        .setId(ByteString.copyFrom(messageId.byteArrayValue()))
+                        .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
+                        .setSender(ByteString.copyFrom(sender.byteArrayValue())) // TODO: required?
+                        .setProofOfWork(proofOfWork.intValue()) // TODO: required?
+                        .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
+                        .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
+                        .setTotalChunks(ByteString.copyFrom(new byte[]{ (byte) 2 }))
+                        .build();
+                final ByteBuf headChunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[remoteMessageMtu / 2]); // TODO: release byte buf?
+
+                final IntermediateEnvelope<MessageLite> headChunk = IntermediateEnvelope.of(headChunkHeader, headChunkPayload);
+                pipeline.processInbound(sender, headChunk).join();
+
                 inboundMessages.awaitCount(1)
                         .assertValueCount(1)
                         .assertValueAt(0, p -> !((IntermediateEnvelope) p.second()).isChunk());
+            }
+
+            @Test
+            void shouldCompleteExceptionallyWhenChunkedMessageExceedMaxSize() throws CryptoException, IOException, InterruptedException {
+                final CompressedPublicKey sender = CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22");
+                final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
+                final MessageId messageId = randomMessageId();
+                final UserAgent userAgent = UserAgent.generate();
+                final ProofOfWork proofOfWork = ProofOfWork.of(6518542);
+                when(identity.getPublicKey()).thenReturn(recipient);
+
+                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
+                final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
+                final TestObserver<Pair<Address, Object>> inboundMessages = pipeline.inboundMessages().test();
+
+                // head chunk
+                final Protocol.PublicHeader headChunkHeader = Protocol.PublicHeader.newBuilder()
+                        .setId(ByteString.copyFrom(messageId.byteArrayValue()))
+                        .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
+                        .setSender(ByteString.copyFrom(sender.byteArrayValue())) // TODO: required?
+                        .setProofOfWork(proofOfWork.intValue()) // TODO: required?
+                        .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
+                        .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
+                        .setTotalChunks(ByteString.copyFrom(new byte[]{ (byte) 2 }))
+                        .build();
+                final ByteBuf headChunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[remoteMaxContentLength]); // TODO: release byte buf?
+
+                // normal chunk
+                final Protocol.PublicHeader chunkHeader = Protocol.PublicHeader.newBuilder()
+                        .setId(ByteString.copyFrom(messageId.byteArrayValue()))
+                        .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
+                        .setSender(ByteString.copyFrom(sender.byteArrayValue())) // TODO: required?
+                        .setProofOfWork(proofOfWork.intValue()) // TODO: required?
+                        .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
+                        .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
+                        .setChunkNo(ByteString.copyFrom(new byte[]{ (byte) 1 }))
+                        .build();
+                final ByteBuf chunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[remoteMaxContentLength]); // TODO: release byte buf?
+
+                final IntermediateEnvelope<MessageLite> chunk = IntermediateEnvelope.of(chunkHeader, chunkPayload);
+                pipeline.processInbound(sender, chunk).join();
+
+                final IntermediateEnvelope<MessageLite> headChunk = IntermediateEnvelope.of(headChunkHeader, headChunkPayload);
+                assertThrows(ExecutionException.class, () -> pipeline.processInbound(sender, headChunk).get());
+                inboundMessages.await(1, SECONDS);
+                inboundMessages.assertNoValues();
             }
         }
 
@@ -189,8 +228,8 @@ class ChunkingHandlerTest {
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 when(identity.getPublicKey()).thenReturn(sender);
 
-                final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[MTU / 2]);
-                final Handler handler = new ChunkingHandler();
+                final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[remoteMessageMtu / 2]);
+                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> inboundMessages = pipeline.inboundMessages().test();
 
@@ -210,7 +249,7 @@ class ChunkingHandlerTest {
                 final ProofOfWork proofOfWork = ProofOfWork.of(6518542);
                 when(identity.getPublicKey()).thenReturn(sender);
 
-                final Handler handler = new ChunkingHandler();
+                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> inboundMessages = pipeline.inboundMessages().test();
 
@@ -221,10 +260,9 @@ class ChunkingHandlerTest {
                         .setProofOfWork(proofOfWork.intValue()) // TODO: required?
                         .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
                         .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
-                        .setTotalChunks(ByteString.copyFrom(new byte[]{ (byte) 2 })) // TODO: set only on first chunk?
-                        .setChunkNo(ByteString.copyFrom(new byte[]{ (byte) 0 }))
+                        .setTotalChunks(ByteString.copyFrom(new byte[]{ (byte) 2 }))
                         .build();
-                final ByteBuf headChunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[MTU / 2]); // TODO: release byte buf?
+                final ByteBuf headChunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[remoteMessageMtu / 2]); // TODO: release byte buf?
                 final IntermediateEnvelope<MessageLite> headChunk = IntermediateEnvelope.of(headChunkHeader, headChunkPayload);
                 pipeline.processInbound(sender, headChunk).join();
 
@@ -246,8 +284,8 @@ class ChunkingHandlerTest {
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 when(identity.getPublicKey()).thenReturn(sender);
 
-                final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[MTU / 2]);
-                final Handler handler = new ChunkingHandler();
+                final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[remoteMessageMtu / 2]);
+                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> outboundMessages = pipeline.outboundMessages().test();
 
@@ -265,8 +303,8 @@ class ChunkingHandlerTest {
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 when(identity.getPublicKey()).thenReturn(sender);
 
-                final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[MAX_MESSAGE_SIZE]);
-                final Handler handler = new ChunkingHandler();
+                final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[remoteMaxContentLength]);
+                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> outboundMessages = pipeline.outboundMessages().test();
 
@@ -282,8 +320,8 @@ class ChunkingHandlerTest {
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 when(identity.getPublicKey()).thenReturn(sender);
 
-                final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[MTU * 2]);
-                final Handler handler = new ChunkingHandler();
+                final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[remoteMessageMtu * 2]);
+                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> outboundMessages = pipeline.outboundMessages().test();
 
@@ -306,8 +344,8 @@ class ChunkingHandlerTest {
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 when(identity.getPublicKey()).thenReturn(recipient);
 
-                final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[MTU / 2]);
-                final Handler handler = new ChunkingHandler();
+                final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[remoteMessageMtu / 2]);
+                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> outboundMessages = pipeline.outboundMessages().test();
 

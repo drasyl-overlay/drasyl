@@ -53,7 +53,6 @@ import java.util.concurrent.ExecutionException;
 import static java.time.Duration.ofSeconds;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.drasyl.remote.handler.ChunkingHandler.MTU;
 import static org.drasyl.util.AnsiColor.COLOR_CYAN;
 import static org.drasyl.util.AnsiColor.STYLE_REVERSED;
 import static org.drasyl.util.NetworkUtil.createInetAddress;
@@ -142,6 +141,7 @@ class DrasylNodeIT {
                         .remoteSuperPeerEnabled(false)
                         .intraVmDiscoveryEnabled(false)
                         .localHostDiscoveryEnabled(false)
+                        .remoteMessageMtu(1024)
                         .build();
                 superPeer = createStartedNode(config);
                 final NodeEvent superPeerNodeUp = (NodeEvent) superPeer.second().filter(e -> e instanceof NodeUpEvent).firstElement().blockingGet();
@@ -162,6 +162,7 @@ class DrasylNodeIT {
                         .remoteSuperPeerEndpoint(Endpoint.of("udp://127.0.0.1:" + superPeerPort + "#030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22"))
                         .intraVmDiscoveryEnabled(false)
                         .localHostDiscoveryEnabled(false)
+                        .remoteMessageMtu(1024)
                         .build();
                 client1 = createStartedNode(config);
                 colorizedPrintln("CREATED client1", COLOR_CYAN, STYLE_REVERSED);
@@ -180,6 +181,7 @@ class DrasylNodeIT {
                         .remoteSuperPeerEndpoint(Endpoint.of("udp://127.0.0.1:" + superPeerPort + "#030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22"))
                         .intraVmDiscoveryEnabled(false)
                         .localHostDiscoveryEnabled(false)
+                        .remoteMessageMtu(1024)
                         .build();
                 client2 = createStartedNode(config);
                 colorizedPrintln("CREATED client2", COLOR_CYAN, STYLE_REVERSED);
@@ -244,9 +246,9 @@ class DrasylNodeIT {
                         "025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4",
                         "025fd887836759d83b9a5e1bc565e098351fd5b86aaa184e3fb95d6598e9f9398e");
                 for (final String recipient : identities) {
-                    superPeer.first().send(recipient, new byte[MTU]);
-                    client1.first().send(recipient, new byte[MTU]);
-                    client2.first().send(recipient, new byte[MTU]);
+                    superPeer.first().send(recipient, new byte[1024]);
+                    client1.first().send(recipient, new byte[1024]);
+                    client2.first().send(recipient, new byte[1024]);
                 }
 
                 //

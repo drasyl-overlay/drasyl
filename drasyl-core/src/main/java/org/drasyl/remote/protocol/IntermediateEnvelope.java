@@ -746,10 +746,22 @@ public class IntermediateEnvelope<T extends MessageLite> implements ReferenceCou
     }
 
     public short getChunkNo() throws IOException {
-        return getPublicHeader().getChunkNo().byteAt(0);
+        final ByteString chunkNo = getPublicHeader().getChunkNo();
+        if (!chunkNo.isEmpty()) {
+            return chunkNo.byteAt(0);
+        }
+        else {
+            return 0;
+        }
     }
 
     public short getTotalChunks() throws IOException {
-        return getPublicHeader().getTotalChunks().byteAt(0);
+        final ByteString totalChunks = getPublicHeader().getTotalChunks();
+        if (!totalChunks.isEmpty()) {
+            return totalChunks.byteAt(0);
+        }
+        else {
+            return 0;
+        }
     }
 }
