@@ -108,7 +108,7 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                 final ByteBuf messageByteBuf = msg.getOrBuildByteBuf();
                 final int messageSize = messageByteBuf.readableBytes();
                 if (messageSize > MAX_MESSAGE_SIZE) {
-                    LOG.debug("The message `{}` has a size of {} bytes and is too large. The mex allowed size is {} bytes. Message dropped.", msg, messageSize, MAX_MESSAGE_SIZE);
+                    LOG.debug("The message `{}` has a size of {} bytes and is too large. The max allowed size is {} bytes. Message dropped.", msg, messageSize, MAX_MESSAGE_SIZE);
                     future.completeExceptionally(new Exception("The message has a size of " + messageSize + " bytes and is too large. The max. allowed size is " + MAX_MESSAGE_SIZE + " bytes. Message dropped."));
                     messageByteBuf.release();
                 }
