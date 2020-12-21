@@ -19,6 +19,7 @@
 package org.drasyl.remote.handler;
 
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalListener;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
@@ -57,7 +58,8 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
         chunksCollectors = CacheBuilder.newBuilder()
                 .maximumSize(1_000)
                 .expireAfterWrite(composedMessageTransferTimeout)
-                .<MessageId, ChunksCollector>build()
+                .removalListener((RemovalListener<MessageId, ChunksCollector>) notification -> notification.getValue().release())
+                .build()
                 .asMap();
     }
 

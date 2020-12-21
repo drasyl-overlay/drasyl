@@ -108,6 +108,10 @@ class ChunksCollector {
         }
     }
 
+    public void release() {
+        chunks.values().forEach(ByteBuf::release);
+    }
+
     private boolean allChunksPresent() {
         return totalChunks > 0 && chunks.size() == totalChunks;
     }
