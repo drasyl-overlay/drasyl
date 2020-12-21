@@ -156,9 +156,9 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                 try {
                     final PublicHeader.Builder builder = PublicHeader.newBuilder()
                             .setId(msgPublicHeader.getId())
-                            .setUserAgent(msgPublicHeader.getUserAgent())
-                            .setSender(msgPublicHeader.getSender()) // TODO: required?
-                            .setProofOfWork(msgPublicHeader.getProofOfWork()) // TODO: required?
+                            .setUserAgent(msgPublicHeader.getUserAgent()) // Is only required on head chunk
+                            .setSender(msgPublicHeader.getSender()) // TODO: required? // Is only required on head chunk
+                            .setProofOfWork(msgPublicHeader.getProofOfWork()) // TODO: required? // Is only required on head chunk
                             .setRecipient(msgPublicHeader.getRecipient())
                             .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }));
 
@@ -192,7 +192,6 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
         }
         finally {
             ReferenceCountUtil.safeRelease(messageByteBuf);
-            messageByteBuf.release();
         }
     }
 }

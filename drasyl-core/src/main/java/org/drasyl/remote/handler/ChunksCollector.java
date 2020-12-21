@@ -59,7 +59,7 @@ class ChunksCollector {
      * @throws IllegalStateException if an attempt is made to add a chunk from another message or to
      *                               an already composed message
      */
-    public synchronized IntermediateEnvelope<? extends MessageLite> addChunk(final IntermediateEnvelope<? extends MessageLite> chunk) throws IOException {
+    public synchronized <T extends MessageLite> IntermediateEnvelope<T> addChunk(final IntermediateEnvelope<? extends MessageLite> chunk) throws IOException {
         // already composed?
         if (allChunksPresent()) {
             ReferenceCountUtil.safeRelease(chunk);

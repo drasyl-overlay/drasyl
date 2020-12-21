@@ -38,6 +38,7 @@ import org.drasyl.remote.protocol.MessageId;
 import org.drasyl.remote.protocol.Protocol;
 import org.drasyl.remote.protocol.UserAgent;
 import org.drasyl.util.Pair;
+import org.drasyl.util.ReferenceCountUtil;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -53,6 +54,7 @@ import static java.time.Duration.ofSeconds;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.drasyl.remote.protocol.MessageId.randomMessageId;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -170,7 +172,22 @@ class ChunkingHandlerTest {
 
                 inboundMessages.awaitCount(1)
                         .assertValueCount(1)
-                        .assertValueAt(0, p -> !((IntermediateEnvelope) p.second()).isChunk());
+                        .assertValueAt(0, p -> {
+                            final IntermediateEnvelope envelope = (IntermediateEnvelope) p.second();
+                            System.out.println(envelope.toString());
+                            try {
+                                assertEquals(messageId, envelope.getId());
+                                assertEquals(userAgent, envelope.getUserAgent());
+                                assertEquals(sender, envelope.getSender());
+                                assertEquals(proofOfWork, envelope.getProofOfWork());
+                                assertEquals(recipient, envelope.getRecipient());
+
+                                return !envelope.isChunk();
+                            }
+                            finally {
+                                ReferenceCountUtil.safeRelease(envelope);
+                            }
+                        });
             }
 
             @Test
