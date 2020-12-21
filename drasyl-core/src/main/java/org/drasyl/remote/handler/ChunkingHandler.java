@@ -81,6 +81,7 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
         catch (final IllegalStateException | IOException e) {
             future.completeExceptionally(new Exception("Unable to read message", e));
             LOG.debug("Can't read message `{}` due to the following error: ", msg, e);
+            ReferenceCountUtil.safeRelease(msg);
         }
     }
 
@@ -156,9 +157,8 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                 try {
                     final PublicHeader.Builder builder = PublicHeader.newBuilder()
                             .setId(msgPublicHeader.getId())
-                            .setUserAgent(msgPublicHeader.getUserAgent()) // Is only required on head chunk
-                            .setSender(msgPublicHeader.getSender()) // TODO: required? // Is only required on head chunk
-                            .setProofOfWork(msgPublicHeader.getProofOfWork()) // TODO: required? // Is only required on head chunk
+                            .setUserAgent(msgPublicHeader.getUserAgent())
+                            .setSender(msgPublicHeader.getSender())
                             .setRecipient(msgPublicHeader.getRecipient())
                             .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }));
 

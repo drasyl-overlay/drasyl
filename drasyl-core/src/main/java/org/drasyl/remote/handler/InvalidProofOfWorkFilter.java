@@ -23,9 +23,11 @@ import org.drasyl.pipeline.HandlerContext;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.skeleton.SimpleInboundHandler;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
+import org.drasyl.util.ReferenceCountUtil;
 import org.drasyl.util.logging.Logger;
 import org.drasyl.util.logging.LoggerFactory;
 
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 import static org.drasyl.identity.IdentityManager.POW_DIFFICULTY;
@@ -46,12 +48,20 @@ public class InvalidProofOfWorkFilter extends SimpleInboundHandler<IntermediateE
                                final Address sender,
                                final IntermediateEnvelope<MessageLite> msg,
                                final CompletableFuture<Void> future) {
-        if (msg.getProofOfWork().isValid(msg.getSender(), POW_DIFFICULTY)) {
-            ctx.fireRead(sender, msg, future);
+        try {
+            if (!msg.isChunk() && msg.getProofOfWork().isValid(msg.getSender(), POW_DIFFICULTY)) {
+                ctx.fireRead(sender, msg, future);
+            }
+            else {
+                LOG.trace("Message with invalid proof of work dropped: {}", msg);
+                future.completeExceptionally(new Exception("Message with invalid proof of work dropped"));
+                ReferenceCountUtil.safeRelease(msg);
+            }
         }
-        else {
-            LOG.trace("Message with invalid proof of work dropped: {}", msg);
-            future.completeExceptionally(new Exception("Message with invalid proof of work dropped"));
+        catch (final IOException e) {
+            LOG.debug("Message {} can't be read and was dropped due to the following error: ", msg, e);
+            future.completeExceptionally(new Exception("Message can't be read and was dropped due to the following error: ", e));
+            ReferenceCountUtil.safeRelease(msg);
         }
     }
 }
