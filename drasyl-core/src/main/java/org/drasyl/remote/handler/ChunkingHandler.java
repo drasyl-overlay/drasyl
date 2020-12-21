@@ -90,17 +90,23 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                                     final Address sender,
                                     final IntermediateEnvelope<? extends MessageLite> chunk,
                                     final CompletableFuture<Void> future) throws IOException {
-        final ChunksCollector chunksCollector = chunksCollectors.computeIfAbsent(chunk.getId(), id -> new ChunksCollector(maxContentLength, id));
-        final IntermediateEnvelope<? extends MessageLite> message = chunksCollector.addChunk(chunk);
+        try {
+            final ChunksCollector chunksCollector = chunksCollectors.computeIfAbsent(chunk.getId(), id -> new ChunksCollector(maxContentLength, id));
+            final IntermediateEnvelope<? extends MessageLite> message = chunksCollector.addChunk(chunk);
 
-        if (message != null) {
-            // message complete, pass it inbound
-            chunksCollectors.remove(chunk.getId());
-            ctx.fireRead(sender, message, future);
+            if (message != null) {
+                // message complete, pass it inbound
+                chunksCollectors.remove(chunk.getId());
+                ctx.fireRead(sender, message, future);
+            }
+            else {
+                // other chunks missing, but this chunk has been processed
+                future.complete(null);
+            }
         }
-        else {
-            // other chunks missing, but this chunk has been processed
-            future.complete(null);
+        catch (final IllegalStateException e) {
+            chunksCollectors.remove(chunk.getId());
+            throw e;
         }
     }
 
