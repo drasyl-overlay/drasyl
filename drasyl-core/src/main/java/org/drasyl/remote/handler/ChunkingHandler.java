@@ -30,6 +30,7 @@ import org.drasyl.remote.protocol.MessageId;
 import org.drasyl.remote.protocol.Protocol.PublicHeader;
 import org.drasyl.util.FutureUtil;
 import org.drasyl.util.ReferenceCountUtil;
+import org.drasyl.util.UnsignedShort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,13 +146,13 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                               final ByteBuf messageByteBuf,
                               final int messageSize) throws IOException {
         try {
-            final short totalChunks = (short) (messageSize / mtu + 1);
+            final UnsignedShort totalChunks = UnsignedShort.of((messageSize / mtu + 1));
             LOG.debug("The message `{}` has a size of {} bytes and must be split to {} chunks (MTU = {}).", msg, messageSize, totalChunks, mtu);
-            final CompletableFuture<Void>[] chunkFutures = new CompletableFuture[totalChunks];
+            final CompletableFuture<Void>[] chunkFutures = new CompletableFuture[totalChunks.getValue()];
 
             // create & send chunks
             final PublicHeader msgPublicHeader = msg.getPublicHeader();
-            short chunkNo = 0;
+            UnsignedShort chunkNo = UnsignedShort.of(0);
             while (messageByteBuf.readableBytes() > 0) {
                 ByteBuf chunkPayload = null;
                 try {
@@ -162,13 +163,13 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                             .setRecipient(msgPublicHeader.getRecipient())
                             .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }));
 
-                    if (chunkNo == 0) {
+                    if (chunkNo.getValue() == 0) {
                         // set only on first chunk (head chunk)
-                        builder.setTotalChunks(ByteString.copyFrom(new byte[]{ (byte) totalChunks }));
+                        builder.setTotalChunks(ByteString.copyFrom(totalChunks.toBytes()));
                     }
                     else {
                         // set on all non-head chunks
-                        builder.setChunkNo(ByteString.copyFrom(new byte[]{ (byte) chunkNo }));
+                        builder.setChunkNo(ByteString.copyFrom(chunkNo.toBytes()));
                     }
 
                     final PublicHeader chunkHeader = builder
@@ -178,10 +179,10 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
 
                     // send
                     final IntermediateEnvelope<MessageLite> chunk = IntermediateEnvelope.of(chunkHeader, chunkPayload);
-                    chunkFutures[chunkNo] = new CompletableFuture<>();
-                    ctx.write(recipient, chunk, chunkFutures[chunkNo]);
+                    chunkFutures[chunkNo.getValue()] = new CompletableFuture<>();
+                    ctx.write(recipient, chunk, chunkFutures[chunkNo.getValue()]);
 
-                    chunkNo++;
+                    chunkNo = chunkNo.increment();
                 }
                 finally {
                     ReferenceCountUtil.safeRelease(chunkPayload);

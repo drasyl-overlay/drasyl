@@ -745,23 +745,23 @@ public class IntermediateEnvelope<T extends MessageLite> implements ReferenceCou
         return !getPublicHeader().getTotalChunks().isEmpty() || !getPublicHeader().getChunkNo().isEmpty();
     }
 
-    public short getChunkNo() throws IOException {
+    public UnsignedShort getChunkNo() throws IOException {
         final ByteString chunkNo = getPublicHeader().getChunkNo();
         if (!chunkNo.isEmpty()) {
-            return chunkNo.byteAt(0);
+            return UnsignedShort.of(chunkNo.toByteArray());
         }
         else {
-            return 0;
+            return UnsignedShort.of(0);
         }
     }
 
-    public short getTotalChunks() throws IOException {
+    public UnsignedShort getTotalChunks() throws IOException {
         final ByteString totalChunks = getPublicHeader().getTotalChunks();
         if (!totalChunks.isEmpty()) {
-            return totalChunks.byteAt(0);
+            return UnsignedShort.of(totalChunks.toByteArray());
         }
         else {
-            return 0;
+            return UnsignedShort.of(0);
         }
     }
 }

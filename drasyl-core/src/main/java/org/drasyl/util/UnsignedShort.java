@@ -29,7 +29,7 @@ public class UnsignedShort {
 
     private UnsignedShort(final int value) {
         if (value < 0 || value > 65_535) {
-            throw new IllegalArgumentException("Value must be in range of [0, 2^16].");
+            throw new IllegalArgumentException("Value must be in range of [0, 2^16], but was " + value);
         }
 
         this.value = value;
@@ -37,7 +37,7 @@ public class UnsignedShort {
 
     private UnsignedShort(final byte[] value) {
         if (value.length != 2) {
-            throw new IllegalArgumentException("Value must be a byte array of length 2.");
+            throw new IllegalArgumentException("Value must be a byte array of length 2, but was of length " + value.length);
         }
 
         this.value = ByteBuffer.wrap(new byte[]{ 0x0, 0x0, value[0], value[1] }).getInt();
@@ -82,6 +82,14 @@ public class UnsignedShort {
     @Override
     public String toString() {
         return "" + value;
+    }
+
+    public UnsignedShort increment() {
+        return UnsignedShort.of(value + 1);
+    }
+
+    public UnsignedShort decrement() {
+        return UnsignedShort.of(value - 1);
     }
 
     @Override

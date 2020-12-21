@@ -39,6 +39,7 @@ import org.drasyl.remote.protocol.Protocol;
 import org.drasyl.remote.protocol.UserAgent;
 import org.drasyl.util.Pair;
 import org.drasyl.util.ReferenceCountUtil;
+import org.drasyl.util.UnsignedShort;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -54,7 +55,6 @@ import static java.time.Duration.ofSeconds;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.drasyl.remote.protocol.MessageId.randomMessageId;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -117,7 +117,7 @@ class ChunkingHandlerTest {
                         .setProofOfWork(proofOfWork.intValue()) // TODO: required?
                         .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
                         .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
-                        .setTotalChunks(ByteString.copyFrom(new byte[]{ (byte) 2 }))
+                        .setTotalChunks(ByteString.copyFrom(UnsignedShort.of(2).toBytes()))
                         .build();
                 final ByteBuf headChunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[remoteMessageMtu / 2]); // TODO: release byte buf?
 
@@ -148,7 +148,7 @@ class ChunkingHandlerTest {
                         .setProofOfWork(proofOfWork.intValue()) // TODO: required?
                         .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
                         .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
-                        .setChunkNo(ByteString.copyFrom(new byte[]{ (byte) 1 }))
+                        .setChunkNo(ByteString.copyFrom(UnsignedShort.of(1).toBytes()))
                         .build();
                 final ByteBuf chunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[remoteMessageMtu / 2]); // TODO: release byte buf?
 
@@ -163,7 +163,7 @@ class ChunkingHandlerTest {
                         .setProofOfWork(proofOfWork.intValue()) // TODO: required?
                         .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
                         .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
-                        .setTotalChunks(ByteString.copyFrom(new byte[]{ (byte) 2 }))
+                        .setTotalChunks(ByteString.copyFrom(UnsignedShort.of(2).toBytes()))
                         .build();
                 final ByteBuf headChunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[remoteMessageMtu / 2]); // TODO: release byte buf?
 
@@ -213,7 +213,7 @@ class ChunkingHandlerTest {
                         .setProofOfWork(proofOfWork.intValue()) // TODO: required?
                         .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
                         .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
-                        .setTotalChunks(ByteString.copyFrom(new byte[]{ (byte) 2 }))
+                        .setTotalChunks(ByteString.copyFrom(UnsignedShort.of(2).toBytes()))
                         .build();
                 final ByteBuf headChunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[remoteMaxContentLength]); // TODO: release byte buf?
 
@@ -225,7 +225,7 @@ class ChunkingHandlerTest {
                         .setProofOfWork(proofOfWork.intValue()) // TODO: required?
                         .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
                         .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
-                        .setChunkNo(ByteString.copyFrom(new byte[]{ (byte) 1 }))
+                        .setChunkNo(ByteString.copyFrom(UnsignedShort.of(1).toBytes()))
                         .build();
                 final ByteBuf chunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[remoteMaxContentLength]); // TODO: release byte buf?
 
@@ -279,7 +279,7 @@ class ChunkingHandlerTest {
                         .setProofOfWork(proofOfWork.intValue()) // TODO: required?
                         .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
                         .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
-                        .setTotalChunks(ByteString.copyFrom(new byte[]{ (byte) 2 }))
+                        .setTotalChunks(ByteString.copyFrom(UnsignedShort.of(2).toBytes()))
                         .build();
                 final ByteBuf headChunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[remoteMessageMtu / 2]); // TODO: release byte buf?
                 final IntermediateEnvelope<MessageLite> headChunk = IntermediateEnvelope.of(headChunkHeader, headChunkPayload);
@@ -348,9 +348,9 @@ class ChunkingHandlerTest {
 
                 outboundMessages.awaitCount(3)
                         .assertValueCount(3)
-                        .assertValueAt(0, p -> ((IntermediateEnvelope) p.second()).getChunkNo() == 0)
-                        .assertValueAt(1, p -> ((IntermediateEnvelope) p.second()).getChunkNo() == 1)
-                        .assertValueAt(2, p -> ((IntermediateEnvelope) p.second()).getChunkNo() == 2);
+                        .assertValueAt(0, p -> ((IntermediateEnvelope) p.second()).getChunkNo().getValue() == 0)
+                        .assertValueAt(1, p -> ((IntermediateEnvelope) p.second()).getChunkNo().getValue() == 1)
+                        .assertValueAt(2, p -> ((IntermediateEnvelope) p.second()).getChunkNo().getValue() == 2);
             }
         }
 

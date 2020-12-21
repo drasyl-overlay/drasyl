@@ -25,6 +25,7 @@ import io.netty.buffer.Unpooled;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
 import org.drasyl.remote.protocol.MessageId;
 import org.drasyl.util.ReferenceCountUtil;
+import org.drasyl.util.UnsignedShort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,7 @@ class ChunksCollector {
     private static final Logger LOG = LoggerFactory.getLogger(ChunksCollector.class);
     private final int maxContentLength;
     private final MessageId messageId;
-    private final Map<Short, ByteBuf> chunks;
+    private final Map<Integer, ByteBuf> chunks;
     private int messageSize = 0;
     private int totalChunks = 0;
 
@@ -79,7 +80,7 @@ class ChunksCollector {
         }
 
         final int chunkSize = chunk.getInternalByteBuf().readableBytes();
-        final short chunkNo = chunk.getChunkNo();
+        final int chunkNo = chunk.getChunkNo().getValue();
 
         // add chunk
         if (messageSize + chunkSize > maxContentLength) {
@@ -92,15 +93,15 @@ class ChunksCollector {
         ReferenceCountUtil.safeRelease(chunks.putIfAbsent(chunkNo, chunk.getInternalByteBuf())); // Does also release any previous chunk with same chunkNo
 
         // head chunk? set totalChunks
-        if (totalChunks == 0 && chunk.getTotalChunks() > 0) {
-            totalChunks = chunk.getTotalChunks();
+        if (totalChunks == 0 && chunk.getTotalChunks().getValue() > 0) {
+            totalChunks = chunk.getTotalChunks().getValue();
         }
 
         // message complete?
         if (allChunksPresent()) {
             // message complete, use zero-copy to compose it!
             final CompositeByteBuf messageByteBuf = Unpooled.compositeBuffer(totalChunks);
-            for (short i = 0; i < totalChunks; i++) {
+            for (int i = 0; i < totalChunks; i++) {
                 final ByteBuf chunkByteBuf = chunks.remove(i);
                 messageByteBuf.addComponent(true, chunkByteBuf);
             }
