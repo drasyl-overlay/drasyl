@@ -342,7 +342,8 @@ public class IntermediateEnvelope<T extends MessageLite> implements ReferenceCou
 
     @Override
     public boolean release() {
-        return originalMessage.release();
+        releaseAll();
+        return originalMessage == null || originalMessage.refCnt() == 0;
     }
 
     @Override

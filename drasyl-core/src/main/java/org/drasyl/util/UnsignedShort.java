@@ -29,7 +29,7 @@ public class UnsignedShort {
 
     private UnsignedShort(final int value) {
         if (value < 0 || value > 65_535) {
-            throw new IllegalArgumentException("Value must be in range of [0, 2^16], but was " + value);
+            throw new IllegalArgumentException("Value must be in range of [0, 2^16 - 1], but was " + value);
         }
 
         this.value = value;
