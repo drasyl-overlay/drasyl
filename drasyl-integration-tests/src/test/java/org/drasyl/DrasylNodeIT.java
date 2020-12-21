@@ -22,6 +22,7 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.subjects.ReplaySubject;
 import io.reactivex.rxjava3.subjects.Subject;
+import org.drasyl.crypto.Crypto;
 import org.drasyl.crypto.CryptoException;
 import org.drasyl.event.Event;
 import org.drasyl.event.MessageEvent;
@@ -246,9 +247,9 @@ class DrasylNodeIT {
                         "025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4",
                         "025fd887836759d83b9a5e1bc565e098351fd5b86aaa184e3fb95d6598e9f9398e");
                 for (final String recipient : identities) {
-                    superPeer.first().send(recipient, new byte[1024]);
-                    client1.first().send(recipient, new byte[1024]);
-                    client2.first().send(recipient, new byte[1024]);
+                    superPeer.first().send(recipient, Crypto.randomBytes(1024));
+                    client1.first().send(recipient, Crypto.randomBytes(1024));
+                    client2.first().send(recipient, Crypto.randomBytes(1024));
                 }
 
                 //
