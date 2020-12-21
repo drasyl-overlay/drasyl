@@ -25,9 +25,8 @@ import io.netty.buffer.Unpooled;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
 import org.drasyl.remote.protocol.MessageId;
 import org.drasyl.util.ReferenceCountUtil;
-import org.drasyl.util.UnsignedShort;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -96,6 +95,8 @@ class ChunksCollector {
         if (totalChunks == 0 && chunk.getTotalChunks().getValue() > 0) {
             totalChunks = chunk.getTotalChunks().getValue();
         }
+
+        LOG.trace("[{}] {} of {} chunks collected ({} total bytes; last received chunk: {})", () -> messageId, chunks::size, () -> totalChunks, () -> messageSize, () -> chunkNo + 1);
 
         // message complete?
         if (allChunksPresent()) {
