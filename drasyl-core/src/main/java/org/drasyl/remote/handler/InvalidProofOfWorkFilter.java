@@ -51,7 +51,7 @@ public class InvalidProofOfWorkFilter extends SimpleInboundHandler<IntermediateE
                                final IntermediateEnvelope<MessageLite> msg,
                                final CompletableFuture<Void> future) {
         try {
-            if (!msg.isChunk() && msg.getProofOfWork().isValid(msg.getSender(), POW_DIFFICULTY)) {
+            if (msg.isChunk() || msg.getProofOfWork().isValid(msg.getSender(), POW_DIFFICULTY)) {
                 ctx.fireRead(sender, msg, future);
             }
             else {
