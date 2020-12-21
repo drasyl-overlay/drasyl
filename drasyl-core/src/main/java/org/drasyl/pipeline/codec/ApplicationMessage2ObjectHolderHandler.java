@@ -19,6 +19,7 @@
 package org.drasyl.pipeline.codec;
 
 import org.drasyl.pipeline.HandlerContext;
+import org.drasyl.pipeline.Stateless;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.message.ApplicationMessage;
 import org.drasyl.pipeline.skeleton.SimpleInboundHandler;
@@ -28,6 +29,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Handler that converts a given {@link ApplicationMessage} to an {@link ObjectHolder}.
  */
+@Stateless
 public class ApplicationMessage2ObjectHolderHandler extends SimpleInboundHandler<ApplicationMessage, Address> {
     public static final ApplicationMessage2ObjectHolderHandler INSTANCE = new ApplicationMessage2ObjectHolderHandler();
     public static final String APP_MSG2OBJECT_HOLDER = "applicationMessage2ObjectHolderHandler";

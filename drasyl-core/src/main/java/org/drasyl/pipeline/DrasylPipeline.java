@@ -118,7 +118,7 @@ public class DrasylPipeline extends DefaultPipeline {
             addFirst(HOP_COUNT_GUARD, HopCountGuard.INSTANCE);
 
             if (config.isMonitoringEnabled()) {
-                addFirst(MONITORING_HANDLER, Monitoring.INSTANCE);
+                addFirst(MONITORING_HANDLER, new Monitoring());
             }
 
             addFirst(SIGNATURE_HANDLER, SignatureHandler.INSTANCE);

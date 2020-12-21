@@ -21,6 +21,7 @@ package org.drasyl.remote.handler;
 import com.google.protobuf.MessageLite;
 import org.drasyl.identity.CompressedPublicKey;
 import org.drasyl.pipeline.HandlerContext;
+import org.drasyl.pipeline.Stateless;
 import org.drasyl.pipeline.skeleton.SimpleOutboundHandler;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
 import org.drasyl.util.logging.Logger;
@@ -33,6 +34,7 @@ import java.util.concurrent.CompletableFuture;
  * increments the hop counter of each outgoing message. If the limit of hops is reached, the message
  * is discarded. Otherwise the message can pass.
  */
+@Stateless
 public class HopCountGuard extends SimpleOutboundHandler<IntermediateEnvelope<MessageLite>, CompressedPublicKey> {
     public static final HopCountGuard INSTANCE = new HopCountGuard();
     public static final String HOP_COUNT_GUARD = "HOP_COUNT_GUARD";

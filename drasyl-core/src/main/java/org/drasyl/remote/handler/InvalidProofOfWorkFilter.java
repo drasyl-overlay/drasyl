@@ -20,6 +20,7 @@ package org.drasyl.remote.handler;
 
 import com.google.protobuf.MessageLite;
 import org.drasyl.pipeline.HandlerContext;
+import org.drasyl.pipeline.Stateless;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.skeleton.SimpleInboundHandler;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
@@ -35,6 +36,7 @@ import static org.drasyl.identity.IdentityManager.POW_DIFFICULTY;
 /**
  * This handler filters out all messages received with invalid proof of work.
  */
+@Stateless
 public class InvalidProofOfWorkFilter extends SimpleInboundHandler<IntermediateEnvelope<MessageLite>, Address> {
     public static final InvalidProofOfWorkFilter INSTANCE = new InvalidProofOfWorkFilter();
     public static final String INVALID_PROOF_OF_WORK_FILTER = "INVALID_PROOF_OF_WORK_FILTER";

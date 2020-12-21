@@ -25,6 +25,7 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import org.drasyl.identity.CompressedPublicKey;
 import org.drasyl.pipeline.HandlerContext;
+import org.drasyl.pipeline.Stateless;
 import org.drasyl.util.JSONUtil;
 import org.drasyl.util.logging.Logger;
 import org.drasyl.util.logging.LoggerFactory;
@@ -39,6 +40,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * This default codec allows to encode/decode all supported objects by Jackson.
  */
+@Stateless
 @SuppressWarnings({ "java:S110" })
 public class DefaultCodec extends Codec<ObjectHolder, Object, CompressedPublicKey> {
     public static final DefaultCodec INSTANCE = new DefaultCodec();

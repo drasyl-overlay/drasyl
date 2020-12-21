@@ -20,6 +20,7 @@ package org.drasyl.loopback.handler;
 
 import org.drasyl.identity.CompressedPublicKey;
 import org.drasyl.pipeline.HandlerContext;
+import org.drasyl.pipeline.Stateless;
 import org.drasyl.pipeline.message.ApplicationMessage;
 import org.drasyl.pipeline.skeleton.SimpleOutboundHandler;
 
@@ -28,6 +29,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * This handler processes outbound messages addressed to the local node.
  */
+@Stateless
 public class LoopbackOutboundMessageSinkHandler extends SimpleOutboundHandler<ApplicationMessage, CompressedPublicKey> {
     public static final LoopbackOutboundMessageSinkHandler INSTANCE = new LoopbackOutboundMessageSinkHandler();
     public static final String LOOPBACK_OUTBOUND_MESSAGE_SINK_HANDLER = "LOOPBACK_OUTBOUND_MESSAGE_SINK_HANDLER";

@@ -50,7 +50,6 @@ import static java.util.Optional.ofNullable;
  */
 @SuppressWarnings({ "java:S110" })
 public class Monitoring extends SimpleDuplexHandler<Object, Object, Address> {
-    public static final Monitoring INSTANCE = new Monitoring();
     public static final String MONITORING_HANDLER = "MONITORING_HANDLER";
     private static final Logger LOG = LoggerFactory.getLogger(Monitoring.class);
     private final Map<String, Counter> counters;
@@ -65,7 +64,7 @@ public class Monitoring extends SimpleDuplexHandler<Object, Object, Address> {
         this.registry = registry;
     }
 
-    private Monitoring() {
+    public Monitoring() {
         this(
                 new HashMap<>(),
                 ctx -> {

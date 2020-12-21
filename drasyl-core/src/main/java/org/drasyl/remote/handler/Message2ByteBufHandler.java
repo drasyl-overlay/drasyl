@@ -21,6 +21,7 @@ package org.drasyl.remote.handler;
 import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
 import org.drasyl.pipeline.HandlerContext;
+import org.drasyl.pipeline.Stateless;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.skeleton.SimpleOutboundHandler;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
@@ -28,6 +29,7 @@ import org.drasyl.util.ReferenceCountUtil;
 import org.drasyl.util.logging.Logger;
 import org.drasyl.util.logging.LoggerFactory;
 
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 import static org.drasyl.util.LoggingUtil.sanitizeLogArg;
@@ -35,6 +37,7 @@ import static org.drasyl.util.LoggingUtil.sanitizeLogArg;
 /**
  * Handler that converts a given {@link IntermediateEnvelope} to a {@link ByteBuf}.
  */
+@Stateless
 public class Message2ByteBufHandler extends SimpleOutboundHandler<IntermediateEnvelope<MessageLite>, Address> {
     public static final Message2ByteBufHandler INSTANCE = new Message2ByteBufHandler();
     public static final String MESSAGE_2_BYTE_BUF_HANDLER = "MESSAGE_2_BYTE_BUF_HANDLER";
@@ -54,7 +57,7 @@ public class Message2ByteBufHandler extends SimpleOutboundHandler<IntermediateEn
 
             write(ctx, recipient, byteBuf, future);
         }
-        catch (final Exception e) {
+        catch (final IOException e) {
             ReferenceCountUtil.safeRelease(byteBuf);
             LOG.error("Unable to serialize '{}': {}", sanitizeLogArg(msg), e.getMessage());
             future.completeExceptionally(new Exception("Message could not be serialized. This could indicate a bug in drasyl.", e));

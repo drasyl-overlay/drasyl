@@ -20,6 +20,7 @@ package org.drasyl.remote.handler;
 
 import com.google.protobuf.MessageLite;
 import org.drasyl.pipeline.HandlerContext;
+import org.drasyl.pipeline.Stateless;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.skeleton.SimpleInboundHandler;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
@@ -31,6 +32,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * This handler filters out all messages received from other networks.
  */
+@Stateless
 public class OtherNetworkFilter extends SimpleInboundHandler<IntermediateEnvelope<MessageLite>, Address> {
     public static final OtherNetworkFilter INSTANCE = new OtherNetworkFilter();
     public static final String OTHER_NETWORK_FILTER = "OTHER_NETWORK_FILTER";

@@ -21,6 +21,7 @@ package org.drasyl.pipeline;
 import org.drasyl.event.Event;
 import org.drasyl.pipeline.address.Address;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -42,9 +43,10 @@ import java.util.concurrent.CompletableFuture;
  * which reverses the behavior of the supertype.
  * <b>The skippable method MUST be implemented always because some environments prohibit the
  * execution of reflections. In this case the method implementation is executed, also if it is
- * annotated with {@link Skip}</b>
+ * annotated with {@link Skip}</b>.
  * </p>
  */
+@Documented
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Skip {

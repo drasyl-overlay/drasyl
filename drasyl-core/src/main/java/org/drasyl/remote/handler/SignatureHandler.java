@@ -20,6 +20,7 @@ package org.drasyl.remote.handler;
 
 import com.google.protobuf.MessageLite;
 import org.drasyl.pipeline.HandlerContext;
+import org.drasyl.pipeline.Stateless;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.skeleton.SimpleDuplexHandler;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
@@ -35,6 +36,7 @@ import java.util.concurrent.CompletableFuture;
  * validation is impossible, e.g. the public key of the sender is unknown. In this case, drop
  * information is written to the log.
  */
+@Stateless
 @SuppressWarnings({ "java:S110" })
 public class SignatureHandler extends SimpleDuplexHandler<IntermediateEnvelope<MessageLite>, IntermediateEnvelope<MessageLite>, Address> {
     public static final SignatureHandler INSTANCE = new SignatureHandler();
