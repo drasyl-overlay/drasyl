@@ -29,6 +29,7 @@ import org.drasyl.remote.protocol.IntermediateEnvelope;
 import org.drasyl.remote.protocol.MessageId;
 import org.drasyl.remote.protocol.Protocol.PublicHeader;
 import org.drasyl.util.FutureUtil;
+import org.drasyl.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +58,7 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
         chunksCollectors = CacheBuilder.newBuilder()
                 .maximumSize(1_000)
                 .expireAfterWrite(composedMessageTransferTimeout)
+                .removalListener(cc -> ((ChunksCollector) cc.getValue()).release())
                 .<MessageId, ChunksCollector>build()
                 .asMap();
     }
@@ -113,14 +115,14 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                 if (messageSize > maxContentLength) {
                     LOG.debug("The message `{}` has a size of {} bytes and is too large. The max allowed size is {} bytes. Message dropped.", msg, messageSize, maxContentLength);
                     future.completeExceptionally(new Exception("The message has a size of " + messageSize + " bytes and is too large. The max. allowed size is " + maxContentLength + " bytes. Message dropped."));
-                    messageByteBuf.release();
+                    ReferenceCountUtil.safeRelease(messageByteBuf);
                 }
                 else if (messageSize > mtu) {
                     // message is too big, we have to chunk it
                     chunkMessage(ctx, recipient, msg, future, messageByteBuf, messageSize);
                 }
                 else {
-                    // message is small enough. no chunking required
+                    // message is small enough. No chunking required
                     ctx.write(recipient, msg, future);
                 }
             }
@@ -131,6 +133,7 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
         catch (final IllegalStateException | IOException e) {
             future.completeExceptionally(new Exception("Unable to read message", e));
             LOG.debug("Can't read message `{}` due to the following error: ", msg, e);
+            ReferenceCountUtil.safeRelease(msg);
         }
     }
 
@@ -170,7 +173,8 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
 
                     final PublicHeader chunkHeader = builder
                             .build();
-                    chunkPayload = messageByteBuf.readBytes(Math.min(messageByteBuf.readableBytes(), mtu)); // TODO: use messageByteBuf.slice?
+                    // use zero-copy
+                    chunkPayload = messageByteBuf.readRetainedSlice(Math.min(messageByteBuf.readableBytes(), mtu));
 
                     // send
                     final IntermediateEnvelope<MessageLite> chunk = IntermediateEnvelope.of(chunkHeader, chunkPayload);
@@ -180,15 +184,14 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                     chunkNo++;
                 }
                 finally {
-                    if (chunkPayload != null && chunkPayload.refCnt() != 0) {
-                        chunkPayload.release();
-                    }
+                    ReferenceCountUtil.safeRelease(chunkPayload);
                 }
             }
 
             FutureUtil.completeOnAllOf(future, chunkFutures);
         }
         finally {
+            ReferenceCountUtil.safeRelease(messageByteBuf);
             messageByteBuf.release();
         }
     }

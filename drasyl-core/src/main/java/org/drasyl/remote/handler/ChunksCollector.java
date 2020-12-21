@@ -20,9 +20,11 @@ package org.drasyl.remote.handler;
 
 import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.CompositeByteBuf;
+import io.netty.buffer.Unpooled;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
 import org.drasyl.remote.protocol.MessageId;
+import org.drasyl.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,16 +62,19 @@ class ChunksCollector {
     public synchronized IntermediateEnvelope<? extends MessageLite> addChunk(final IntermediateEnvelope<? extends MessageLite> chunk) throws IOException {
         // already composed?
         if (allChunksPresent()) {
+            ReferenceCountUtil.safeRelease(chunk);
             throw new IllegalStateException("All chunks have already been collected and message has already been returned");
         }
 
         // is chunk?
         if (!chunk.isChunk()) {
+            ReferenceCountUtil.safeRelease(chunk);
             throw new IllegalStateException("This is not a chunk!");
         }
 
         // belongs to our message?
         if (!chunk.getId().equals(messageId)) {
+            ReferenceCountUtil.safeRelease(chunk);
             throw new IllegalStateException("This chunk belongs to another message!");
         }
 
@@ -78,13 +83,13 @@ class ChunksCollector {
 
         // add chunk
         if (messageSize + chunkSize > maxContentLength) {
-            chunk.release();
-            chunks.values().forEach(ByteBuf::release);
+            ReferenceCountUtil.safeRelease(chunk);
+            chunks.values().forEach(ReferenceCountUtil::safeRelease);
             LOG.debug("The chunked message with id `{}` has exhausted the max allowed size of {} bytes and was therefore dropped (tried to allocate additional {} bytes).", messageId, maxContentLength, chunkSize);
             throw new IllegalStateException("The chunked message with id `" + messageId + "` has exhausted the max allowed size of " + maxContentLength + " bytes and was therefore dropped (tried to allocate additional " + chunkSize + " bytes).");
         }
         messageSize += chunkSize;
-        chunks.putIfAbsent(chunkNo, chunk.getInternalByteBuf());
+        ReferenceCountUtil.safeRelease(chunks.putIfAbsent(chunkNo, chunk.getInternalByteBuf())); // Does also release any previous chunk with same chunkNo
 
         // head chunk? set totalChunks
         if (totalChunks == 0 && chunk.getTotalChunks() > 0) {
@@ -93,12 +98,11 @@ class ChunksCollector {
 
         // message complete?
         if (allChunksPresent()) {
-            // message complete, compose it!
-            final ByteBuf messageByteBuf = PooledByteBufAllocator.DEFAULT.buffer();
+            // message complete, use zero-copy to compose it!
+            final CompositeByteBuf messageByteBuf = Unpooled.compositeBuffer(totalChunks);
             for (short i = 0; i < totalChunks; i++) {
                 final ByteBuf chunkByteBuf = chunks.remove(i);
-                messageByteBuf.writeBytes(chunkByteBuf);
-                chunkByteBuf.release();
+                messageByteBuf.addComponent(true, chunkByteBuf);
             }
             return IntermediateEnvelope.of(messageByteBuf);
         }
@@ -110,5 +114,13 @@ class ChunksCollector {
 
     private boolean allChunksPresent() {
         return totalChunks > 0 && chunks.size() == totalChunks;
+    }
+
+    /**
+     * Should release any resources allocated or managed by this object.
+     */
+    public void release() {
+        chunks.values().forEach(ReferenceCountUtil::safeRelease);
+        chunks.clear();
     }
 }
