@@ -26,11 +26,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.FixedRecvByteBufAllocator;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.WriteBufferWaterMark;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.socket.DatagramChannel;
@@ -69,9 +67,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 
 import static io.netty.handler.flush.FlushConsolidationHandler.DEFAULT_EXPLICIT_FLUSH_AFTER_FLUSHES;
@@ -95,6 +92,7 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
     private Set<Endpoint> actualEndpoints;
     private Channel channel;
     private Set<PortMapping> portMappings;
+    private LongSupplier outboundBufferSizeSupplier;
 
     UdpServer(final Bootstrap bootstrap,
               final Scheduler scheduler,
@@ -104,6 +102,7 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
         this.scheduler = scheduler;
         this.portExposer = portExposer;
         this.channel = channel;
+        this.outboundBufferSizeSupplier = () -> 0;
     }
 
     public UdpServer(final EventLoopGroup bossGroup) {
@@ -111,7 +110,7 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
                 new Bootstrap()
                         .group(bossGroup)
                         .channel(getBestDatagramChannel())
-                        .option(ChannelOption.SO_BROADCAST, true),
+                        .option(ChannelOption.SO_BROADCAST, false),
                 DrasylScheduler.getInstanceHeavy(),
                 address -> PortMappingUtil.expose(address, UDP),
                 null
@@ -184,12 +183,25 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
                                           final CompletableFuture<Void> future) {
         if (channel == null) {
             LOG.debug("Start Server...");
+            bootstrap.option(ChannelOption.RCVBUF_ALLOCATOR,
+                    new FixedRecvByteBufAllocator(ctx.config().getRemoteMessageMtu() + 300));
+            bootstrap.option(ChannelOption.SO_RCVBUF,
+                    Math.max(65_536, (ctx.config().getRemoteMessageMtu() + 300) * 10_000));
+            bootstrap.option(ChannelOption.SO_SNDBUF,
+                    Math.max(65_536, (ctx.config().getRemoteMessageMtu() + 300) * 10_000));
+
             final ChannelFuture channelFuture = bootstrap
                     .handler(new ChannelInitializer<DatagramChannel>() {
                         @Override
                         protected void initChannel(final DatagramChannel ch) {
                             final ChannelPipeline pipeline = ch.pipeline();
+                            final ChannelTrafficShapingHandler trafficHandler =
+                                    new ChannelTrafficShapingHandler(
+                                            ctx.config().getRemoteThrottleOutboundTrafficLimit(),
+                                            ctx.config().getRemoteThrottleInboundTrafficLimit());
+                            outboundBufferSizeSupplier = trafficHandler::queueSize;
 
+                            pipeline.addLast(trafficHandler);
                             // Use buffer for better IO performance
                             pipeline.addLast(
                                     new FlushConsolidationHandler(DEFAULT_EXPLICIT_FLUSH_AFTER_FLUSHES, true));
@@ -224,7 +236,7 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
             }
             else {
                 // server start failed
-                LOG.warn("Unable to bind server to address {}:{}: {}", ctx.config().getRemoteBindHost(), ctx.config().getRemoteBindPort(), channelFuture.cause().getMessage());
+                LOG.warn("Unable to bind server to address {}:{}: {}", ctx.config()::getRemoteBindHost, ctx.config()::getRemoteBindPort, channelFuture.cause()::getMessage);
 
                 future.completeExceptionally(new Exception("Unable to bind server to address " + ctx.config().getRemoteBindHost() + ":" + ctx.config().getRemoteBindPort() + ": " + channelFuture.cause().getMessage()));
             }
@@ -257,14 +269,22 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
                                 final InetSocketAddressWrapper recipient,
                                 final ByteBuf byteBuf,
                                 final CompletableFuture<Void> future) {
-        if (channel != null && channel.isWritable()) {
+        final long bufferLimit = ctx.config().getRemoteThrottleOutboundBufferLimit();
+        if (bufferLimit > 0 &&
+                outboundBufferSizeSupplier.getAsLong() > bufferLimit) {
+            ReferenceCountUtil.safeRelease(byteBuf);
+            future.completeExceptionally(new Exception("Max. write buffer size of " + bufferLimit + " reached, message was dropped."));
+            LOG.warn("Max. write buffer size of {} reached, message was dropped.", bufferLimit);
+        }
+
+        if (channel != null) {
             final DatagramPacket packet = new DatagramPacket(byteBuf, recipient.getAddress());
             LOG.trace("Send Datagram {}", packet);
             FutureUtil.completeOnAllOf(future, FutureUtil.toFuture(channel.writeAndFlush(packet)));
         }
         else {
             ReferenceCountUtil.safeRelease(byteBuf);
-            future.completeExceptionally(new Exception("Udp Channel is not present or is not writable."));
+            future.completeExceptionally(new Exception("Udp Channel is not present."));
         }
     }
 

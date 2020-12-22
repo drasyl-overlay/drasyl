@@ -90,6 +90,9 @@ import static org.drasyl.DrasylConfig.REMOTE_MESSAGE_MTU;
 import static org.drasyl.DrasylConfig.REMOTE_PING_INTERVAL;
 import static org.drasyl.DrasylConfig.REMOTE_SUPER_PEER_ENABLED;
 import static org.drasyl.DrasylConfig.REMOTE_SUPER_PEER_ENDPOINT;
+import static org.drasyl.DrasylConfig.REMOTE_THROTTLE_INBOUND_TRAFFIC_LIMIT;
+import static org.drasyl.DrasylConfig.REMOTE_THROTTLE_OUTBOUND_BUFFER_LIMIT;
+import static org.drasyl.DrasylConfig.REMOTE_THROTTLE_OUTBOUND_TRAFFIC_LIMIT;
 import static org.drasyl.DrasylConfig.getByte;
 import static org.drasyl.DrasylConfig.getChannelInitializer;
 import static org.drasyl.DrasylConfig.getEndpointList;
@@ -161,6 +164,9 @@ class DrasylConfigTest {
     private Duration remotePingCommunicationTimeout;
     private Duration remoteUniteMinInterval;
     private int remotePingMaxPeers;
+    private long remoteThrottleOutboundTrafficLimit;
+    private long remoteThrottleInboundTrafficLimit;
+    private long remoteThrottleOutboundBufferLimit;
 
     @BeforeEach
     void setUp() {
@@ -197,6 +203,9 @@ class DrasylConfigTest {
         marshallingOutboundAllowAllPrimitives = true;
         marshallingOutboundAllowArrayOfDefinedTypes = true;
         marshallingOutboundAllowedPackages = List.of();
+        remoteThrottleOutboundTrafficLimit = 1024;
+        remoteThrottleInboundTrafficLimit = 1024;
+        remoteThrottleOutboundBufferLimit = 1024;
     }
 
     static class MyPlugin implements DrasylPlugin {
@@ -236,6 +245,9 @@ class DrasylConfigTest {
             when(typesafeConfig.getBoolean(REMOTE_EXPOSE_ENABLED)).thenReturn(remoteExposeEnabled);
             when(typesafeConfig.getBoolean(REMOTE_SUPER_PEER_ENABLED)).thenReturn(superPeerEnabled);
             when(typesafeConfig.getString(REMOTE_SUPER_PEER_ENDPOINT)).thenReturn("udp://foo.bar:123#030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22");
+            when(typesafeConfig.getBytes(REMOTE_THROTTLE_OUTBOUND_TRAFFIC_LIMIT)).thenReturn(remoteThrottleOutboundTrafficLimit);
+            when(typesafeConfig.getBytes(REMOTE_THROTTLE_INBOUND_TRAFFIC_LIMIT)).thenReturn(remoteThrottleInboundTrafficLimit);
+            when(typesafeConfig.getBytes(REMOTE_THROTTLE_OUTBOUND_BUFFER_LIMIT)).thenReturn(remoteThrottleOutboundBufferLimit);
             when(typesafeConfig.getBoolean(INTRA_VM_DISCOVERY_ENABLED)).thenReturn(intraVmDiscoveryEnabled);
             when(typesafeConfig.getBoolean(LOCAL_HOST_DISCOVERY_ENABLED)).thenReturn(localHostDiscoveryEnabled);
             when(typesafeConfig.getString(LOCAL_HOST_DISCOVERY_PATH)).thenReturn(localHostDiscoveryPathAsString);
@@ -275,6 +287,9 @@ class DrasylConfigTest {
             assertEquals(remoteMessageMtu, config.getRemoteMessageMtu());
             assertEquals(remoteMessageMaxContentLength, config.getRemoteMessageMaxContentLength());
             assertEquals(remoteMessageHopLimit, config.getRemoteMessageHopLimit());
+            assertEquals(remoteThrottleOutboundTrafficLimit, config.getRemoteThrottleOutboundTrafficLimit());
+            assertEquals(remoteThrottleInboundTrafficLimit, config.getRemoteThrottleInboundTrafficLimit());
+            assertEquals(remoteThrottleOutboundBufferLimit, config.getRemoteThrottleOutboundBufferLimit());
             assertEquals(superPeerEnabled, config.isRemoteSuperPeerEnabled());
             assertEquals(superPeerEndpoint, config.getRemoteSuperPeerEndpoint());
             assertEquals(intraVmDiscoveryEnabled, config.isIntraVmDiscoveryEnabled());
@@ -310,11 +325,11 @@ class DrasylConfigTest {
                     serverBindHost, serverEnabled, serverBindPort,
                     serverHandshakeTimeout, remotePingTimeout, remotePingCommunicationTimeout, remoteUniteMinInterval, remotePingMaxPeers, serverEndpoints,
                     remoteExposeEnabled, superPeerEnabled, superPeerEndpoint, remoteMessageMaxContentLength, remoteMessageHopLimit, composedMessageTransferTimeout,
-                    remoteMessageMtu, intraVmDiscoveryEnabled, localHostDiscoveryEnabled, Path.of(localHostDiscoveryPathAsString),
-                    localHostDiscoveryLeaseTime, monitoringEnabled, monitoringHostTag, monitoringInfluxUri, monitoringInfluxUser,
-                    monitoringInfluxPassword, monitoringInfluxDatabase, monitoringInfluxReportingFrequency, plugins,
-                    marshallingInboundAllowedTypes, marshallingInboundAllowAllPrimitives, marshallingInboundAllowArrayOfDefinedTypes, marshallingInboundAllowedPackages,
-                    marshallingOutboundAllowedTypes, marshallingOutboundAllowAllPrimitives, marshallingOutboundAllowArrayOfDefinedTypes, marshallingOutboundAllowedPackages);
+                    remoteMessageMtu, remoteThrottleOutboundTrafficLimit, remoteThrottleInboundTrafficLimit, remoteThrottleOutboundBufferLimit,
+                    intraVmDiscoveryEnabled, localHostDiscoveryEnabled, Path.of(localHostDiscoveryPathAsString), localHostDiscoveryLeaseTime, monitoringEnabled,
+                    monitoringHostTag, monitoringInfluxUri, monitoringInfluxUser, monitoringInfluxPassword,
+                    monitoringInfluxDatabase, monitoringInfluxReportingFrequency, plugins, marshallingInboundAllowedTypes,
+                    marshallingInboundAllowAllPrimitives, marshallingInboundAllowArrayOfDefinedTypes, marshallingInboundAllowedPackages, marshallingOutboundAllowedTypes, marshallingOutboundAllowAllPrimitives, marshallingOutboundAllowArrayOfDefinedTypes, marshallingOutboundAllowedPackages);
 
             assertThat(config.toString(), not(containsString(identityPrivateKey.toString())));
         }
