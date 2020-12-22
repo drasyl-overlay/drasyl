@@ -55,12 +55,13 @@ public class OtherNetworkFilter extends SimpleInboundHandler<IntermediateEnvelop
             }
             else {
                 LOG.trace("Message from other network dropped: {}", msg);
+                ReferenceCountUtil.safeRelease(msg);
                 future.completeExceptionally(new Exception("Message from other network dropped"));
             }
         }
         catch (final IllegalArgumentException e) {
-            ReferenceCountUtil.safeRelease(msg);
             LOG.error("Unable to read network id from message '{}': {}", sanitizeLogArg(msg), e.getMessage());
+            ReferenceCountUtil.safeRelease(msg);
             future.completeExceptionally(new Exception("Unable to read network id from message.", e));
         }
     }

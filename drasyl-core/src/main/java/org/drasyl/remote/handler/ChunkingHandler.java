@@ -110,6 +110,7 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
         }
         catch (final IllegalStateException e) {
             chunksCollectors.remove(chunk.getId());
+            ReferenceCountUtil.safeRelease(chunk);
             throw e;
         }
     }

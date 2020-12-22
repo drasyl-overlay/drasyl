@@ -65,8 +65,6 @@ public class InvalidProofOfWorkFilter extends SimpleInboundHandler<IntermediateE
             LOG.debug("Message {} can't be read and was dropped due to the following error: ", msg, e);
             future.completeExceptionally(new Exception("Message can't be read and was dropped due to the following error: ", e));
             ReferenceCountUtil.safeRelease(msg);
-            LOG.error("Unable to read sender from message '{}': {}", sanitizeLogArg(msg), e.getMessage());
-            future.completeExceptionally(new Exception("Unable to read sender from message.", e));
         }
     }
 }

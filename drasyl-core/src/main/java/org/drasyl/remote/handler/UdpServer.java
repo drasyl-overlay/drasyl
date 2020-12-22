@@ -23,14 +23,19 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.FixedRecvByteBufAllocator;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.WriteBufferWaterMark;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.handler.flush.FlushConsolidationHandler;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Scheduler;
 import org.drasyl.DrasylConfig;
@@ -62,9 +67,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static io.netty.handler.flush.FlushConsolidationHandler.DEFAULT_EXPLICIT_FLUSH_AFTER_FLUSHES;
 import static java.util.Optional.ofNullable;
 import static org.drasyl.util.NetworkUtil.getAddresses;
 import static org.drasyl.util.ObservableUtil.pairWithPreviousObservable;
@@ -85,6 +92,7 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
     private Set<Endpoint> actualEndpoints;
     private Channel channel;
     private Set<PortMapping> portMappings;
+    private ConcurrentLinkedQueue<Pair<DatagramPacket, CompletableFuture>> pendingPackages;
 
     UdpServer(final Bootstrap bootstrap,
               final Scheduler scheduler,
@@ -94,6 +102,7 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
         this.scheduler = scheduler;
         this.portExposer = portExposer;
         this.channel = channel;
+        this.pendingPackages = new ConcurrentLinkedQueue<>();
     }
 
     public UdpServer(final EventLoopGroup bossGroup) {
@@ -174,15 +183,37 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
                                           final CompletableFuture<Void> future) {
         if (channel == null) {
             LOG.debug("Start Server...");
+            bootstrap.option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(ctx.config().getRemoteMessageMtu()));
+            bootstrap.option(ChannelOption.SO_RCVBUF, ctx.config().getRemoteMessageMaxContentLength() * 10);
+            bootstrap.option(ChannelOption.SO_SNDBUF, ctx.config().getRemoteMessageMaxContentLength() * 10);
+            bootstrap.option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(ctx.config().getRemoteMessageMtu(), ctx.config().getRemoteMessageMtu() * 2));
+
             final ChannelFuture channelFuture = bootstrap
-                    .handler(new SimpleChannelInboundHandler<DatagramPacket>() {
+                    .handler(new ChannelInitializer<DatagramChannel>() {
                         @Override
-                        protected void channelRead0(final ChannelHandlerContext channelCtx,
-                                                    final DatagramPacket msg) {
-                            LOG.trace("Datagram received {}", msg);
-                            final ByteBuf byteBuf = msg.content();
-                            byteBuf.retain();
-                            ctx.fireRead(InetSocketAddressWrapper.of(msg.sender()), byteBuf, new CompletableFuture<>());
+                        protected void initChannel(final DatagramChannel ch) {
+                            final ChannelPipeline pipeline = ch.pipeline();
+
+                            // Use buffer for better IO performance
+                            pipeline.addLast(
+                                    new FlushConsolidationHandler(DEFAULT_EXPLICIT_FLUSH_AFTER_FLUSHES, true));
+                            pipeline.addLast(new SimpleChannelInboundHandler<DatagramPacket>() {
+                                @Override
+                                public void channelWritabilityChanged(final ChannelHandlerContext channelCtx) {
+                                    LOG.error("Writability changed to {}", channelCtx.channel().isWritable());
+
+                                    channelCtx.fireChannelWritabilityChanged();
+                                }
+
+                                @Override
+                                protected void channelRead0(final ChannelHandlerContext channelCtx,
+                                                            final DatagramPacket msg) {
+                                    LOG.trace("Datagram received {}", msg);
+                                    final ByteBuf byteBuf = msg.content();
+                                    byteBuf.retain();
+                                    ctx.pipeline().processInbound(InetSocketAddressWrapper.of(msg.sender()), byteBuf);
+                                }
+                            });
                         }
                     })
                     .bind(ctx.config().getRemoteBindHost(), ctx.config().getRemoteBindPort());
@@ -237,7 +268,7 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
                                 final InetSocketAddressWrapper recipient,
                                 final ByteBuf byteBuf,
                                 final CompletableFuture<Void> future) {
-        if (channel != null && channel.isWritable()) {
+        if (channel != null) {
             final DatagramPacket packet = new DatagramPacket(byteBuf, recipient.getAddress());
             LOG.trace("Send Datagram {}", packet);
             FutureUtil.completeOnAllOf(future, FutureUtil.toFuture(channel.writeAndFlush(packet)));
