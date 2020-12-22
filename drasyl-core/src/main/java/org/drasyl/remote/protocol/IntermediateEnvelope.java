@@ -186,32 +186,6 @@ public class IntermediateEnvelope<T extends MessageLite> implements ReferenceCou
     }
 
     /**
-     * Creates a message envelope from {@code publicHeader} and {@code bytes}
-     *
-     * @param publicHeader message's public header
-     * @param bytes        message's remainder as bytes (may be encrypted)
-     * @return an IntermediateEnvelope
-     * @throws IOException if {@code publicHeader} and {@code bytes} can not be serialized
-     */
-    public static <T extends MessageLite> IntermediateEnvelope<T> of(final PublicHeader publicHeader,
-                                                                     final ByteBuf bytes) throws IOException {
-        final ByteBuf byteBuf = PooledByteBufAllocator.DEFAULT.buffer();
-        try (final ByteBufOutputStream outputStream = new ByteBufOutputStream(byteBuf)) {
-            publicHeader.writeDelimitedTo(outputStream);
-            byteBuf.writeBytes(bytes);
-
-            return of(byteBuf);
-        }
-        catch (final IOException e) {
-            ReferenceCountUtil.safeRelease(byteBuf);
-            throw e;
-        }
-        finally {
-            bytes.release();
-        }
-    }
-
-    /**
      * Reads only the public header of the given message and retains the underlying byte
      * representation of the full message.
      *
