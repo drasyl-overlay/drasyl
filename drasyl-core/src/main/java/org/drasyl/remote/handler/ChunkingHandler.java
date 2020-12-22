@@ -19,6 +19,7 @@
 package org.drasyl.remote.handler;
 
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalListener;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
@@ -31,8 +32,8 @@ import org.drasyl.remote.protocol.Protocol.PublicHeader;
 import org.drasyl.util.FutureUtil;
 import org.drasyl.util.ReferenceCountUtil;
 import org.drasyl.util.UnsignedShort;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -59,8 +60,11 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
         chunksCollectors = CacheBuilder.newBuilder()
                 .maximumSize(1_000)
                 .expireAfterWrite(composedMessageTransferTimeout)
-                .removalListener(cc -> ((ChunksCollector) cc.getValue()).release())
-                .<MessageId, ChunksCollector>build()
+                .removalListener((RemovalListener<MessageId, ChunksCollector>) entry -> {
+                    LOG.debug("Not all chunks of message `{}` were received within {}ms. Message dropped.", entry::getKey, () -> composedMessageTransferTimeout);
+                    entry.getValue().release();
+                })
+                .build()
                 .asMap();
     }
 
@@ -145,6 +149,7 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void chunkMessage(final HandlerContext ctx,
                               final Address recipient,
                               final IntermediateEnvelope<? extends MessageLite> msg,
