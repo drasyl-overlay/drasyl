@@ -95,8 +95,6 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
     private Set<Endpoint> actualEndpoints;
     private Channel channel;
     private Set<PortMapping> portMappings;
-    private final ConcurrentLinkedQueue<Pair<DatagramPacket, ChannelPromise>> pendingPackages;
-    private final AtomicBoolean queueRunning;
 
     UdpServer(final Bootstrap bootstrap,
               final Scheduler scheduler,
@@ -106,8 +104,6 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
         this.scheduler = scheduler;
         this.portExposer = portExposer;
         this.channel = channel;
-        this.pendingPackages = new ConcurrentLinkedQueue<>();
-        this.queueRunning = new AtomicBoolean(false);
     }
 
     public UdpServer(final EventLoopGroup bossGroup) {
@@ -188,11 +184,6 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
                                           final CompletableFuture<Void> future) {
         if (channel == null) {
             LOG.debug("Start Server...");
-            bootstrap.option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(ctx.config().getRemoteMessageMtu()));
-            bootstrap.option(ChannelOption.SO_RCVBUF, ctx.config().getRemoteMessageMaxContentLength() * 10);
-            bootstrap.option(ChannelOption.SO_SNDBUF, ctx.config().getRemoteMessageMaxContentLength() * 10);
-            bootstrap.option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(ctx.config().getRemoteMessageMtu(), ctx.config().getRemoteMessageMtu() * 10));
-
             final ChannelFuture channelFuture = bootstrap
                     .handler(new ChannelInitializer<DatagramChannel>() {
                         @Override
@@ -200,18 +191,9 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
                             final ChannelPipeline pipeline = ch.pipeline();
 
                             // Use buffer for better IO performance
-                            pipeline.addLast(new ChannelTrafficShapingHandler(1024 * 500, 0));
                             pipeline.addLast(
                                     new FlushConsolidationHandler(DEFAULT_EXPLICIT_FLUSH_AFTER_FLUSHES, true));
                             pipeline.addLast(new SimpleChannelInboundHandler<DatagramPacket>() {
-                                @Override
-                                public void channelWritabilityChanged(final ChannelHandlerContext channelCtx) {
-                                    LOG.error("Writability changed to {}", channelCtx.channel().isWritable());
-                                    pullQueue(ctx);
-
-                                    channelCtx.fireChannelWritabilityChanged();
-                                }
-
                                 @Override
                                 protected void channelRead0(final ChannelHandlerContext channelCtx,
                                                             final DatagramPacket msg) {
@@ -270,39 +252,15 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
         ctx.fireEventTriggered(event, future);
     }
 
-    private void pullQueue(final HandlerContext ctx) {
-        if (channel.isWritable() && queueRunning.compareAndSet(false, true)) {
-            ctx.scheduler().scheduleDirect(() -> {
-                while (channel.isWritable()) {
-                    final Pair<DatagramPacket, ChannelPromise> packet = pendingPackages.poll();
-
-                    if (packet != null) {
-                        LOG.trace("Send Datagram {}", packet.first());
-                        channel.writeAndFlush(packet.first(), packet.second()).awaitUninterruptibly();
-                    }
-                    else {
-                        // Nothing to send
-                        break;
-                    }
-                }
-                queueRunning.set(false);
-            });
-        }
-    }
-
     @Override
     protected void matchedWrite(final HandlerContext ctx,
                                 final InetSocketAddressWrapper recipient,
                                 final ByteBuf byteBuf,
                                 final CompletableFuture<Void> future) {
-        if (channel != null) {
+        if (channel != null && channel.isWritable()) {
             final DatagramPacket packet = new DatagramPacket(byteBuf, recipient.getAddress());
-            final ChannelPromise promise = channel.newPromise();
-
-            pendingPackages.add(Pair.of(packet, promise));
-            FutureUtil.completeOnAllOf(future, FutureUtil.toFuture(promise));
-
-            pullQueue(ctx);
+            LOG.trace("Send Datagram {}", packet);
+            FutureUtil.completeOnAllOf(future, FutureUtil.toFuture(channel.writeAndFlush(packet)));
         }
         else {
             ReferenceCountUtil.safeRelease(byteBuf);
