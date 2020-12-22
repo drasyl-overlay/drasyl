@@ -251,6 +251,7 @@ class IntermediateEnvelopeTest {
 
         @Test
         void releaseShouldBeCalledOnOriginalMessage() {
+            when(underTest.refCnt()).thenReturn(1);
             underTest.release();
 
             verify(originalMessage).release();
