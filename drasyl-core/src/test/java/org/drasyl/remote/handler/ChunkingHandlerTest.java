@@ -85,7 +85,7 @@ class ChunkingHandlerTest {
                 when(identity.getPublicKey()).thenReturn(recipient);
 
                 final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[remoteMessageMtu / 2]);
-                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
+                final Handler handler = new ChunkingHandler();
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> inboundMessages = pipeline.inboundMessages().test();
 
@@ -112,7 +112,7 @@ class ChunkingHandlerTest {
                 final ProofOfWork proofOfWork = ProofOfWork.of(6518542);
                 when(identity.getPublicKey()).thenReturn(recipient);
 
-                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
+                final Handler handler = new ChunkingHandler();
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> inboundMessages = pipeline.inboundMessages().test();
 
@@ -145,7 +145,7 @@ class ChunkingHandlerTest {
                 final ProofOfWork proofOfWork = ProofOfWork.of(6518542);
                 when(identity.getPublicKey()).thenReturn(recipient);
 
-                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
+                final Handler handler = new ChunkingHandler();
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> inboundMessages = pipeline.inboundMessages().test();
 
@@ -202,7 +202,7 @@ class ChunkingHandlerTest {
                 final ProofOfWork proofOfWork = ProofOfWork.of(6518542);
                 when(identity.getPublicKey()).thenReturn(recipient);
 
-                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
+                final Handler handler = new ChunkingHandler();
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> inboundMessages = pipeline.inboundMessages().test();
 
@@ -249,7 +249,7 @@ class ChunkingHandlerTest {
                 when(identity.getPublicKey()).thenReturn(sender);
 
                 final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[remoteMessageMtu / 2]);
-                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
+                final Handler handler = new ChunkingHandler();
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> inboundMessages = pipeline.inboundMessages().test();
 
@@ -276,7 +276,7 @@ class ChunkingHandlerTest {
                 final ProofOfWork proofOfWork = ProofOfWork.of(6518542);
                 when(identity.getPublicKey()).thenReturn(sender);
 
-                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
+                final Handler handler = new ChunkingHandler();
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> inboundMessages = pipeline.inboundMessages().test();
 
@@ -319,7 +319,7 @@ class ChunkingHandlerTest {
                 when(identity.getPublicKey()).thenReturn(sender);
 
                 final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[remoteMessageMtu / 2]);
-                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
+                final Handler handler = new ChunkingHandler();
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> outboundMessages = pipeline.outboundMessages().test();
 
@@ -345,7 +345,7 @@ class ChunkingHandlerTest {
                 when(identity.getPublicKey()).thenReturn(sender);
 
                 final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[remoteMaxContentLength]);
-                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
+                final Handler handler = new ChunkingHandler();
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> outboundMessages = pipeline.outboundMessages().test();
 
@@ -364,7 +364,7 @@ class ChunkingHandlerTest {
                 when(identity.getPublicKey()).thenReturn(sender);
 
                 final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[remoteMessageMtu * 2]);
-                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
+                final Handler handler = new ChunkingHandler();
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> outboundMessages = pipeline.outboundMessages().test();
 
@@ -409,7 +409,7 @@ class ChunkingHandlerTest {
                 when(identity.getPublicKey()).thenReturn(recipient);
 
                 final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[remoteMessageMtu / 2]);
-                final Handler handler = new ChunkingHandler(remoteMessageMtu, remoteMaxContentLength, messageComposedMessageTransferTimeout);
+                final Handler handler = new ChunkingHandler();
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> outboundMessages = pipeline.outboundMessages().test();
 

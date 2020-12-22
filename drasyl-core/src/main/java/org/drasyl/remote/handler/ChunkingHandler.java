@@ -23,6 +23,7 @@ import com.google.common.cache.RemovalListener;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
+import org.drasyl.DrasylConfig;
 import org.drasyl.pipeline.HandlerContext;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.skeleton.SimpleDuplexHandler;
@@ -32,11 +33,11 @@ import org.drasyl.remote.protocol.Protocol.PublicHeader;
 import org.drasyl.util.FutureUtil;
 import org.drasyl.util.ReferenceCountUtil;
 import org.drasyl.util.UnsignedShort;
+import org.drasyl.util.Worm;
 import org.drasyl.util.logging.Logger;
 import org.drasyl.util.logging.LoggerFactory;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -48,24 +49,10 @@ import java.util.concurrent.CompletableFuture;
 public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? extends MessageLite>, IntermediateEnvelope<? extends MessageLite>, Address> {
     public static final String CHUNKING_HANDLER = "CHUNKING_HANDLER";
     private static final Logger LOG = LoggerFactory.getLogger(ChunkingHandler.class);
-    private final int mtu;
-    private final int maxContentLength;
-    private final Map<MessageId, ChunksCollector> chunksCollectors;
+    private final Worm<Map<MessageId, ChunksCollector>> chunksCollectors;
 
-    public ChunkingHandler(final int mtu,
-                           final int maxContentLength,
-                           final Duration composedMessageTransferTimeout) {
-        this.mtu = mtu;
-        this.maxContentLength = maxContentLength;
-        chunksCollectors = CacheBuilder.newBuilder()
-                .maximumSize(1_000)
-                .expireAfterWrite(composedMessageTransferTimeout)
-                .removalListener((RemovalListener<MessageId, ChunksCollector>) entry -> {
-                    LOG.debug("Not all chunks of message `{}` were received within {}ms. Message dropped.", entry::getKey, composedMessageTransferTimeout::toMillis);
-                    entry.getValue().release();
-                })
-                .build()
-                .asMap();
+    public ChunkingHandler() {
+        this.chunksCollectors = Worm.of();
     }
 
     @Override
@@ -95,12 +82,12 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                                     final IntermediateEnvelope<? extends MessageLite> chunk,
                                     final CompletableFuture<Void> future) throws IOException {
         try {
-            final ChunksCollector chunksCollector = chunksCollectors.computeIfAbsent(chunk.getId(), id -> new ChunksCollector(maxContentLength, id));
+            final ChunksCollector chunksCollector = getChunksCollectors(ctx.config()).computeIfAbsent(chunk.getId(), id -> new ChunksCollector(ctx.config().getRemoteMessageMaxContentLength(), id));
             final IntermediateEnvelope<? extends MessageLite> message = chunksCollector.addChunk(chunk);
 
             if (message != null) {
                 // message complete, pass it inbound
-                chunksCollectors.remove(chunk.getId());
+                getChunksCollectors(ctx.config()).remove(chunk.getId());
                 ctx.fireRead(sender, message, future);
             }
             else {
@@ -109,10 +96,22 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
             }
         }
         catch (final IllegalStateException e) {
-            chunksCollectors.remove(chunk.getId());
+            getChunksCollectors(ctx.config()).remove(chunk.getId());
             ReferenceCountUtil.safeRelease(chunk);
             throw e;
         }
+    }
+
+    private Map<MessageId, ChunksCollector> getChunksCollectors(final DrasylConfig config) {
+        return chunksCollectors.getOrCompute(() -> CacheBuilder.newBuilder()
+                .maximumSize(1_000)
+                .expireAfterWrite(config.getRemoteMessageComposedMessageTransferTimeout())
+                .removalListener((RemovalListener<MessageId, ChunksCollector>) entry -> {
+                    LOG.debug("Not all chunks of message `{}` were received within {}ms. Message dropped.", entry::getKey, config.getRemoteMessageComposedMessageTransferTimeout()::toMillis);
+                    entry.getValue().release();
+                })
+                .build()
+                .asMap());
     }
 
     @Override
@@ -125,12 +124,13 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                 // message from us, check if we have to chunk it
                 final ByteBuf messageByteBuf = msg.getOrBuildByteBuf();
                 final int messageSize = messageByteBuf.readableBytes();
-                if (messageSize > maxContentLength) {
-                    LOG.debug("The message `{}` has a size of {} bytes and is too large. The max allowed size is {} bytes. Message dropped.", msg, messageSize, maxContentLength);
-                    future.completeExceptionally(new Exception("The message has a size of " + messageSize + " bytes and is too large. The max. allowed size is " + maxContentLength + " bytes. Message dropped."));
+                final int messageMaxContentLength = ctx.config().getRemoteMessageMaxContentLength();
+                if (messageSize > messageMaxContentLength) {
+                    LOG.debug("The ctx.config().getRemoteMessageMaxContentLength() `{}` has a size of {} bytes and is too large. The max allowed size is {} bytes. Message dropped.", msg, messageSize, messageMaxContentLength);
+                    future.completeExceptionally(new Exception("The message has a size of " + messageSize + " bytes and is too large. The max. allowed size is " + messageMaxContentLength + " bytes. Message dropped."));
                     ReferenceCountUtil.safeRelease(messageByteBuf);
                 }
-                else if (messageSize > mtu) {
+                else if (messageSize > ctx.config().getRemoteMessageMtu()) {
                     // message is too big, we have to chunk it
                     chunkMessage(ctx, recipient, msg, future, messageByteBuf, messageSize);
                 }
@@ -158,6 +158,7 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                               final ByteBuf messageByteBuf,
                               final int messageSize) throws IOException {
         try {
+            final int mtu = ctx.config().getRemoteMessageMtu();
             final UnsignedShort totalChunks = UnsignedShort.of((messageSize / mtu + 1));
             LOG.debug("The message `{}` has a size of {} bytes and must be split to {} chunks (MTU = {}).", msg, messageSize, totalChunks, mtu);
             final CompletableFuture<Void>[] chunkFutures = new CompletableFuture[totalChunks.getValue()];

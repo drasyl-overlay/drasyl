@@ -153,7 +153,7 @@ public class IntermediateEnvelope<T extends MessageLite> implements ReferenceCou
 
             return of(byteBuf);
         }
-        catch (final IOException e) {
+        catch (final IllegalStateException e) {
             ReferenceCountUtil.safeRelease(byteBuf);
             throw e;
         }
@@ -626,7 +626,7 @@ public class IntermediateEnvelope<T extends MessageLite> implements ReferenceCou
      * This method is just a placeholder and only mimics the behavior of a real encryption simulate
      * (shift/replace bytes).
      *
-     * @param bytes
+     * @param bytes array of bytes what should be reversed
      */
     private static void reverse(final byte[] bytes) {
         if (bytes == null) {
