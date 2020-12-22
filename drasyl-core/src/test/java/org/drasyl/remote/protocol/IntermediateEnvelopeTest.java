@@ -110,93 +110,96 @@ class IntermediateEnvelopeTest {
         outputStream.close();
     }
 
-    @Test
-    void shouldOnlyReturnHeaderAndNotChangingTheUnderlyingByteBuf() throws IOException {
-        try {
-            final byte[] backedByte = message.array();
-            final IntermediateEnvelope<MessageLite> envelope = IntermediateEnvelope.of(message);
-
-            assertEquals(publicHeader, envelope.getPublicHeader());
-            assertEquals((privateHeaderLength + bodyLength), envelope.getInternalByteBuf().readableBytes());
-            assertEquals(backedByte, envelope.getInternalByteBuf().array());
-            assertEquals((publicHeaderLength + privateHeaderLength + bodyLength), envelope.getByteBuf().readableBytes());
-            assertEquals((publicHeaderLength + privateHeaderLength + bodyLength), message.readableBytes());
-        }
-        finally {
-            ReferenceCountUtil.safeRelease(message);
-        }
-    }
-
-    @Test
-    void shouldOnlyReturnPrivateHeaderButReadAlsoPublicHeader() throws IOException {
-        try {
-            final IntermediateEnvelope<MessageLite> envelope = IntermediateEnvelope.of(message);
-
-            assertEquals(privateHeader, envelope.getPrivateHeader());
-            assertEquals(bodyLength, envelope.getInternalByteBuf().readableBytes());
-            assertEquals((publicHeaderLength + privateHeaderLength + bodyLength), envelope.getByteBuf().readableBytes());
-            assertEquals((publicHeaderLength + privateHeaderLength + bodyLength), message.readableBytes());
-        }
-        finally {
-            ReferenceCountUtil.safeRelease(message);
-        }
-    }
-
-    @Test
-    void shouldOnlyReturnBodyButReadAll() throws IOException {
-        try {
-            final IntermediateEnvelope<MessageLite> envelope = IntermediateEnvelope.of(message);
-
-            assertEquals(body, envelope.getBody());
-            assertEquals(0, envelope.getInternalByteBuf().readableBytes());
-            assertEquals((publicHeaderLength + privateHeaderLength + bodyLength), envelope.getByteBuf().readableBytes());
-            assertEquals((publicHeaderLength + privateHeaderLength + bodyLength), message.readableBytes());
-        }
-        finally {
-            ReferenceCountUtil.safeRelease(message);
-        }
-    }
-
-    @Test
-    void shouldBuildByteBufOnMissingByteBuf() throws IOException {
-        try {
-            final IntermediateEnvelope<MessageLite> envelope = IntermediateEnvelope.of(message);
-
-            assertNotNull(envelope.getByteBuf());
-            assertNotNull(envelope.getInternalByteBuf());
-            assertNotNull(envelope.getBodyAndRelease());
-
-            assertNull(envelope.getByteBuf());
-            assertNull(envelope.getInternalByteBuf());
-
-            assertNotNull(envelope.getOrBuildInternalByteBuf());
-            assertNotNull(envelope.getByteBuf());
-            assertNotNull(envelope.getInternalByteBuf());
-            assertNotNull(envelope.getBodyAndRelease());
-        }
-        finally {
-            ReferenceCountUtil.safeRelease(message);
-        }
-    }
-
-    @Test
-    void shouldShareRefCnt() {
-        final IntermediateEnvelope<MessageLite> envelope = IntermediateEnvelope.of(message);
-
-        assertEquals(envelope.getByteBuf().refCnt(), envelope.getInternalByteBuf().refCnt());
-        assertEquals(1, envelope.getInternalByteBuf().refCnt());
-        assertEquals(1, envelope.getByteBuf().refCnt());
-        envelope.release();
-        assertEquals(envelope.getByteBuf().refCnt(), envelope.getInternalByteBuf().refCnt());
-        assertEquals(0, envelope.getInternalByteBuf().refCnt());
-        assertEquals(0, envelope.getByteBuf().refCnt());
-    }
-
     @Nested
     class Of {
-        @Test
-        void shouldThrowExceptionForNonReadableByteBuf(@Mock final ByteBuf message) {
-            assertThrows(IllegalArgumentException.class, () -> IntermediateEnvelope.of(message));
+        @Nested
+        class WithByteBuf {
+            @Test
+            void shouldOnlyReturnHeaderAndNotChangingTheUnderlyingByteBuf() throws IOException {
+                try {
+                    final byte[] backedByte = message.array();
+                    final IntermediateEnvelope<MessageLite> envelope = IntermediateEnvelope.of(message);
+
+                    assertEquals(publicHeader, envelope.getPublicHeader());
+                    assertEquals((privateHeaderLength + bodyLength), envelope.getInternalByteBuf().readableBytes());
+                    assertEquals(backedByte, envelope.getInternalByteBuf().array());
+                    assertEquals((publicHeaderLength + privateHeaderLength + bodyLength), envelope.getByteBuf().readableBytes());
+                    assertEquals((publicHeaderLength + privateHeaderLength + bodyLength), message.readableBytes());
+                }
+                finally {
+                    ReferenceCountUtil.safeRelease(message);
+                }
+            }
+
+            @Test
+            void shouldOnlyReturnPrivateHeaderButReadAlsoPublicHeader() throws IOException {
+                try {
+                    final IntermediateEnvelope<MessageLite> envelope = IntermediateEnvelope.of(message);
+
+                    assertEquals(privateHeader, envelope.getPrivateHeader());
+                    assertEquals(bodyLength, envelope.getInternalByteBuf().readableBytes());
+                    assertEquals((publicHeaderLength + privateHeaderLength + bodyLength), envelope.getByteBuf().readableBytes());
+                    assertEquals((publicHeaderLength + privateHeaderLength + bodyLength), message.readableBytes());
+                }
+                finally {
+                    ReferenceCountUtil.safeRelease(message);
+                }
+            }
+
+            @Test
+            void shouldOnlyReturnBodyButReadAll() throws IOException {
+                try {
+                    final IntermediateEnvelope<MessageLite> envelope = IntermediateEnvelope.of(message);
+
+                    assertEquals(body, envelope.getBody());
+                    assertEquals(0, envelope.getInternalByteBuf().readableBytes());
+                    assertEquals((publicHeaderLength + privateHeaderLength + bodyLength), envelope.getByteBuf().readableBytes());
+                    assertEquals((publicHeaderLength + privateHeaderLength + bodyLength), message.readableBytes());
+                }
+                finally {
+                    ReferenceCountUtil.safeRelease(message);
+                }
+            }
+
+            @Test
+            void shouldBuildByteBufOnMissingByteBuf() throws IOException {
+                try {
+                    final IntermediateEnvelope<MessageLite> envelope = IntermediateEnvelope.of(message);
+
+                    assertNotNull(envelope.getByteBuf());
+                    assertNotNull(envelope.getInternalByteBuf());
+                    assertNotNull(envelope.getBodyAndRelease());
+
+                    assertNull(envelope.getByteBuf());
+                    assertNull(envelope.getInternalByteBuf());
+
+                    assertNotNull(envelope.getOrBuildInternalByteBuf());
+                    assertNotNull(envelope.getByteBuf());
+                    assertNotNull(envelope.getInternalByteBuf());
+                    assertNotNull(envelope.getBodyAndRelease());
+                }
+                finally {
+                    ReferenceCountUtil.safeRelease(message);
+                }
+            }
+
+            @Test
+            void shouldShareRefCnt() {
+                final IntermediateEnvelope<MessageLite> envelope = IntermediateEnvelope.of(message);
+
+                assertEquals(envelope.getByteBuf().refCnt(), envelope.getInternalByteBuf().refCnt());
+                assertEquals(1, envelope.getInternalByteBuf().refCnt());
+                assertEquals(1, envelope.getByteBuf().refCnt());
+                envelope.release();
+                assertEquals(envelope.getByteBuf().refCnt(), envelope.getInternalByteBuf().refCnt());
+                assertEquals(0, envelope.getInternalByteBuf().refCnt());
+                assertEquals(0, envelope.getByteBuf().refCnt());
+            }
+
+            @Test
+            void shouldThrowExceptionForNonReadableByteBuf(@Mock final ByteBuf message) {
+                assertThrows(IllegalArgumentException.class, () -> IntermediateEnvelope.of(message));
+            }
         }
     }
 

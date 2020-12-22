@@ -153,9 +153,35 @@ public class IntermediateEnvelope<T extends MessageLite> implements ReferenceCou
 
             return of(byteBuf);
         }
+        catch (final IllegalStateException e) {
+            ReferenceCountUtil.safeRelease(byteBuf);
+            throw e;
+        }
+    }
+
+    /**
+     * Creates a message envelope from {@code publicHeader} and {@code bytes}
+     *
+     * @param publicHeader message's public header
+     * @param bytes        message's remainder as bytes (may be encrypted)
+     * @return an IntermediateEnvelope
+     * @throws IOException if {@code publicHeader} and {@code bytes} can not be serialized
+     */
+    public static <T extends MessageLite> IntermediateEnvelope<T> of(final PublicHeader publicHeader,
+                                                                     final ByteBuf bytes) throws IOException {
+        final ByteBuf byteBuf = PooledByteBufAllocator.DEFAULT.buffer();
+        try (final ByteBufOutputStream outputStream = new ByteBufOutputStream(byteBuf)) {
+            publicHeader.writeDelimitedTo(outputStream);
+            byteBuf.writeBytes(bytes);
+
+            return of(byteBuf);
+        }
         catch (final IOException e) {
             ReferenceCountUtil.safeRelease(byteBuf);
             throw e;
+        }
+        finally {
+            bytes.release();
         }
     }
 
@@ -626,7 +652,7 @@ public class IntermediateEnvelope<T extends MessageLite> implements ReferenceCou
      * This method is just a placeholder and only mimics the behavior of a real encryption simulate
      * (shift/replace bytes).
      *
-     * @param bytes
+     * @param bytes array of bytes what should be reversed
      */
     private static void reverse(final byte[] bytes) {
         if (bytes == null) {
