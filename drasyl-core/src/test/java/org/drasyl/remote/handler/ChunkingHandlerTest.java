@@ -93,7 +93,14 @@ class ChunkingHandlerTest {
 
                 inboundMessages.awaitCount(1)
                         .assertValueCount(1)
-                        .assertValueAt(0, p -> p.second().equals(msg));
+                        .assertValueAt(0, p -> {
+                            try {
+                                return p.second().equals(msg);
+                            }
+                            finally {
+                                ReferenceCountUtil.safeRelease(p.second());
+                            }
+                        });
             }
 
             @Test
@@ -125,6 +132,8 @@ class ChunkingHandlerTest {
                 pipeline.processInbound(sender, headChunk).join();
                 inboundMessages.await(1, SECONDS);
                 inboundMessages.assertNoValues();
+
+                ReferenceCountUtil.safeRelease(headChunk);
             }
 
             @Test
@@ -176,14 +185,6 @@ class ChunkingHandlerTest {
                             final IntermediateEnvelope envelope = (IntermediateEnvelope) p.second();
 
                             try {
-                                // TODO: Ein Test der auch guck, ob tatsächlich eine verschickte Nachricht wieder zusammengebaut wird,
-                                // wäre gut.
-//                                assertEquals(messageId, envelope.getId());
-//                                assertEquals(userAgent, envelope.getUserAgent());
-//                                assertEquals(sender, envelope.getSender());
-//                                assertEquals(proofOfWork, envelope.getProofOfWork());
-//                                assertEquals(recipient, envelope.getRecipient());
-
                                 return !envelope.isChunk();
                             }
                             finally {
@@ -256,7 +257,14 @@ class ChunkingHandlerTest {
 
                 inboundMessages.awaitCount(1)
                         .assertValueCount(1)
-                        .assertValueAt(0, p -> p.second().equals(msg));
+                        .assertValueAt(0, p -> {
+                            try {
+                                return p.second().equals(msg);
+                            }
+                            finally {
+                                ReferenceCountUtil.safeRelease(p.second());
+                            }
+                        });
             }
 
             @Test
@@ -287,7 +295,14 @@ class ChunkingHandlerTest {
 
                 inboundMessages.awaitCount(1)
                         .assertValueCount(1)
-                        .assertValueAt(0, p -> ((IntermediateEnvelope) p.second()).isChunk());
+                        .assertValueAt(0, p -> {
+                            try {
+                                return ((IntermediateEnvelope) p.second()).isChunk();
+                            }
+                            finally {
+                                ReferenceCountUtil.safeRelease(p.second());
+                            }
+                        });
             }
         }
     }
@@ -312,7 +327,14 @@ class ChunkingHandlerTest {
 
                 outboundMessages.awaitCount(1)
                         .assertValueCount(1)
-                        .assertValueAt(0, p -> p.second().equals(msg));
+                        .assertValueAt(0, p -> {
+                            try {
+                                return p.second().equals(msg);
+                            }
+                            finally {
+                                ReferenceCountUtil.safeRelease(p.second());
+                            }
+                        });
             }
 
             @Test
@@ -330,6 +352,8 @@ class ChunkingHandlerTest {
                 assertThrows(ExecutionException.class, () -> pipeline.processOutbound(address, msg).get());
                 outboundMessages.await(1, SECONDS);
                 outboundMessages.assertNoValues();
+
+                ReferenceCountUtil.safeRelease(msg);
             }
 
             @Test
@@ -348,9 +372,30 @@ class ChunkingHandlerTest {
 
                 outboundMessages.awaitCount(3)
                         .assertValueCount(3)
-                        .assertValueAt(0, p -> ((IntermediateEnvelope) p.second()).getChunkNo().getValue() == 0)
-                        .assertValueAt(1, p -> ((IntermediateEnvelope) p.second()).getChunkNo().getValue() == 1)
-                        .assertValueAt(2, p -> ((IntermediateEnvelope) p.second()).getChunkNo().getValue() == 2);
+                        .assertValueAt(0, p -> {
+                            try {
+                                return ((IntermediateEnvelope) p.second()).getChunkNo().getValue() == 0;
+                            }
+                            finally {
+                                ReferenceCountUtil.safeRelease(p.second());
+                            }
+                        })
+                        .assertValueAt(1, p -> {
+                            try {
+                                return ((IntermediateEnvelope) p.second()).getChunkNo().getValue() == 1;
+                            }
+                            finally {
+                                ReferenceCountUtil.safeRelease(p.second());
+                            }
+                        })
+                        .assertValueAt(2, p -> {
+                            try {
+                                return ((IntermediateEnvelope) p.second()).getChunkNo().getValue() == 2;
+                            }
+                            finally {
+                                ReferenceCountUtil.safeRelease(p.second());
+                            }
+                        });
             }
         }
 
@@ -372,7 +417,14 @@ class ChunkingHandlerTest {
 
                 outboundMessages.awaitCount(1)
                         .assertValueCount(1)
-                        .assertValueAt(0, p -> p.second().equals(msg));
+                        .assertValueAt(0, p -> {
+                            try {
+                                return p.second().equals(msg);
+                            }
+                            finally {
+                                ReferenceCountUtil.safeRelease(p.second());
+                            }
+                        });
             }
         }
     }

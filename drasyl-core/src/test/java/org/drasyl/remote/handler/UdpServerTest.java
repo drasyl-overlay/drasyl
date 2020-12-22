@@ -23,6 +23,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
 import io.reactivex.rxjava3.core.Scheduler;
@@ -210,9 +211,10 @@ class UdpServerTest {
                                                  @Mock(answer = RETURNS_DEEP_STUBS) final ChannelFuture channelFuture) {
             final DatagramPacket msg = new DatagramPacket(copiedBuffer(new byte[]{}), createUnresolved("example.com", 1234), createUnresolved("example.com", 4567));
             when(bootstrap.handler(any())).thenAnswer(invocation -> {
-                invocation.getArgument(0, SimpleChannelInboundHandler.class).channelRead(ctx, msg);
+                invocation.getArgument(0, ChannelInitializer.class).channelRead(ctx, msg);
                 return bootstrap2;
             });
+            when(config.getRemoteMessageMtu()).thenReturn(1024);
             when(bootstrap2.bind(any(InetAddress.class), anyInt())).thenReturn(channelFuture);
             when(channelFuture.isSuccess()).thenReturn(true);
             when(channelFuture.channel().localAddress()).thenReturn(new InetSocketAddress(22527));
