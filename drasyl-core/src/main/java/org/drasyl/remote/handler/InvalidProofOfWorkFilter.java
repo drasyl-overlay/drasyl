@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 import static org.drasyl.identity.IdentityManager.POW_DIFFICULTY;
+import static org.drasyl.util.LoggingUtil.sanitizeLogArg;
 
 /**
  * This handler filters out all messages received with invalid proof of work.
@@ -60,10 +61,12 @@ public class InvalidProofOfWorkFilter extends SimpleInboundHandler<IntermediateE
                 ReferenceCountUtil.safeRelease(msg);
             }
         }
-        catch (final IOException e) {
+        catch (final IllegalArgumentException | IOException e) {
             LOG.debug("Message {} can't be read and was dropped due to the following error: ", msg, e);
             future.completeExceptionally(new Exception("Message can't be read and was dropped due to the following error: ", e));
             ReferenceCountUtil.safeRelease(msg);
+            LOG.error("Unable to read sender from message '{}': {}", sanitizeLogArg(msg), e.getMessage());
+            future.completeExceptionally(new Exception("Unable to read sender from message.", e));
         }
     }
 }

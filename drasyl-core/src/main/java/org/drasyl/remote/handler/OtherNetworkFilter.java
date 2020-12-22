@@ -24,10 +24,13 @@ import org.drasyl.pipeline.Stateless;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.skeleton.SimpleInboundHandler;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
+import org.drasyl.util.ReferenceCountUtil;
 import org.drasyl.util.logging.Logger;
 import org.drasyl.util.logging.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
+
+import static org.drasyl.util.LoggingUtil.sanitizeLogArg;
 
 /**
  * This handler filters out all messages received from other networks.
@@ -46,12 +49,19 @@ public class OtherNetworkFilter extends SimpleInboundHandler<IntermediateEnvelop
                                final Address sender,
                                final IntermediateEnvelope<MessageLite> msg,
                                final CompletableFuture<Void> future) {
-        if (ctx.config().getNetworkId() == msg.getNetworkId()) {
-            ctx.fireRead(sender, msg, future);
+        try {
+            if (ctx.config().getNetworkId() == msg.getNetworkId()) {
+                ctx.fireRead(sender, msg, future);
+            }
+            else {
+                LOG.trace("Message from other network dropped: {}", msg);
+                future.completeExceptionally(new Exception("Message from other network dropped"));
+            }
         }
-        else {
-            LOG.trace("Message from other network dropped: {}", msg);
-            future.completeExceptionally(new Exception("Message from other network dropped"));
+        catch (final IllegalArgumentException e) {
+            ReferenceCountUtil.safeRelease(msg);
+            LOG.error("Unable to read network id from message '{}': {}", sanitizeLogArg(msg), e.getMessage());
+            future.completeExceptionally(new Exception("Unable to read network id from message.", e));
         }
     }
 }

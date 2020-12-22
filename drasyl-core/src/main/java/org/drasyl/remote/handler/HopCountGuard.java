@@ -24,15 +24,18 @@ import org.drasyl.pipeline.HandlerContext;
 import org.drasyl.pipeline.Stateless;
 import org.drasyl.pipeline.skeleton.SimpleOutboundHandler;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
+import org.drasyl.util.ReferenceCountUtil;
 import org.drasyl.util.logging.Logger;
 import org.drasyl.util.logging.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
+import static org.drasyl.util.LoggingUtil.sanitizeLogArg;
+
 /**
- * This handler ensures that {@link IntermediateEnvelope<MessageLite>}s do not infinitely circulate in the network. It
- * increments the hop counter of each outgoing message. If the limit of hops is reached, the message
- * is discarded. Otherwise the message can pass.
+ * This handler ensures that {@link IntermediateEnvelope<MessageLite>}s do not infinitely circulate
+ * in the network. It increments the hop counter of each outgoing message. If the limit of hops is
+ * reached, the message is discarded. Otherwise the message can pass.
  */
 @Stateless
 public class HopCountGuard extends SimpleOutboundHandler<IntermediateEnvelope<MessageLite>, CompressedPublicKey> {
@@ -48,17 +51,24 @@ public class HopCountGuard extends SimpleOutboundHandler<IntermediateEnvelope<Me
                                 final CompressedPublicKey recipient,
                                 final IntermediateEnvelope<MessageLite> msg,
                                 final CompletableFuture<Void> future) {
+        try {
         if (msg.getHopCount() < ctx.config().getRemoteMessageHopLimit()) {
             // route message to next hop (node)
-            msg.incrementHopCount();
+                msg.incrementHopCount();
 
-            ctx.write(recipient, msg, future);
+                ctx.write(recipient, msg, future);
+            }
+            else {
+                // too many hops, discard message
+                LOG.debug("Hop Count limit has been reached. End of lifespan of message has been reached. Discard message '{}'", msg);
+
+                future.completeExceptionally(new Exception("Hop Count limit has been reached. End of lifespan of message has been reached. Discard message."));
+            }
         }
-        else {
-            // too many hops, discard message
-            LOG.debug("Hop Count limit has been reached. End of lifespan of message has been reached. Discard message '{}'", msg);
-
-            future.completeExceptionally(new Exception("Hop Count limit has been reached. End of lifespan of message has been reached. Discard message."));
+        catch (final IllegalArgumentException e) {
+            ReferenceCountUtil.safeRelease(msg);
+            LOG.error("Unable to read hop count from message '{}': {}", sanitizeLogArg(msg), e.getMessage());
+            future.completeExceptionally(new Exception("Unable to read hop count from message.", e));
         }
     }
 }
