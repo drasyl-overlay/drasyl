@@ -126,7 +126,7 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                 final int messageSize = messageByteBuf.readableBytes();
                 final int messageMaxContentLength = ctx.config().getRemoteMessageMaxContentLength();
                 if (messageSize > messageMaxContentLength) {
-                    LOG.debug("The ctx.config().getRemoteMessageMaxContentLength() `{}` has a size of {} bytes and is too large. The max allowed size is {} bytes. Message dropped.", msg, messageSize, messageMaxContentLength);
+                    LOG.debug("The message `{}` has a size of {} bytes and is too large. The max allowed size is {} bytes. Message dropped.", msg, messageSize, messageMaxContentLength);
                     future.completeExceptionally(new Exception("The message has a size of " + messageSize + " bytes and is too large. The max. allowed size is " + messageMaxContentLength + " bytes. Message dropped."));
                     ReferenceCountUtil.safeRelease(messageByteBuf);
                 }
