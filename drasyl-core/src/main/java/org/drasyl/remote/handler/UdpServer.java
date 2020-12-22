@@ -191,7 +191,7 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
             bootstrap.option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(ctx.config().getRemoteMessageMtu()));
             bootstrap.option(ChannelOption.SO_RCVBUF, ctx.config().getRemoteMessageMaxContentLength() * 10);
             bootstrap.option(ChannelOption.SO_SNDBUF, ctx.config().getRemoteMessageMaxContentLength() * 10);
-            bootstrap.option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(ctx.config().getRemoteMessageMtu(), ctx.config().getRemoteMessageMtu() * 2));
+            bootstrap.option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(1, ctx.config().getRemoteMessageMtu()));
 
             final ChannelFuture channelFuture = bootstrap
                     .handler(new ChannelInitializer<DatagramChannel>() {
