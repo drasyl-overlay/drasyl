@@ -66,9 +66,11 @@ import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -94,6 +96,7 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
     private Channel channel;
     private Set<PortMapping> portMappings;
     private final ConcurrentLinkedQueue<Pair<DatagramPacket, ChannelPromise>> pendingPackages;
+    private final AtomicBoolean queueRunning;
 
     UdpServer(final Bootstrap bootstrap,
               final Scheduler scheduler,
@@ -104,6 +107,7 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
         this.portExposer = portExposer;
         this.channel = channel;
         this.pendingPackages = new ConcurrentLinkedQueue<>();
+        this.queueRunning = new AtomicBoolean(false);
     }
 
     public UdpServer(final EventLoopGroup bossGroup) {
@@ -266,20 +270,30 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
     }
 
     private void pullQueue(final HandlerContext ctx) {
-        if (channel.isWritable()) {
+        if (channel.isWritable() && queueRunning.compareAndSet(false, true)) {
             ctx.scheduler().scheduleDirect(() -> {
                 while (channel.isWritable()) {
                     final Pair<DatagramPacket, ChannelPromise> packet = pendingPackages.poll();
 
                     if (packet != null) {
+//                        if(new Random().nextInt(2) == 1) {
+//                            try {
+//                                Thread.sleep(1);
+//                            }
+//                            catch (final InterruptedException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+
                         LOG.trace("Send Datagram {}", packet.first());
-                        channel.writeAndFlush(packet.first(), packet.second());
+                        channel.writeAndFlush(packet.first(), packet.second()).awaitUninterruptibly();
                     }
                     else {
                         // Nothing to send
                         break;
                     }
                 }
+                queueRunning.set(false);
             });
         }
     }
