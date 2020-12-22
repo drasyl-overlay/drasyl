@@ -26,6 +26,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.FixedRecvByteBufAllocator;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -92,7 +93,7 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
     private Set<Endpoint> actualEndpoints;
     private Channel channel;
     private Set<PortMapping> portMappings;
-    private ConcurrentLinkedQueue<Pair<DatagramPacket, CompletableFuture>> pendingPackages;
+    private final ConcurrentLinkedQueue<Pair<DatagramPacket, ChannelPromise>> pendingPackages;
 
     UdpServer(final Bootstrap bootstrap,
               final Scheduler scheduler,
@@ -201,6 +202,7 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
                                 @Override
                                 public void channelWritabilityChanged(final ChannelHandlerContext channelCtx) {
                                     LOG.error("Writability changed to {}", channelCtx.channel().isWritable());
+                                    pullQueue(ctx);
 
                                     channelCtx.fireChannelWritabilityChanged();
                                 }
@@ -263,6 +265,25 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
         ctx.fireEventTriggered(event, future);
     }
 
+    private void pullQueue(final HandlerContext ctx) {
+        if (channel.isWritable()) {
+            ctx.scheduler().scheduleDirect(() -> {
+                while (channel.isWritable()) {
+                    final Pair<DatagramPacket, ChannelPromise> packet = pendingPackages.poll();
+
+                    if (packet != null) {
+                        LOG.trace("Send Datagram {}", packet.first());
+                        channel.writeAndFlush(packet.first(), packet.second());
+                    }
+                    else {
+                        // Nothing to send
+                        break;
+                    }
+                }
+            });
+        }
+    }
+
     @Override
     protected void matchedWrite(final HandlerContext ctx,
                                 final InetSocketAddressWrapper recipient,
@@ -270,8 +291,12 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
                                 final CompletableFuture<Void> future) {
         if (channel != null) {
             final DatagramPacket packet = new DatagramPacket(byteBuf, recipient.getAddress());
-            LOG.trace("Send Datagram {}", packet);
-            FutureUtil.completeOnAllOf(future, FutureUtil.toFuture(channel.writeAndFlush(packet)));
+            final ChannelPromise promise = channel.newPromise();
+
+            pendingPackages.add(Pair.of(packet, promise));
+            FutureUtil.completeOnAllOf(future, FutureUtil.toFuture(promise));
+
+            pullQueue(ctx);
         }
         else {
             ReferenceCountUtil.safeRelease(byteBuf);
