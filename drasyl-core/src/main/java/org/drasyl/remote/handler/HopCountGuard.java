@@ -66,8 +66,8 @@ public class HopCountGuard extends SimpleOutboundHandler<IntermediateEnvelope<Me
             }
         }
         catch (final IllegalArgumentException e) {
-            LOG.error("Unable to read hop count from message '{}': {}", sanitizeLogArg(msg), e.getMessage());
             ReferenceCountUtil.safeRelease(msg);
+            LOG.error("Unable to read hop count from message '{}': {}", sanitizeLogArg(msg), e.getMessage());
             future.completeExceptionally(new Exception("Unable to read hop count from message.", e));
         }
     }
