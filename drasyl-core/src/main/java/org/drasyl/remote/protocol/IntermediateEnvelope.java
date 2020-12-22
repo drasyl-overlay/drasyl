@@ -277,7 +277,6 @@ public class IntermediateEnvelope<T extends MessageLite> implements ReferenceCou
         }
     }
 
-    // FIXME: remove public!
     public ByteBuf getInternalByteBuf() {
         synchronized (this) {
             return message;
@@ -773,10 +772,22 @@ public class IntermediateEnvelope<T extends MessageLite> implements ReferenceCou
         );
     }
 
+    /**
+     * Returns {@code true} if this message is a chunk. Otherwise {@code false} is returned.
+     *
+     * @return {@code true} if this message is a chunk. Otherwise {@code false}.
+     * @throws IOException if the public header cannot be read
+     */
     public boolean isChunk() throws IOException {
         return !getPublicHeader().getTotalChunks().isEmpty() || !getPublicHeader().getChunkNo().isEmpty();
     }
 
+    /**
+     * Returns the number of the chunk. If the message is not a chunk, {@code 0} is returned.
+     *
+     * @return number of the chunk or {@code 0} if message is not a chunk
+     * @throws IOException if the public header cannot be read
+     */
     public UnsignedShort getChunkNo() throws IOException {
         final ByteString chunkNo = getPublicHeader().getChunkNo();
         if (!chunkNo.isEmpty()) {
@@ -787,6 +798,12 @@ public class IntermediateEnvelope<T extends MessageLite> implements ReferenceCou
         }
     }
 
+    /**
+     * Returns the total chunks number. If the message is not a chunk, {@code 0} is returned.
+     *
+     * @return total chunks number or {@code 0} if message is not a chunk
+     * @throws IOException if the public header cannot be read
+     */
     public UnsignedShort getTotalChunks() throws IOException {
         final ByteString totalChunks = getPublicHeader().getTotalChunks();
         if (!totalChunks.isEmpty()) {
