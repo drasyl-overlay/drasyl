@@ -48,6 +48,7 @@ import org.junit.jupiter.api.Timeout;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -253,21 +254,31 @@ class DrasylNodeIT {
                 //
                 // send messages
                 //
+                final byte[] payload = Crypto.randomBytes(MESSAGE_MTU);
                 final Set<String> identities = Set.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22",
                         "025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4",
                         "025fd887836759d83b9a5e1bc565e098351fd5b86aaa184e3fb95d6598e9f9398e");
                 for (final String recipient : identities) {
-                    superPeer.first().send(recipient, Crypto.randomBytes(MESSAGE_MTU));
-                    client1.first().send(recipient, Crypto.randomBytes(MESSAGE_MTU));
-                    client2.first().send(recipient, Crypto.randomBytes(MESSAGE_MTU));
+                    superPeer.first().send(recipient, payload);
+                    client1.first().send(recipient, payload);
+                    client2.first().send(recipient, payload);
                 }
 
                 //
                 // verify
                 //
-                superPeerMessages.awaitCount(3).assertValueCount(3);
-                client1Messages.awaitCount(3).assertValueCount(3);
-                client2Messages.awaitCount(3).assertValueCount(3);
+                superPeerMessages.awaitCount(3).assertValueCount(3)
+                        .assertValueAt(0, e -> Objects.deepEquals(((MessageEvent) e).getPayload(), payload))
+                        .assertValueAt(1, e -> Objects.deepEquals(((MessageEvent) e).getPayload(), payload))
+                        .assertValueAt(2, e -> Objects.deepEquals(((MessageEvent) e).getPayload(), payload));
+                client1Messages.awaitCount(3).assertValueCount(3)
+                        .assertValueAt(0, e -> Objects.deepEquals(((MessageEvent) e).getPayload(), payload))
+                        .assertValueAt(1, e -> Objects.deepEquals(((MessageEvent) e).getPayload(), payload))
+                        .assertValueAt(2, e -> Objects.deepEquals(((MessageEvent) e).getPayload(), payload));
+                client2Messages.awaitCount(3).assertValueCount(3)
+                        .assertValueAt(0, e -> Objects.deepEquals(((MessageEvent) e).getPayload(), payload))
+                        .assertValueAt(1, e -> Objects.deepEquals(((MessageEvent) e).getPayload(), payload))
+                        .assertValueAt(2, e -> Objects.deepEquals(((MessageEvent) e).getPayload(), payload));
             }
 
             /**
