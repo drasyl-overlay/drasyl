@@ -55,6 +55,7 @@ public class OtherNetworkFilter extends SimpleInboundHandler<IntermediateEnvelop
             }
             else {
                 LOG.trace("Message from other network dropped: {}", msg);
+                ReferenceCountUtil.safeRelease(msg);
                 future.completeExceptionally(new Exception("Message from other network dropped"));
             }
         }
