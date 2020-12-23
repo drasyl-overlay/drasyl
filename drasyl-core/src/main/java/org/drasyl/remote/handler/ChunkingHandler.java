@@ -235,8 +235,8 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
     }
 
     /**
-     * Calculates much chunks are required to send the payload of the given size with the given max
-     * mtu value.
+     * Calculates how much chunks are required to send the payload of the given size with the given
+     * max mtu value.
      *
      * @param payloadSize the size of the payload
      * @param mtu         the fixed mtu value
