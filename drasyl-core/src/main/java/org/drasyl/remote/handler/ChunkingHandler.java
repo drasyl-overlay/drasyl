@@ -21,6 +21,7 @@ package org.drasyl.remote.handler;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
@@ -163,20 +164,30 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                               final ByteBuf messageByteBuf,
                               final int messageSize) throws IOException {
         try {
-            final int mtu = ctx.config().getRemoteMessageMtu();
-            final UnsignedShort totalChunks = UnsignedShort.of((messageSize / mtu + 1));
-            LOG.debug("The message `{}` has a size of {} bytes and must be split to {} chunks (MTU = {}).", msg, messageSize, totalChunks, mtu);
-            final CompletableFuture<Void>[] chunkFutures = new CompletableFuture[totalChunks.getValue()];
-
             // create & send chunks
             final PublicHeader msgPublicHeader = msg.getPublicHeader();
             UnsignedShort chunkNo = UnsignedShort.of(0);
+
+            final PublicHeader partialChunkHeader = PublicHeader.newBuilder()
+                    .setId(msgPublicHeader.getId())
+                    .setUserAgent(msgPublicHeader.getUserAgent())
+                    .setSender(msgPublicHeader.getSender())
+                    .setRecipient(msgPublicHeader.getRecipient())
+                    .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
+                    .setChunkNo(ByteString.copyFrom(chunkNo.toBytes()))
+                    .buildPartial();
+
+            final int mtu = ctx.config().getRemoteMessageMtu();
+            final UnsignedShort totalChunks = totalChunks(messageSize, mtu, partialChunkHeader);
+            LOG.debug("The message `{}` has a size of {} bytes and must be split to {} chunks (MTU = {}).", msg, messageSize, totalChunks, mtu);
+            final CompletableFuture<Void>[] chunkFutures = new CompletableFuture[totalChunks.getValue()];
+
             while (messageByteBuf.readableBytes() > 0) {
                 ByteBuf chunkBodyByteBuf = null;
                 final ByteBuf chunkByteBuf = PooledByteBufAllocator.DEFAULT.buffer();
                 try (final ByteBufOutputStream outputStream = new ByteBufOutputStream(chunkByteBuf)) {
                     // chunk header
-                    final PublicHeader chunkHeader = buildChunkHeader(totalChunks, msgPublicHeader, chunkNo);
+                    final PublicHeader chunkHeader = buildChunkHeader(totalChunks, partialChunkHeader, chunkNo);
                     chunkHeader.writeDelimitedTo(outputStream);
 
                     // chunk body
@@ -206,14 +217,10 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
 
     @NotNull
     private PublicHeader buildChunkHeader(final UnsignedShort totalChunks,
-                                          final PublicHeader msgPublicHeader,
+                                          final PublicHeader partialHeader,
                                           final UnsignedShort chunkNo) {
-        final PublicHeader.Builder builder = PublicHeader.newBuilder()
-                .setId(msgPublicHeader.getId())
-                .setUserAgent(msgPublicHeader.getUserAgent())
-                .setSender(msgPublicHeader.getSender())
-                .setRecipient(msgPublicHeader.getRecipient())
-                .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }));
+        final PublicHeader.Builder builder = PublicHeader.newBuilder(partialHeader);
+        builder.clearChunkNo();
 
         if (chunkNo.getValue() == 0) {
             // set only on first chunk (head chunk)
@@ -225,5 +232,24 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
         }
 
         return builder.build();
+    }
+
+    /**
+     * Calculates much chunks are required to send the payload of the given size with the given max
+     * mtu value.
+     *
+     * @param payloadSize the size of the payload
+     * @param mtu         the fixed mtu value
+     * @param header      the header of each chunk
+     * @return the total amount of chunks required to send the given payload
+     */
+    private UnsignedShort totalChunks(final int payloadSize,
+                                      final int mtu,
+                                      final PublicHeader header) {
+        final int headerSize = header.getSerializedSize();
+        final double totalHeaderSize = CodedOutputStream.computeUInt32SizeNoTag(headerSize) + headerSize;
+        final int totalChunks = (int) Math.ceil(payloadSize / (mtu - totalHeaderSize));
+
+        return UnsignedShort.of(totalChunks);
     }
 }
