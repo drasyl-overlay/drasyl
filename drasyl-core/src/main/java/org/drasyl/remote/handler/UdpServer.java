@@ -31,6 +31,7 @@ import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import org.drasyl.util.ReferenceCountUtil;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Scheduler;
 import org.drasyl.DrasylConfig;
@@ -50,7 +51,6 @@ import org.drasyl.util.FutureUtil;
 import org.drasyl.util.Pair;
 import org.drasyl.util.PortMappingUtil;
 import org.drasyl.util.PortMappingUtil.PortMapping;
-import org.drasyl.util.ReferenceCountUtil;
 import org.drasyl.util.SetUtil;
 import org.drasyl.util.logging.Logger;
 import org.drasyl.util.logging.LoggerFactory;
@@ -182,7 +182,7 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
                             LOG.trace("Datagram received {}", msg);
                             final ByteBuf byteBuf = msg.content();
                             byteBuf.retain();
-                            ctx.fireRead(InetSocketAddressWrapper.of(msg.sender()), byteBuf, new CompletableFuture<>());
+                            ctx.pipeline().processInbound(InetSocketAddressWrapper.of(msg.sender()), byteBuf);
                         }
                     })
                     .bind(ctx.config().getRemoteBindHost(), ctx.config().getRemoteBindPort());
