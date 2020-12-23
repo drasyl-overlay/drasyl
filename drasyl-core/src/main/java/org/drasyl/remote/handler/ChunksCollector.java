@@ -125,4 +125,8 @@ class ChunksCollector {
         chunks.values().forEach(ReferenceCountUtil::safeRelease);
         chunks.clear();
     }
+
+    public boolean hasChunks() {
+        return !chunks.isEmpty();
+    }
 }
