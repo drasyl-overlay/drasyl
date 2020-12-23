@@ -23,7 +23,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
 import io.reactivex.rxjava3.core.Scheduler;
@@ -97,7 +96,6 @@ class UdpServerTest {
             when(channelFuture.isSuccess()).thenReturn(true);
             when(channelFuture.channel().localAddress()).thenReturn(new InetSocketAddress(22527));
             when(config.getRemoteEndpoints()).thenReturn(Set.of(Endpoint.of("udp://localhost:22527#030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22")));
-            when(config.getRemoteMessageMtu()).thenReturn(1);
 
             final UdpServer handler = new UdpServer(bootstrap, scheduler, portExposer, null);
             final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
@@ -116,7 +114,6 @@ class UdpServerTest {
             when(channelFuture.channel().localAddress()).thenReturn(new InetSocketAddress(22527));
             when(config.isRemoteExposeEnabled()).thenReturn(true);
             when(config.getRemoteEndpoints()).thenReturn(Set.of(Endpoint.of("udp://localhost:22527#030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22")));
-            when(config.getRemoteMessageMtu()).thenReturn(1);
             when(scheduler.scheduleDirect(any())).then(invocation -> {
                 final Runnable argument = invocation.getArgument(0, Runnable.class);
                 argument.run();
@@ -193,6 +190,7 @@ class UdpServerTest {
         @Test
         void shouldPassOutgoingMessagesToUdp(@Mock final InetSocketAddressWrapper recipient,
                                              @Mock final ByteBuf msg) {
+            when(channel.isWritable()).thenReturn(true);
             when(recipient.getAddress()).thenReturn(createUnresolved("example.com", 1234));
             when(channel.writeAndFlush(any()).isDone()).thenReturn(true);
             when(channel.writeAndFlush(any()).isSuccess()).thenReturn(true);
@@ -212,10 +210,9 @@ class UdpServerTest {
                                                  @Mock(answer = RETURNS_DEEP_STUBS) final ChannelFuture channelFuture) {
             final DatagramPacket msg = new DatagramPacket(copiedBuffer(new byte[]{}), createUnresolved("example.com", 1234), createUnresolved("example.com", 4567));
             when(bootstrap.handler(any())).thenAnswer(invocation -> {
-                invocation.getArgument(0, ChannelInitializer.class).channelRead(ctx, msg);
+                invocation.getArgument(0, SimpleChannelInboundHandler.class).channelRead(ctx, msg);
                 return bootstrap2;
             });
-            when(config.getRemoteMessageMtu()).thenReturn(1024);
             when(bootstrap2.bind(any(InetAddress.class), anyInt())).thenReturn(channelFuture);
             when(channelFuture.isSuccess()).thenReturn(true);
             when(channelFuture.channel().localAddress()).thenReturn(new InetSocketAddress(22527));

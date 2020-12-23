@@ -277,8 +277,7 @@ public class IntermediateEnvelope<T extends MessageLite> implements ReferenceCou
         }
     }
 
-    // FIXME: remove public!
-    public ByteBuf getInternalByteBuf() {
+    ByteBuf getInternalByteBuf() {
         synchronized (this) {
             return message;
         }
@@ -771,29 +770,5 @@ public class IntermediateEnvelope<T extends MessageLite> implements ReferenceCou
                         .setPort(ByteString.copyFrom(UnsignedShort.of(address.getPort()).toBytes()))
                         .build()
         );
-    }
-
-    public boolean isChunk() throws IOException {
-        return !getPublicHeader().getTotalChunks().isEmpty() || !getPublicHeader().getChunkNo().isEmpty();
-    }
-
-    public UnsignedShort getChunkNo() throws IOException {
-        final ByteString chunkNo = getPublicHeader().getChunkNo();
-        if (!chunkNo.isEmpty()) {
-            return UnsignedShort.of(chunkNo.toByteArray());
-        }
-        else {
-            return UnsignedShort.of(0);
-        }
-    }
-
-    public UnsignedShort getTotalChunks() throws IOException {
-        final ByteString totalChunks = getPublicHeader().getTotalChunks();
-        if (!totalChunks.isEmpty()) {
-            return UnsignedShort.of(totalChunks.toByteArray());
-        }
-        else {
-            return UnsignedShort.of(0);
-        }
     }
 }

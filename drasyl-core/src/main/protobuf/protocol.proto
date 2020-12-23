@@ -11,8 +11,6 @@ message PublicHeader {
     bytes recipient = 6; // 33 bytes fix
     bytes hopCount = 7; // 1 byte
     bytes signature = 8; // 32 bytes fix
-    bytes chunkNo = 9; // 2 byte
-    bytes totalChunks = 10; // 2 byte
 }
 
 message PrivateHeader {
@@ -43,4 +41,24 @@ message Unite {
     bytes publicKey = 1; // 33 bytes fix
     string address = 2; // hostname
     bytes port = 3; // 2 bytes fix
+}
+
+/**
+ * Chunking
+ */
+message ChunkHeader {
+    bytes id = 1; // 12 bytes fix
+    int32 networkId = 3;
+    bytes recipient = 6; // 33 bytes fix
+    bytes hopCount = 7; // 1 byte
+}
+
+message FirstChunk {
+    uint32 totalLength = 1;
+    bytes payload = 2;
+}
+
+message Chunk {
+    uint32 count = 1;
+    bytes payload = 2;
 }

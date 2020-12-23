@@ -52,7 +52,7 @@ public class HopCountGuard extends SimpleOutboundHandler<IntermediateEnvelope<Me
                                 final IntermediateEnvelope<MessageLite> msg,
                                 final CompletableFuture<Void> future) {
         try {
-            if (msg.getHopCount() < ctx.config().getRemoteMessageHopLimit()) {
+            if (msg.getHopCount() < ctx.config().getMessageHopLimit()) {
                 // route message to next hop (node)
                 msg.incrementHopCount();
 
@@ -61,7 +61,7 @@ public class HopCountGuard extends SimpleOutboundHandler<IntermediateEnvelope<Me
             else {
                 // too many hops, discard message
                 LOG.debug("Hop Count limit has been reached. End of lifespan of message has been reached. Discard message '{}'", msg);
-                ReferenceCountUtil.safeRelease(msg);
+
                 future.completeExceptionally(new Exception("Hop Count limit has been reached. End of lifespan of message has been reached. Discard message."));
             }
         }
