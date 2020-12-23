@@ -18,10 +18,12 @@
  */
 package org.drasyl.remote.handler;
 
+import com.google.common.primitives.Bytes;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.ByteBufUtil;
+import io.netty.buffer.Unpooled;
 import io.reactivex.rxjava3.observers.TestObserver;
 import org.drasyl.DrasylConfig;
 import org.drasyl.crypto.CryptoException;
@@ -40,7 +42,6 @@ import org.drasyl.remote.protocol.UserAgent;
 import org.drasyl.util.Pair;
 import org.drasyl.util.ReferenceCountUtil;
 import org.drasyl.util.UnsignedShort;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -50,6 +51,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 
 import static java.time.Duration.ofSeconds;
@@ -113,31 +116,38 @@ class ChunkingHandlerTest {
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 final MessageId messageId = randomMessageId();
                 final UserAgent userAgent = UserAgent.generate();
-                final ProofOfWork proofOfWork = ProofOfWork.of(6518542);
                 when(identity.getPublicKey()).thenReturn(recipient);
 
                 final Handler handler = new ChunkingHandler();
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> inboundMessages = pipeline.inboundMessages().test();
 
-                // head chunk
-                final Protocol.PublicHeader headChunkHeader = Protocol.PublicHeader.newBuilder()
-                        .setId(ByteString.copyFrom(messageId.byteArrayValue()))
-                        .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
-                        .setSender(ByteString.copyFrom(sender.byteArrayValue())) // TODO: required?
-                        .setProofOfWork(proofOfWork.intValue()) // TODO: required?
-                        .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
-                        .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
-                        .setTotalChunks(ByteString.copyFrom(UnsignedShort.of(2).toBytes()))
-                        .build();
-                final ByteBuf headChunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[remoteMessageMtu / 2]); // TODO: release byte buf?
+                ByteBuf headChunkPayload = null;
+                try {
+                    // head chunk
+                    final Protocol.PublicHeader headChunkHeader = Protocol.PublicHeader.newBuilder()
+                            .setId(ByteString.copyFrom(messageId.byteArrayValue()))
+                            .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
+                            .setSender(ByteString.copyFrom(sender.byteArrayValue()))
+                            .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
+                            .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
+                            .setTotalChunks(ByteString.copyFrom(UnsignedShort.of(2).toBytes()))
+                            .build();
+                    final byte[] bytes = new byte[remoteMessageMtu / 2];
+                    headChunkPayload = Unpooled.wrappedBuffer(bytes);
 
-                final IntermediateEnvelope<MessageLite> headChunk = IntermediateEnvelope.of(headChunkHeader, headChunkPayload);
-                pipeline.processInbound(sender, headChunk).join();
-                inboundMessages.await(1, SECONDS);
-                inboundMessages.assertNoValues();
+                    final IntermediateEnvelope<MessageLite> headChunk = IntermediateEnvelope.of(headChunkHeader, headChunkPayload);
+                    pipeline.processInbound(sender, headChunk).join();
+                    inboundMessages.await(1, SECONDS);
+                    inboundMessages.assertNoValues();
 
-                ReferenceCountUtil.safeRelease(headChunk);
+                    ReferenceCountUtil.safeRelease(headChunk);
+                }
+                finally {
+                    if (headChunkPayload != null) {
+                        ReferenceCountUtil.safeRelease(headChunkPayload);
+                    }
+                }
             }
 
             @Test
@@ -149,53 +159,68 @@ class ChunkingHandlerTest {
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 final MessageId messageId = randomMessageId();
                 final UserAgent userAgent = UserAgent.generate();
-                final ProofOfWork proofOfWork = ProofOfWork.of(6518542);
                 when(identity.getPublicKey()).thenReturn(recipient);
 
-                final Handler handler = new ChunkingHandler();
-                final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
-                final TestObserver<Pair<Address, Object>> inboundMessages = pipeline.inboundMessages().test();
+                ByteBuf chunkPayload = null;
+                ByteBuf headChunkPayload = null;
+                try {
+                    final Handler handler = new ChunkingHandler();
+                    final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
+                    final TestObserver<Pair<Address, Object>> inboundMessages = pipeline.inboundMessages().test();
 
-                // normal chunk
-                final Protocol.PublicHeader chunkHeader = Protocol.PublicHeader.newBuilder()
-                        .setId(ByteString.copyFrom(messageId.byteArrayValue()))
-                        .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
-                        .setSender(ByteString.copyFrom(sender.byteArrayValue()))
-                        .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
-                        .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
-                        .setChunkNo(ByteString.copyFrom(UnsignedShort.of(1).toBytes()))
-                        .build();
-                final ByteBuf chunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[remoteMessageMtu / 2]); // TODO: release byte buf?
+                    // normal chunk
+                    final Protocol.PublicHeader chunkHeader = Protocol.PublicHeader.newBuilder()
+                            .setId(ByteString.copyFrom(messageId.byteArrayValue()))
+                            .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
+                            .setSender(ByteString.copyFrom(sender.byteArrayValue()))
+                            .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
+                            .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
+                            .setChunkNo(ByteString.copyFrom(UnsignedShort.of(1).toBytes()))
+                            .build();
+                    final byte[] chunkBytes = new byte[remoteMessageMtu / 2];
+                    new Random().nextBytes(chunkBytes);
+                    chunkPayload = Unpooled.wrappedBuffer(chunkBytes);
 
-                final IntermediateEnvelope<MessageLite> chunk = IntermediateEnvelope.of(chunkHeader, chunkPayload);
-                pipeline.processInbound(sender, chunk).join();
+                    final IntermediateEnvelope<MessageLite> chunk = IntermediateEnvelope.of(chunkHeader, chunkPayload);
+                    pipeline.processInbound(sender, chunk).join();
 
-                // head chunk
-                final Protocol.PublicHeader headChunkHeader = Protocol.PublicHeader.newBuilder()
-                        .setId(ByteString.copyFrom(messageId.byteArrayValue()))
-                        .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
-                        .setSender(ByteString.copyFrom(sender.byteArrayValue()))
-                        .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
-                        .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
-                        .setTotalChunks(ByteString.copyFrom(UnsignedShort.of(2).toBytes()))
-                        .build();
-                final ByteBuf headChunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[remoteMessageMtu / 2]); // TODO: release byte buf?
+                    // head chunk
+                    final Protocol.PublicHeader headChunkHeader = Protocol.PublicHeader.newBuilder()
+                            .setId(ByteString.copyFrom(messageId.byteArrayValue()))
+                            .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
+                            .setSender(ByteString.copyFrom(sender.byteArrayValue()))
+                            .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
+                            .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
+                            .setTotalChunks(ByteString.copyFrom(UnsignedShort.of(2).toBytes()))
+                            .build();
+                    final byte[] headChunkBytes = new byte[remoteMessageMtu / 2];
+                    new Random().nextBytes(headChunkBytes);
+                    headChunkPayload = Unpooled.wrappedBuffer(headChunkBytes);
 
-                final IntermediateEnvelope<MessageLite> headChunk = IntermediateEnvelope.of(headChunkHeader, headChunkPayload);
-                pipeline.processInbound(sender, headChunk).join();
+                    final IntermediateEnvelope<MessageLite> headChunk = IntermediateEnvelope.of(headChunkHeader, headChunkPayload);
+                    pipeline.processInbound(sender, headChunk).join();
 
-                inboundMessages.awaitCount(1)
-                        .assertValueCount(1)
-                        .assertValueAt(0, p -> {
-                            final IntermediateEnvelope envelope = (IntermediateEnvelope) p.second();
+                    inboundMessages.awaitCount(1)
+                            .assertValueCount(1)
+                            .assertValueAt(0, p -> {
+                                final IntermediateEnvelope<?> envelope = (IntermediateEnvelope<?>) p.second();
 
-                            try {
-                                return !envelope.isChunk();
-                            }
-                            finally {
-                                ReferenceCountUtil.safeRelease(envelope);
-                            }
-                        });
+                                try {
+                                    return !envelope.isChunk() && Objects.deepEquals(Bytes.concat(headChunkBytes, chunkBytes), ByteBufUtil.getBytes(envelope.getByteBuf()));
+                                }
+                                finally {
+                                    ReferenceCountUtil.safeRelease(envelope);
+                                }
+                            });
+                }
+                finally {
+                    if (headChunkPayload != null) {
+                        ReferenceCountUtil.safeRelease(headChunkPayload);
+                    }
+                    if (chunkPayload != null) {
+                        ReferenceCountUtil.safeRelease(chunkPayload);
+                    }
+                }
             }
 
             @Test
@@ -207,42 +232,55 @@ class ChunkingHandlerTest {
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 final MessageId messageId = randomMessageId();
                 final UserAgent userAgent = UserAgent.generate();
-                final ProofOfWork proofOfWork = ProofOfWork.of(6518542);
                 when(identity.getPublicKey()).thenReturn(recipient);
 
-                final Handler handler = new ChunkingHandler();
-                final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
-                final TestObserver<Pair<Address, Object>> inboundMessages = pipeline.inboundMessages().test();
+                ByteBuf chunkPayload = null;
+                ByteBuf headChunkPayload = null;
+                try {
+                    final Handler handler = new ChunkingHandler();
+                    final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
+                    final TestObserver<Pair<Address, Object>> inboundMessages = pipeline.inboundMessages().test();
 
-                // head chunk
-                final Protocol.PublicHeader headChunkHeader = Protocol.PublicHeader.newBuilder()
-                        .setId(ByteString.copyFrom(messageId.byteArrayValue()))
-                        .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
-                        .setSender(ByteString.copyFrom(sender.byteArrayValue()))
-                        .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
-                        .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
-                        .setTotalChunks(ByteString.copyFrom(UnsignedShort.of(2).toBytes()))
-                        .build();
-                final ByteBuf headChunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[remoteMaxContentLength]); // TODO: release byte buf?
+                    // head chunk
+                    final Protocol.PublicHeader headChunkHeader = Protocol.PublicHeader.newBuilder()
+                            .setId(ByteString.copyFrom(messageId.byteArrayValue()))
+                            .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
+                            .setSender(ByteString.copyFrom(sender.byteArrayValue()))
+                            .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
+                            .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
+                            .setTotalChunks(ByteString.copyFrom(UnsignedShort.of(2).toBytes()))
+                            .build();
+                    final byte[] bytes1 = new byte[remoteMaxContentLength];
+                    headChunkPayload = Unpooled.wrappedBuffer(bytes1);
 
-                // normal chunk
-                final Protocol.PublicHeader chunkHeader = Protocol.PublicHeader.newBuilder()
-                        .setId(ByteString.copyFrom(messageId.byteArrayValue()))
-                        .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
-                        .setSender(ByteString.copyFrom(sender.byteArrayValue()))
-                        .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
-                        .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
-                        .setChunkNo(ByteString.copyFrom(UnsignedShort.of(1).toBytes()))
-                        .build();
-                final ByteBuf chunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[remoteMaxContentLength]); // TODO: release byte buf?
+                    // normal chunk
+                    final Protocol.PublicHeader chunkHeader = Protocol.PublicHeader.newBuilder()
+                            .setId(ByteString.copyFrom(messageId.byteArrayValue()))
+                            .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
+                            .setSender(ByteString.copyFrom(sender.byteArrayValue()))
+                            .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
+                            .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
+                            .setChunkNo(ByteString.copyFrom(UnsignedShort.of(1).toBytes()))
+                            .build();
+                    final byte[] bytes = new byte[remoteMaxContentLength];
+                    chunkPayload = Unpooled.wrappedBuffer(bytes);
 
-                final IntermediateEnvelope<MessageLite> chunk = IntermediateEnvelope.of(chunkHeader, chunkPayload);
-                pipeline.processInbound(sender, chunk).join();
+                    final IntermediateEnvelope<MessageLite> chunk = IntermediateEnvelope.of(chunkHeader, chunkPayload);
+                    pipeline.processInbound(sender, chunk).join();
 
-                final IntermediateEnvelope<MessageLite> headChunk = IntermediateEnvelope.of(headChunkHeader, headChunkPayload);
-                assertThrows(ExecutionException.class, () -> pipeline.processInbound(sender, headChunk).get());
-                inboundMessages.await(1, SECONDS);
-                inboundMessages.assertNoValues();
+                    final IntermediateEnvelope<MessageLite> headChunk = IntermediateEnvelope.of(headChunkHeader, headChunkPayload);
+                    assertThrows(ExecutionException.class, () -> pipeline.processInbound(sender, headChunk).get());
+                    inboundMessages.await(1, SECONDS);
+                    inboundMessages.assertNoValues();
+                }
+                finally {
+                    if (headChunkPayload != null) {
+                        ReferenceCountUtil.safeRelease(headChunkPayload);
+                    }
+                    if (chunkPayload != null) {
+                        ReferenceCountUtil.safeRelease(chunkPayload);
+                    }
+                }
             }
         }
 
@@ -279,7 +317,6 @@ class ChunkingHandlerTest {
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 final MessageId messageId = randomMessageId();
                 final UserAgent userAgent = UserAgent.generate();
-                final ProofOfWork proofOfWork = ProofOfWork.of(6518542);
                 when(identity.getPublicKey()).thenReturn(sender);
 
                 final Handler handler = new ChunkingHandler();
@@ -294,7 +331,8 @@ class ChunkingHandlerTest {
                         .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
                         .setTotalChunks(ByteString.copyFrom(UnsignedShort.of(2).toBytes()))
                         .build();
-                final ByteBuf headChunkPayload = PooledByteBufAllocator.DEFAULT.buffer().writeBytes(new byte[remoteMessageMtu / 2]); // TODO: release byte buf?
+                final byte[] bytes = new byte[remoteMessageMtu / 2];
+                final ByteBuf headChunkPayload = Unpooled.wrappedBuffer(bytes);
                 final IntermediateEnvelope<MessageLite> headChunk = IntermediateEnvelope.of(headChunkHeader, headChunkPayload);
                 pipeline.processInbound(sender, headChunk).join();
 
@@ -302,7 +340,7 @@ class ChunkingHandlerTest {
                         .assertValueCount(1)
                         .assertValueAt(0, p -> {
                             try {
-                                return ((IntermediateEnvelope) p.second()).isChunk();
+                                return ((IntermediateEnvelope<?>) p.second()).isChunk();
                             }
                             finally {
                                 ReferenceCountUtil.safeRelease(p.second());
@@ -387,7 +425,7 @@ class ChunkingHandlerTest {
                         .assertValueCount(3)
                         .assertValueAt(0, p -> {
                             try {
-                                return ((IntermediateEnvelope) p.second()).getChunkNo().getValue() == 0;
+                                return ((IntermediateEnvelope<?>) p.second()).getChunkNo().getValue() == 0;
                             }
                             finally {
                                 ReferenceCountUtil.safeRelease(p.second());
@@ -395,7 +433,7 @@ class ChunkingHandlerTest {
                         })
                         .assertValueAt(1, p -> {
                             try {
-                                return ((IntermediateEnvelope) p.second()).getChunkNo().getValue() == 1;
+                                return ((IntermediateEnvelope<?>) p.second()).getChunkNo().getValue() == 1;
                             }
                             finally {
                                 ReferenceCountUtil.safeRelease(p.second());
@@ -403,7 +441,7 @@ class ChunkingHandlerTest {
                         })
                         .assertValueAt(2, p -> {
                             try {
-                                return ((IntermediateEnvelope) p.second()).getChunkNo().getValue() == 2;
+                                return ((IntermediateEnvelope<?>) p.second()).getChunkNo().getValue() == 2;
                             }
                             finally {
                                 ReferenceCountUtil.safeRelease(p.second());

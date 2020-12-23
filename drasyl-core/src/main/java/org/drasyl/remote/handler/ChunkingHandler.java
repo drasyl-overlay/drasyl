@@ -36,6 +36,7 @@ import org.drasyl.util.UnsignedShort;
 import org.drasyl.util.Worm;
 import org.drasyl.util.logging.Logger;
 import org.drasyl.util.logging.LoggerFactory;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Map;
@@ -123,16 +124,16 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
             if (ctx.identity().getPublicKey().equals(msg.getSender())) {
                 // message from us, check if we have to chunk it
                 final ByteBuf messageByteBuf = msg.getOrBuildByteBuf();
-                final int messageSize = messageByteBuf.readableBytes();
+                final int messageLength = messageByteBuf.readableBytes(); // FIXME: the wrong length is used here. We need the length without public header
                 final int messageMaxContentLength = ctx.config().getRemoteMessageMaxContentLength();
-                if (messageMaxContentLength > 0 && messageSize > messageMaxContentLength) {
-                    LOG.debug("The message `{}` has a size of {} bytes and is too large. The max allowed size is {} bytes. Message dropped.", msg, messageSize, messageMaxContentLength);
-                    future.completeExceptionally(new Exception("The message has a size of " + messageSize + " bytes and is too large. The max. allowed size is " + messageMaxContentLength + " bytes. Message dropped."));
+                if (messageMaxContentLength > 0 && messageLength > messageMaxContentLength) {
+                    LOG.debug("The message `{}` has a size of {} bytes and is too large. The max allowed size is {} bytes. Message dropped.", msg, messageLength, messageMaxContentLength);
+                    future.completeExceptionally(new Exception("The message has a size of " + messageLength + " bytes and is too large. The max. allowed size is " + messageMaxContentLength + " bytes. Message dropped."));
                     ReferenceCountUtil.safeRelease(messageByteBuf);
                 }
-                else if (messageSize > ctx.config().getRemoteMessageMtu()) {
+                else if (messageLength > ctx.config().getRemoteMessageMtu()) {
                     // message is too big, we have to chunk it
-                    chunkMessage(ctx, recipient, msg, future, messageByteBuf, messageSize);
+                    chunkMessage(ctx, recipient, msg, future, messageByteBuf, messageLength);
                 }
                 else {
                     // message is small enough. No chunking required
@@ -169,28 +170,14 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
             while (messageByteBuf.readableBytes() > 0) {
                 ByteBuf chunkPayload = null;
                 try {
-                    final PublicHeader.Builder builder = PublicHeader.newBuilder()
-                            .setId(msgPublicHeader.getId())
-                            .setUserAgent(msgPublicHeader.getUserAgent())
-                            .setSender(msgPublicHeader.getSender())
-                            .setRecipient(msgPublicHeader.getRecipient())
-                            .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }));
+                    // chunk header
+                    final PublicHeader chunkHeader = buildChunkHeader(totalChunks, msgPublicHeader, chunkNo);
 
-                    if (chunkNo.getValue() == 0) {
-                        // set only on first chunk (head chunk)
-                        builder.setTotalChunks(ByteString.copyFrom(totalChunks.toBytes()));
-                    }
-                    else {
-                        // set on all non-head chunks
-                        builder.setChunkNo(ByteString.copyFrom(chunkNo.toBytes()));
-                    }
-
-                    final PublicHeader chunkHeader = builder
-                            .build();
+                    // chunk body
                     // use zero-copy
                     chunkPayload = messageByteBuf.readRetainedSlice(Math.min(messageByteBuf.readableBytes(), mtu));
 
-                    // send
+                    // send chunk
                     final IntermediateEnvelope<MessageLite> chunk = IntermediateEnvelope.of(chunkHeader, chunkPayload);
                     chunkFutures[chunkNo.getValue()] = new CompletableFuture<>();
                     ctx.write(recipient, chunk, chunkFutures[chunkNo.getValue()]);
@@ -207,5 +194,30 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
         finally {
             ReferenceCountUtil.safeRelease(messageByteBuf);
         }
+    }
+
+    @NotNull
+    private PublicHeader buildChunkHeader(final UnsignedShort totalChunks,
+                                          final PublicHeader msgPublicHeader,
+                                          final UnsignedShort chunkNo) {
+        final PublicHeader.Builder builder = PublicHeader.newBuilder()
+                .setId(msgPublicHeader.getId())
+                .setUserAgent(msgPublicHeader.getUserAgent())
+                .setSender(msgPublicHeader.getSender())
+                .setRecipient(msgPublicHeader.getRecipient())
+                .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }));
+
+        if (chunkNo.getValue() == 0) {
+            // set only on first chunk (head chunk)
+            builder.setTotalChunks(ByteString.copyFrom(totalChunks.toBytes()));
+        }
+        else {
+            // set on all non-head chunks
+            builder.setChunkNo(ByteString.copyFrom(chunkNo.toBytes()));
+        }
+
+        final PublicHeader chunkHeader = builder
+                .build();
+        return chunkHeader;
     }
 }
