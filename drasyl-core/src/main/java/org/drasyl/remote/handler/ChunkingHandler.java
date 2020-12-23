@@ -170,27 +170,26 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
             final PublicHeader msgPublicHeader = msg.getPublicHeader();
             UnsignedShort chunkNo = UnsignedShort.of(0);
             while (messageByteBuf.readableBytes() > 0) {
-                ByteBuf chunkPayload = null;
-                final ByteBuf byteBuf = PooledByteBufAllocator.DEFAULT.buffer();
-                try (final ByteBufOutputStream outputStream = new ByteBufOutputStream(byteBuf)) {
+                ByteBuf chunkBodyByteBuf = null;
+                final ByteBuf chunkByteBuf = PooledByteBufAllocator.DEFAULT.buffer();
+                try (final ByteBufOutputStream outputStream = new ByteBufOutputStream(chunkByteBuf)) {
                     // chunk header
                     final PublicHeader chunkHeader = buildChunkHeader(totalChunks, msgPublicHeader, chunkNo);
                     chunkHeader.writeDelimitedTo(outputStream);
 
                     // chunk body
-                    final int chunkBodyLength = Math.min(messageByteBuf.readableBytes(), mtu - byteBuf.writerIndex());
-                    chunkPayload = messageByteBuf.readRetainedSlice(chunkBodyLength);
-                    byteBuf.writeBytes(chunkPayload);
+                    final int chunkBodyLength = Math.min(messageByteBuf.readableBytes(), mtu - chunkByteBuf.writerIndex());
+                    chunkBodyByteBuf = messageByteBuf.readRetainedSlice(chunkBodyLength);
+                    chunkByteBuf.writeBytes(chunkBodyByteBuf);
 
                     // send chunk
-                    final IntermediateEnvelope<MessageLite> chunk = IntermediateEnvelope.of(byteBuf);
+                    final IntermediateEnvelope<MessageLite> chunk = IntermediateEnvelope.of(chunkByteBuf);
 
                     chunkFutures[chunkNo.getValue()] = new CompletableFuture<>();
                     ctx.write(recipient, chunk, chunkFutures[chunkNo.getValue()]);
                 }
                 finally {
-                    ReferenceCountUtil.safeRelease(byteBuf);
-                    ReferenceCountUtil.safeRelease(chunkPayload);
+                    ReferenceCountUtil.safeRelease(chunkBodyByteBuf);
                 }
 
                 chunkNo = chunkNo.increment();
