@@ -215,26 +215,6 @@ public final class Protocol {
      * @return The signature.
      */
     com.google.protobuf.ByteString getSignature();
-
-    /**
-     * <pre>
-     * 1 byte
-     * </pre>
-     *
-     * <code>bytes chunkNo = 9;</code>
-     * @return The chunkNo.
-     */
-    com.google.protobuf.ByteString getChunkNo();
-
-    /**
-     * <pre>
-     * 1 byte
-     * </pre>
-     *
-     * <code>bytes totalChunks = 10;</code>
-     * @return The totalChunks.
-     */
-    com.google.protobuf.ByteString getTotalChunks();
   }
   /**
    * Protobuf type {@code org.drasyl.remote.protocol.PublicHeader}
@@ -255,8 +235,6 @@ public final class Protocol {
       recipient_ = com.google.protobuf.ByteString.EMPTY;
       hopCount_ = com.google.protobuf.ByteString.EMPTY;
       signature_ = com.google.protobuf.ByteString.EMPTY;
-      chunkNo_ = com.google.protobuf.ByteString.EMPTY;
-      totalChunks_ = com.google.protobuf.ByteString.EMPTY;
     }
 
     @java.lang.Override
@@ -327,16 +305,6 @@ public final class Protocol {
             case 66: {
 
               signature_ = input.readBytes();
-              break;
-            }
-            case 74: {
-
-              chunkNo_ = input.readBytes();
-              break;
-            }
-            case 82: {
-
-              totalChunks_ = input.readBytes();
               break;
             }
             default: {
@@ -483,36 +451,6 @@ public final class Protocol {
       return signature_;
     }
 
-    public static final int CHUNKNO_FIELD_NUMBER = 9;
-    private com.google.protobuf.ByteString chunkNo_;
-    /**
-     * <pre>
-     * 1 byte
-     * </pre>
-     *
-     * <code>bytes chunkNo = 9;</code>
-     * @return The chunkNo.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString getChunkNo() {
-      return chunkNo_;
-    }
-
-    public static final int TOTALCHUNKS_FIELD_NUMBER = 10;
-    private com.google.protobuf.ByteString totalChunks_;
-    /**
-     * <pre>
-     * 1 byte
-     * </pre>
-     *
-     * <code>bytes totalChunks = 10;</code>
-     * @return The totalChunks.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString getTotalChunks() {
-      return totalChunks_;
-    }
-
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -550,12 +488,6 @@ public final class Protocol {
       }
       if (!signature_.isEmpty()) {
         output.writeBytes(8, signature_);
-      }
-      if (!chunkNo_.isEmpty()) {
-        output.writeBytes(9, chunkNo_);
-      }
-      if (!totalChunks_.isEmpty()) {
-        output.writeBytes(10, totalChunks_);
       }
       unknownFields.writeTo(output);
     }
@@ -598,14 +530,6 @@ public final class Protocol {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(8, signature_);
       }
-      if (!chunkNo_.isEmpty()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(9, chunkNo_);
-      }
-      if (!totalChunks_.isEmpty()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(10, totalChunks_);
-      }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
       return size;
@@ -637,10 +561,6 @@ public final class Protocol {
           .equals(other.getHopCount())) return false;
       if (!getSignature()
           .equals(other.getSignature())) return false;
-      if (!getChunkNo()
-          .equals(other.getChunkNo())) return false;
-      if (!getTotalChunks()
-          .equals(other.getTotalChunks())) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -668,10 +588,6 @@ public final class Protocol {
       hash = (53 * hash) + getHopCount().hashCode();
       hash = (37 * hash) + SIGNATURE_FIELD_NUMBER;
       hash = (53 * hash) + getSignature().hashCode();
-      hash = (37 * hash) + CHUNKNO_FIELD_NUMBER;
-      hash = (53 * hash) + getChunkNo().hashCode();
-      hash = (37 * hash) + TOTALCHUNKS_FIELD_NUMBER;
-      hash = (53 * hash) + getTotalChunks().hashCode();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -821,10 +737,6 @@ public final class Protocol {
 
         signature_ = com.google.protobuf.ByteString.EMPTY;
 
-        chunkNo_ = com.google.protobuf.ByteString.EMPTY;
-
-        totalChunks_ = com.google.protobuf.ByteString.EMPTY;
-
         return this;
       }
 
@@ -859,8 +771,6 @@ public final class Protocol {
         result.recipient_ = recipient_;
         result.hopCount_ = hopCount_;
         result.signature_ = signature_;
-        result.chunkNo_ = chunkNo_;
-        result.totalChunks_ = totalChunks_;
         onBuilt();
         return result;
       }
@@ -932,12 +842,6 @@ public final class Protocol {
         }
         if (other.getSignature() != com.google.protobuf.ByteString.EMPTY) {
           setSignature(other.getSignature());
-        }
-        if (other.getChunkNo() != com.google.protobuf.ByteString.EMPTY) {
-          setChunkNo(other.getChunkNo());
-        }
-        if (other.getTotalChunks() != com.google.protobuf.ByteString.EMPTY) {
-          setTotalChunks(other.getTotalChunks());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -1302,98 +1206,6 @@ public final class Protocol {
       public Builder clearSignature() {
         
         signature_ = getDefaultInstance().getSignature();
-        onChanged();
-        return this;
-      }
-
-      private com.google.protobuf.ByteString chunkNo_ = com.google.protobuf.ByteString.EMPTY;
-      /**
-       * <pre>
-       * 1 byte
-       * </pre>
-       *
-       * <code>bytes chunkNo = 9;</code>
-       * @return The chunkNo.
-       */
-      @java.lang.Override
-      public com.google.protobuf.ByteString getChunkNo() {
-        return chunkNo_;
-      }
-      /**
-       * <pre>
-       * 1 byte
-       * </pre>
-       *
-       * <code>bytes chunkNo = 9;</code>
-       * @param value The chunkNo to set.
-       * @return This builder for chaining.
-       */
-      public Builder setChunkNo(com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  
-        chunkNo_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * 1 byte
-       * </pre>
-       *
-       * <code>bytes chunkNo = 9;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearChunkNo() {
-        
-        chunkNo_ = getDefaultInstance().getChunkNo();
-        onChanged();
-        return this;
-      }
-
-      private com.google.protobuf.ByteString totalChunks_ = com.google.protobuf.ByteString.EMPTY;
-      /**
-       * <pre>
-       * 1 byte
-       * </pre>
-       *
-       * <code>bytes totalChunks = 10;</code>
-       * @return The totalChunks.
-       */
-      @java.lang.Override
-      public com.google.protobuf.ByteString getTotalChunks() {
-        return totalChunks_;
-      }
-      /**
-       * <pre>
-       * 1 byte
-       * </pre>
-       *
-       * <code>bytes totalChunks = 10;</code>
-       * @param value The totalChunks to set.
-       * @return This builder for chaining.
-       */
-      public Builder setTotalChunks(com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  
-        totalChunks_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * 1 byte
-       * </pre>
-       *
-       * <code>bytes totalChunks = 10;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearTotalChunks() {
-        
-        totalChunks_ = getDefaultInstance().getTotalChunks();
         onChanged();
         return this;
       }
@@ -4410,6 +4222,1910 @@ public final class Protocol {
 
   }
 
+  public interface ChunkHeaderOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:org.drasyl.remote.protocol.ChunkHeader)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * 12 bytes fix
+     * </pre>
+     *
+     * <code>bytes id = 1;</code>
+     * @return The id.
+     */
+    com.google.protobuf.ByteString getId();
+
+    /**
+     * <code>int32 networkId = 3;</code>
+     * @return The networkId.
+     */
+    int getNetworkId();
+
+    /**
+     * <pre>
+     * 33 bytes fix
+     * </pre>
+     *
+     * <code>bytes recipient = 6;</code>
+     * @return The recipient.
+     */
+    com.google.protobuf.ByteString getRecipient();
+
+    /**
+     * <pre>
+     * 1 byte
+     * </pre>
+     *
+     * <code>bytes hopCount = 7;</code>
+     * @return The hopCount.
+     */
+    com.google.protobuf.ByteString getHopCount();
+  }
+  /**
+   * <pre>
+   **
+   * Chunking
+   * </pre>
+   *
+   * Protobuf type {@code org.drasyl.remote.protocol.ChunkHeader}
+   */
+  public static final class ChunkHeader extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:org.drasyl.remote.protocol.ChunkHeader)
+      ChunkHeaderOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use ChunkHeader.newBuilder() to construct.
+    private ChunkHeader(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private ChunkHeader() {
+      id_ = com.google.protobuf.ByteString.EMPTY;
+      recipient_ = com.google.protobuf.ByteString.EMPTY;
+      hopCount_ = com.google.protobuf.ByteString.EMPTY;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new ChunkHeader();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private ChunkHeader(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            case 10: {
+
+              id_ = input.readBytes();
+              break;
+            }
+            case 24: {
+
+              networkId_ = input.readInt32();
+              break;
+            }
+            case 50: {
+
+              recipient_ = input.readBytes();
+              break;
+            }
+            case 58: {
+
+              hopCount_ = input.readBytes();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.drasyl.remote.protocol.Protocol.internal_static_org_drasyl_remote_protocol_ChunkHeader_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.drasyl.remote.protocol.Protocol.internal_static_org_drasyl_remote_protocol_ChunkHeader_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              org.drasyl.remote.protocol.Protocol.ChunkHeader.class, org.drasyl.remote.protocol.Protocol.ChunkHeader.Builder.class);
+    }
+
+    public static final int ID_FIELD_NUMBER = 1;
+    private com.google.protobuf.ByteString id_;
+    /**
+     * <pre>
+     * 12 bytes fix
+     * </pre>
+     *
+     * <code>bytes id = 1;</code>
+     * @return The id.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString getId() {
+      return id_;
+    }
+
+    public static final int NETWORKID_FIELD_NUMBER = 3;
+    private int networkId_;
+    /**
+     * <code>int32 networkId = 3;</code>
+     * @return The networkId.
+     */
+    @java.lang.Override
+    public int getNetworkId() {
+      return networkId_;
+    }
+
+    public static final int RECIPIENT_FIELD_NUMBER = 6;
+    private com.google.protobuf.ByteString recipient_;
+    /**
+     * <pre>
+     * 33 bytes fix
+     * </pre>
+     *
+     * <code>bytes recipient = 6;</code>
+     * @return The recipient.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString getRecipient() {
+      return recipient_;
+    }
+
+    public static final int HOPCOUNT_FIELD_NUMBER = 7;
+    private com.google.protobuf.ByteString hopCount_;
+    /**
+     * <pre>
+     * 1 byte
+     * </pre>
+     *
+     * <code>bytes hopCount = 7;</code>
+     * @return The hopCount.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString getHopCount() {
+      return hopCount_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!id_.isEmpty()) {
+        output.writeBytes(1, id_);
+      }
+      if (networkId_ != 0) {
+        output.writeInt32(3, networkId_);
+      }
+      if (!recipient_.isEmpty()) {
+        output.writeBytes(6, recipient_);
+      }
+      if (!hopCount_.isEmpty()) {
+        output.writeBytes(7, hopCount_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!id_.isEmpty()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(1, id_);
+      }
+      if (networkId_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(3, networkId_);
+      }
+      if (!recipient_.isEmpty()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(6, recipient_);
+      }
+      if (!hopCount_.isEmpty()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(7, hopCount_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof org.drasyl.remote.protocol.Protocol.ChunkHeader)) {
+        return super.equals(obj);
+      }
+      org.drasyl.remote.protocol.Protocol.ChunkHeader other = (org.drasyl.remote.protocol.Protocol.ChunkHeader) obj;
+
+      if (!getId()
+          .equals(other.getId())) return false;
+      if (getNetworkId()
+          != other.getNetworkId()) return false;
+      if (!getRecipient()
+          .equals(other.getRecipient())) return false;
+      if (!getHopCount()
+          .equals(other.getHopCount())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + ID_FIELD_NUMBER;
+      hash = (53 * hash) + getId().hashCode();
+      hash = (37 * hash) + NETWORKID_FIELD_NUMBER;
+      hash = (53 * hash) + getNetworkId();
+      hash = (37 * hash) + RECIPIENT_FIELD_NUMBER;
+      hash = (53 * hash) + getRecipient().hashCode();
+      hash = (37 * hash) + HOPCOUNT_FIELD_NUMBER;
+      hash = (53 * hash) + getHopCount().hashCode();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static org.drasyl.remote.protocol.Protocol.ChunkHeader parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.drasyl.remote.protocol.Protocol.ChunkHeader parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.drasyl.remote.protocol.Protocol.ChunkHeader parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.drasyl.remote.protocol.Protocol.ChunkHeader parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.drasyl.remote.protocol.Protocol.ChunkHeader parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.drasyl.remote.protocol.Protocol.ChunkHeader parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.drasyl.remote.protocol.Protocol.ChunkHeader parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static org.drasyl.remote.protocol.Protocol.ChunkHeader parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static org.drasyl.remote.protocol.Protocol.ChunkHeader parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static org.drasyl.remote.protocol.Protocol.ChunkHeader parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static org.drasyl.remote.protocol.Protocol.ChunkHeader parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static org.drasyl.remote.protocol.Protocol.ChunkHeader parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(org.drasyl.remote.protocol.Protocol.ChunkHeader prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     **
+     * Chunking
+     * </pre>
+     *
+     * Protobuf type {@code org.drasyl.remote.protocol.ChunkHeader}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:org.drasyl.remote.protocol.ChunkHeader)
+        org.drasyl.remote.protocol.Protocol.ChunkHeaderOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.drasyl.remote.protocol.Protocol.internal_static_org_drasyl_remote_protocol_ChunkHeader_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.drasyl.remote.protocol.Protocol.internal_static_org_drasyl_remote_protocol_ChunkHeader_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.drasyl.remote.protocol.Protocol.ChunkHeader.class, org.drasyl.remote.protocol.Protocol.ChunkHeader.Builder.class);
+      }
+
+      // Construct using org.drasyl.remote.protocol.Protocol.ChunkHeader.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        id_ = com.google.protobuf.ByteString.EMPTY;
+
+        networkId_ = 0;
+
+        recipient_ = com.google.protobuf.ByteString.EMPTY;
+
+        hopCount_ = com.google.protobuf.ByteString.EMPTY;
+
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.drasyl.remote.protocol.Protocol.internal_static_org_drasyl_remote_protocol_ChunkHeader_descriptor;
+      }
+
+      @java.lang.Override
+      public org.drasyl.remote.protocol.Protocol.ChunkHeader getDefaultInstanceForType() {
+        return org.drasyl.remote.protocol.Protocol.ChunkHeader.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public org.drasyl.remote.protocol.Protocol.ChunkHeader build() {
+        org.drasyl.remote.protocol.Protocol.ChunkHeader result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public org.drasyl.remote.protocol.Protocol.ChunkHeader buildPartial() {
+        org.drasyl.remote.protocol.Protocol.ChunkHeader result = new org.drasyl.remote.protocol.Protocol.ChunkHeader(this);
+        result.id_ = id_;
+        result.networkId_ = networkId_;
+        result.recipient_ = recipient_;
+        result.hopCount_ = hopCount_;
+        onBuilt();
+        return result;
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.drasyl.remote.protocol.Protocol.ChunkHeader) {
+          return mergeFrom((org.drasyl.remote.protocol.Protocol.ChunkHeader)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(org.drasyl.remote.protocol.Protocol.ChunkHeader other) {
+        if (other == org.drasyl.remote.protocol.Protocol.ChunkHeader.getDefaultInstance()) return this;
+        if (other.getId() != com.google.protobuf.ByteString.EMPTY) {
+          setId(other.getId());
+        }
+        if (other.getNetworkId() != 0) {
+          setNetworkId(other.getNetworkId());
+        }
+        if (other.getRecipient() != com.google.protobuf.ByteString.EMPTY) {
+          setRecipient(other.getRecipient());
+        }
+        if (other.getHopCount() != com.google.protobuf.ByteString.EMPTY) {
+          setHopCount(other.getHopCount());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        org.drasyl.remote.protocol.Protocol.ChunkHeader parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (org.drasyl.remote.protocol.Protocol.ChunkHeader) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private com.google.protobuf.ByteString id_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <pre>
+       * 12 bytes fix
+       * </pre>
+       *
+       * <code>bytes id = 1;</code>
+       * @return The id.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString getId() {
+        return id_;
+      }
+      /**
+       * <pre>
+       * 12 bytes fix
+       * </pre>
+       *
+       * <code>bytes id = 1;</code>
+       * @param value The id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setId(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * 12 bytes fix
+       * </pre>
+       *
+       * <code>bytes id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearId() {
+        
+        id_ = getDefaultInstance().getId();
+        onChanged();
+        return this;
+      }
+
+      private int networkId_ ;
+      /**
+       * <code>int32 networkId = 3;</code>
+       * @return The networkId.
+       */
+      @java.lang.Override
+      public int getNetworkId() {
+        return networkId_;
+      }
+      /**
+       * <code>int32 networkId = 3;</code>
+       * @param value The networkId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNetworkId(int value) {
+        
+        networkId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int32 networkId = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNetworkId() {
+        
+        networkId_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.ByteString recipient_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <pre>
+       * 33 bytes fix
+       * </pre>
+       *
+       * <code>bytes recipient = 6;</code>
+       * @return The recipient.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString getRecipient() {
+        return recipient_;
+      }
+      /**
+       * <pre>
+       * 33 bytes fix
+       * </pre>
+       *
+       * <code>bytes recipient = 6;</code>
+       * @param value The recipient to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRecipient(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        recipient_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * 33 bytes fix
+       * </pre>
+       *
+       * <code>bytes recipient = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearRecipient() {
+        
+        recipient_ = getDefaultInstance().getRecipient();
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.ByteString hopCount_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <pre>
+       * 1 byte
+       * </pre>
+       *
+       * <code>bytes hopCount = 7;</code>
+       * @return The hopCount.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString getHopCount() {
+        return hopCount_;
+      }
+      /**
+       * <pre>
+       * 1 byte
+       * </pre>
+       *
+       * <code>bytes hopCount = 7;</code>
+       * @param value The hopCount to set.
+       * @return This builder for chaining.
+       */
+      public Builder setHopCount(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        hopCount_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * 1 byte
+       * </pre>
+       *
+       * <code>bytes hopCount = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearHopCount() {
+        
+        hopCount_ = getDefaultInstance().getHopCount();
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:org.drasyl.remote.protocol.ChunkHeader)
+    }
+
+    // @@protoc_insertion_point(class_scope:org.drasyl.remote.protocol.ChunkHeader)
+    private static final org.drasyl.remote.protocol.Protocol.ChunkHeader DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new org.drasyl.remote.protocol.Protocol.ChunkHeader();
+    }
+
+    public static org.drasyl.remote.protocol.Protocol.ChunkHeader getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ChunkHeader>
+        PARSER = new com.google.protobuf.AbstractParser<ChunkHeader>() {
+      @java.lang.Override
+      public ChunkHeader parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new ChunkHeader(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<ChunkHeader> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ChunkHeader> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public org.drasyl.remote.protocol.Protocol.ChunkHeader getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface FirstChunkOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:org.drasyl.remote.protocol.FirstChunk)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>uint32 totalLength = 1;</code>
+     * @return The totalLength.
+     */
+    int getTotalLength();
+
+    /**
+     * <code>bytes payload = 2;</code>
+     * @return The payload.
+     */
+    com.google.protobuf.ByteString getPayload();
+  }
+  /**
+   * Protobuf type {@code org.drasyl.remote.protocol.FirstChunk}
+   */
+  public static final class FirstChunk extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:org.drasyl.remote.protocol.FirstChunk)
+      FirstChunkOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use FirstChunk.newBuilder() to construct.
+    private FirstChunk(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private FirstChunk() {
+      payload_ = com.google.protobuf.ByteString.EMPTY;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new FirstChunk();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private FirstChunk(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            case 8: {
+
+              totalLength_ = input.readUInt32();
+              break;
+            }
+            case 18: {
+
+              payload_ = input.readBytes();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.drasyl.remote.protocol.Protocol.internal_static_org_drasyl_remote_protocol_FirstChunk_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.drasyl.remote.protocol.Protocol.internal_static_org_drasyl_remote_protocol_FirstChunk_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              org.drasyl.remote.protocol.Protocol.FirstChunk.class, org.drasyl.remote.protocol.Protocol.FirstChunk.Builder.class);
+    }
+
+    public static final int TOTALLENGTH_FIELD_NUMBER = 1;
+    private int totalLength_;
+    /**
+     * <code>uint32 totalLength = 1;</code>
+     * @return The totalLength.
+     */
+    @java.lang.Override
+    public int getTotalLength() {
+      return totalLength_;
+    }
+
+    public static final int PAYLOAD_FIELD_NUMBER = 2;
+    private com.google.protobuf.ByteString payload_;
+    /**
+     * <code>bytes payload = 2;</code>
+     * @return The payload.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString getPayload() {
+      return payload_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (totalLength_ != 0) {
+        output.writeUInt32(1, totalLength_);
+      }
+      if (!payload_.isEmpty()) {
+        output.writeBytes(2, payload_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (totalLength_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(1, totalLength_);
+      }
+      if (!payload_.isEmpty()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, payload_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof org.drasyl.remote.protocol.Protocol.FirstChunk)) {
+        return super.equals(obj);
+      }
+      org.drasyl.remote.protocol.Protocol.FirstChunk other = (org.drasyl.remote.protocol.Protocol.FirstChunk) obj;
+
+      if (getTotalLength()
+          != other.getTotalLength()) return false;
+      if (!getPayload()
+          .equals(other.getPayload())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + TOTALLENGTH_FIELD_NUMBER;
+      hash = (53 * hash) + getTotalLength();
+      hash = (37 * hash) + PAYLOAD_FIELD_NUMBER;
+      hash = (53 * hash) + getPayload().hashCode();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static org.drasyl.remote.protocol.Protocol.FirstChunk parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.drasyl.remote.protocol.Protocol.FirstChunk parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.drasyl.remote.protocol.Protocol.FirstChunk parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.drasyl.remote.protocol.Protocol.FirstChunk parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.drasyl.remote.protocol.Protocol.FirstChunk parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.drasyl.remote.protocol.Protocol.FirstChunk parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.drasyl.remote.protocol.Protocol.FirstChunk parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static org.drasyl.remote.protocol.Protocol.FirstChunk parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static org.drasyl.remote.protocol.Protocol.FirstChunk parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static org.drasyl.remote.protocol.Protocol.FirstChunk parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static org.drasyl.remote.protocol.Protocol.FirstChunk parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static org.drasyl.remote.protocol.Protocol.FirstChunk parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(org.drasyl.remote.protocol.Protocol.FirstChunk prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code org.drasyl.remote.protocol.FirstChunk}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:org.drasyl.remote.protocol.FirstChunk)
+        org.drasyl.remote.protocol.Protocol.FirstChunkOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.drasyl.remote.protocol.Protocol.internal_static_org_drasyl_remote_protocol_FirstChunk_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.drasyl.remote.protocol.Protocol.internal_static_org_drasyl_remote_protocol_FirstChunk_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.drasyl.remote.protocol.Protocol.FirstChunk.class, org.drasyl.remote.protocol.Protocol.FirstChunk.Builder.class);
+      }
+
+      // Construct using org.drasyl.remote.protocol.Protocol.FirstChunk.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        totalLength_ = 0;
+
+        payload_ = com.google.protobuf.ByteString.EMPTY;
+
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.drasyl.remote.protocol.Protocol.internal_static_org_drasyl_remote_protocol_FirstChunk_descriptor;
+      }
+
+      @java.lang.Override
+      public org.drasyl.remote.protocol.Protocol.FirstChunk getDefaultInstanceForType() {
+        return org.drasyl.remote.protocol.Protocol.FirstChunk.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public org.drasyl.remote.protocol.Protocol.FirstChunk build() {
+        org.drasyl.remote.protocol.Protocol.FirstChunk result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public org.drasyl.remote.protocol.Protocol.FirstChunk buildPartial() {
+        org.drasyl.remote.protocol.Protocol.FirstChunk result = new org.drasyl.remote.protocol.Protocol.FirstChunk(this);
+        result.totalLength_ = totalLength_;
+        result.payload_ = payload_;
+        onBuilt();
+        return result;
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.drasyl.remote.protocol.Protocol.FirstChunk) {
+          return mergeFrom((org.drasyl.remote.protocol.Protocol.FirstChunk)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(org.drasyl.remote.protocol.Protocol.FirstChunk other) {
+        if (other == org.drasyl.remote.protocol.Protocol.FirstChunk.getDefaultInstance()) return this;
+        if (other.getTotalLength() != 0) {
+          setTotalLength(other.getTotalLength());
+        }
+        if (other.getPayload() != com.google.protobuf.ByteString.EMPTY) {
+          setPayload(other.getPayload());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        org.drasyl.remote.protocol.Protocol.FirstChunk parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (org.drasyl.remote.protocol.Protocol.FirstChunk) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private int totalLength_ ;
+      /**
+       * <code>uint32 totalLength = 1;</code>
+       * @return The totalLength.
+       */
+      @java.lang.Override
+      public int getTotalLength() {
+        return totalLength_;
+      }
+      /**
+       * <code>uint32 totalLength = 1;</code>
+       * @param value The totalLength to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTotalLength(int value) {
+        
+        totalLength_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 totalLength = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTotalLength() {
+        
+        totalLength_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.ByteString payload_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>bytes payload = 2;</code>
+       * @return The payload.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString getPayload() {
+        return payload_;
+      }
+      /**
+       * <code>bytes payload = 2;</code>
+       * @param value The payload to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPayload(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        payload_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bytes payload = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPayload() {
+        
+        payload_ = getDefaultInstance().getPayload();
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:org.drasyl.remote.protocol.FirstChunk)
+    }
+
+    // @@protoc_insertion_point(class_scope:org.drasyl.remote.protocol.FirstChunk)
+    private static final org.drasyl.remote.protocol.Protocol.FirstChunk DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new org.drasyl.remote.protocol.Protocol.FirstChunk();
+    }
+
+    public static org.drasyl.remote.protocol.Protocol.FirstChunk getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<FirstChunk>
+        PARSER = new com.google.protobuf.AbstractParser<FirstChunk>() {
+      @java.lang.Override
+      public FirstChunk parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new FirstChunk(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<FirstChunk> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<FirstChunk> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public org.drasyl.remote.protocol.Protocol.FirstChunk getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ChunkOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:org.drasyl.remote.protocol.Chunk)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>uint32 count = 1;</code>
+     * @return The count.
+     */
+    int getCount();
+
+    /**
+     * <code>bytes payload = 2;</code>
+     * @return The payload.
+     */
+    com.google.protobuf.ByteString getPayload();
+  }
+  /**
+   * Protobuf type {@code org.drasyl.remote.protocol.Chunk}
+   */
+  public static final class Chunk extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:org.drasyl.remote.protocol.Chunk)
+      ChunkOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use Chunk.newBuilder() to construct.
+    private Chunk(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private Chunk() {
+      payload_ = com.google.protobuf.ByteString.EMPTY;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new Chunk();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private Chunk(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            case 8: {
+
+              count_ = input.readUInt32();
+              break;
+            }
+            case 18: {
+
+              payload_ = input.readBytes();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.drasyl.remote.protocol.Protocol.internal_static_org_drasyl_remote_protocol_Chunk_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.drasyl.remote.protocol.Protocol.internal_static_org_drasyl_remote_protocol_Chunk_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              org.drasyl.remote.protocol.Protocol.Chunk.class, org.drasyl.remote.protocol.Protocol.Chunk.Builder.class);
+    }
+
+    public static final int COUNT_FIELD_NUMBER = 1;
+    private int count_;
+    /**
+     * <code>uint32 count = 1;</code>
+     * @return The count.
+     */
+    @java.lang.Override
+    public int getCount() {
+      return count_;
+    }
+
+    public static final int PAYLOAD_FIELD_NUMBER = 2;
+    private com.google.protobuf.ByteString payload_;
+    /**
+     * <code>bytes payload = 2;</code>
+     * @return The payload.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString getPayload() {
+      return payload_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (count_ != 0) {
+        output.writeUInt32(1, count_);
+      }
+      if (!payload_.isEmpty()) {
+        output.writeBytes(2, payload_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (count_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(1, count_);
+      }
+      if (!payload_.isEmpty()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, payload_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof org.drasyl.remote.protocol.Protocol.Chunk)) {
+        return super.equals(obj);
+      }
+      org.drasyl.remote.protocol.Protocol.Chunk other = (org.drasyl.remote.protocol.Protocol.Chunk) obj;
+
+      if (getCount()
+          != other.getCount()) return false;
+      if (!getPayload()
+          .equals(other.getPayload())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + COUNT_FIELD_NUMBER;
+      hash = (53 * hash) + getCount();
+      hash = (37 * hash) + PAYLOAD_FIELD_NUMBER;
+      hash = (53 * hash) + getPayload().hashCode();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static org.drasyl.remote.protocol.Protocol.Chunk parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.drasyl.remote.protocol.Protocol.Chunk parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.drasyl.remote.protocol.Protocol.Chunk parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.drasyl.remote.protocol.Protocol.Chunk parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.drasyl.remote.protocol.Protocol.Chunk parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.drasyl.remote.protocol.Protocol.Chunk parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.drasyl.remote.protocol.Protocol.Chunk parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static org.drasyl.remote.protocol.Protocol.Chunk parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static org.drasyl.remote.protocol.Protocol.Chunk parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static org.drasyl.remote.protocol.Protocol.Chunk parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static org.drasyl.remote.protocol.Protocol.Chunk parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static org.drasyl.remote.protocol.Protocol.Chunk parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(org.drasyl.remote.protocol.Protocol.Chunk prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code org.drasyl.remote.protocol.Chunk}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:org.drasyl.remote.protocol.Chunk)
+        org.drasyl.remote.protocol.Protocol.ChunkOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.drasyl.remote.protocol.Protocol.internal_static_org_drasyl_remote_protocol_Chunk_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.drasyl.remote.protocol.Protocol.internal_static_org_drasyl_remote_protocol_Chunk_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.drasyl.remote.protocol.Protocol.Chunk.class, org.drasyl.remote.protocol.Protocol.Chunk.Builder.class);
+      }
+
+      // Construct using org.drasyl.remote.protocol.Protocol.Chunk.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        count_ = 0;
+
+        payload_ = com.google.protobuf.ByteString.EMPTY;
+
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.drasyl.remote.protocol.Protocol.internal_static_org_drasyl_remote_protocol_Chunk_descriptor;
+      }
+
+      @java.lang.Override
+      public org.drasyl.remote.protocol.Protocol.Chunk getDefaultInstanceForType() {
+        return org.drasyl.remote.protocol.Protocol.Chunk.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public org.drasyl.remote.protocol.Protocol.Chunk build() {
+        org.drasyl.remote.protocol.Protocol.Chunk result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public org.drasyl.remote.protocol.Protocol.Chunk buildPartial() {
+        org.drasyl.remote.protocol.Protocol.Chunk result = new org.drasyl.remote.protocol.Protocol.Chunk(this);
+        result.count_ = count_;
+        result.payload_ = payload_;
+        onBuilt();
+        return result;
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.drasyl.remote.protocol.Protocol.Chunk) {
+          return mergeFrom((org.drasyl.remote.protocol.Protocol.Chunk)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(org.drasyl.remote.protocol.Protocol.Chunk other) {
+        if (other == org.drasyl.remote.protocol.Protocol.Chunk.getDefaultInstance()) return this;
+        if (other.getCount() != 0) {
+          setCount(other.getCount());
+        }
+        if (other.getPayload() != com.google.protobuf.ByteString.EMPTY) {
+          setPayload(other.getPayload());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        org.drasyl.remote.protocol.Protocol.Chunk parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (org.drasyl.remote.protocol.Protocol.Chunk) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private int count_ ;
+      /**
+       * <code>uint32 count = 1;</code>
+       * @return The count.
+       */
+      @java.lang.Override
+      public int getCount() {
+        return count_;
+      }
+      /**
+       * <code>uint32 count = 1;</code>
+       * @param value The count to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCount(int value) {
+        
+        count_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 count = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCount() {
+        
+        count_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.ByteString payload_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>bytes payload = 2;</code>
+       * @return The payload.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString getPayload() {
+        return payload_;
+      }
+      /**
+       * <code>bytes payload = 2;</code>
+       * @param value The payload to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPayload(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        payload_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bytes payload = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPayload() {
+        
+        payload_ = getDefaultInstance().getPayload();
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:org.drasyl.remote.protocol.Chunk)
+    }
+
+    // @@protoc_insertion_point(class_scope:org.drasyl.remote.protocol.Chunk)
+    private static final org.drasyl.remote.protocol.Protocol.Chunk DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new org.drasyl.remote.protocol.Protocol.Chunk();
+    }
+
+    public static org.drasyl.remote.protocol.Protocol.Chunk getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<Chunk>
+        PARSER = new com.google.protobuf.AbstractParser<Chunk>() {
+      @java.lang.Override
+      public Chunk parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new Chunk(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<Chunk> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Chunk> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public org.drasyl.remote.protocol.Protocol.Chunk getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_org_drasyl_remote_protocol_PublicHeader_descriptor;
   private static final 
@@ -4440,6 +6156,21 @@ public final class Protocol {
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_org_drasyl_remote_protocol_Unite_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_org_drasyl_remote_protocol_ChunkHeader_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_org_drasyl_remote_protocol_ChunkHeader_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_org_drasyl_remote_protocol_FirstChunk_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_org_drasyl_remote_protocol_FirstChunk_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_org_drasyl_remote_protocol_Chunk_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_org_drasyl_remote_protocol_Chunk_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -4450,20 +6181,24 @@ public final class Protocol {
   static {
     java.lang.String[] descriptorData = {
       "\n\016protocol.proto\022\032org.drasyl.remote.prot" +
-      "ocol\"\303\001\n\014PublicHeader\022\n\n\002id\030\001 \001(\014\022\021\n\tuse" +
+      "ocol\"\235\001\n\014PublicHeader\022\n\n\002id\030\001 \001(\014\022\021\n\tuse" +
       "rAgent\030\002 \001(\014\022\021\n\tnetworkId\030\003 \001(\005\022\016\n\006sende" +
       "r\030\004 \001(\014\022\023\n\013proofOfWork\030\005 \001(\005\022\021\n\trecipien" +
       "t\030\006 \001(\014\022\020\n\010hopCount\030\007 \001(\014\022\021\n\tsignature\030\010" +
-      " \001(\014\022\017\n\007chunkNo\030\t \001(\014\022\023\n\013totalChunks\030\n \001" +
-      "(\014\"F\n\rPrivateHeader\0225\n\004type\030\001 \001(\0162\'.org." +
-      "drasyl.remote.protocol.MessageType\"*\n\017Ac" +
-      "knowledgement\022\027\n\017correspondingId\030\001 \001(\014\"," +
-      "\n\013Application\022\017\n\007payload\030\001 \001(\014\022\014\n\004type\030\002" +
-      " \001(\t\"!\n\tDiscovery\022\024\n\014childrenTime\030\001 \001(\004\"" +
-      "9\n\005Unite\022\021\n\tpublicKey\030\001 \001(\014\022\017\n\007address\030\002" +
-      " \001(\t\022\014\n\004port\030\003 \001(\014*M\n\013MessageType\022\023\n\017ACK" +
-      "NOWLEDGEMENT\020\000\022\017\n\013APPLICATION\020\001\022\r\n\tDISCO" +
-      "VERY\020\002\022\t\n\005UNITE\020\003b\006proto3"
+      " \001(\014\"F\n\rPrivateHeader\0225\n\004type\030\001 \001(\0162\'.or" +
+      "g.drasyl.remote.protocol.MessageType\"*\n\017" +
+      "Acknowledgement\022\027\n\017correspondingId\030\001 \001(\014" +
+      "\",\n\013Application\022\017\n\007payload\030\001 \001(\014\022\014\n\004type" +
+      "\030\002 \001(\t\"!\n\tDiscovery\022\024\n\014childrenTime\030\001 \001(" +
+      "\004\"9\n\005Unite\022\021\n\tpublicKey\030\001 \001(\014\022\017\n\007address" +
+      "\030\002 \001(\t\022\014\n\004port\030\003 \001(\014\"Q\n\013ChunkHeader\022\n\n\002i" +
+      "d\030\001 \001(\014\022\021\n\tnetworkId\030\003 \001(\005\022\021\n\trecipient\030" +
+      "\006 \001(\014\022\020\n\010hopCount\030\007 \001(\014\"2\n\nFirstChunk\022\023\n" +
+      "\013totalLength\030\001 \001(\r\022\017\n\007payload\030\002 \001(\014\"\'\n\005C" +
+      "hunk\022\r\n\005count\030\001 \001(\r\022\017\n\007payload\030\002 \001(\014*M\n\013" +
+      "MessageType\022\023\n\017ACKNOWLEDGEMENT\020\000\022\017\n\013APPL" +
+      "ICATION\020\001\022\r\n\tDISCOVERY\020\002\022\t\n\005UNITE\020\003b\006pro" +
+      "to3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -4474,7 +6209,7 @@ public final class Protocol {
     internal_static_org_drasyl_remote_protocol_PublicHeader_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_org_drasyl_remote_protocol_PublicHeader_descriptor,
-        new java.lang.String[] { "Id", "UserAgent", "NetworkId", "Sender", "ProofOfWork", "Recipient", "HopCount", "Signature", "ChunkNo", "TotalChunks", });
+        new java.lang.String[] { "Id", "UserAgent", "NetworkId", "Sender", "ProofOfWork", "Recipient", "HopCount", "Signature", });
     internal_static_org_drasyl_remote_protocol_PrivateHeader_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_org_drasyl_remote_protocol_PrivateHeader_fieldAccessorTable = new
@@ -4505,6 +6240,24 @@ public final class Protocol {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_org_drasyl_remote_protocol_Unite_descriptor,
         new java.lang.String[] { "PublicKey", "Address", "Port", });
+    internal_static_org_drasyl_remote_protocol_ChunkHeader_descriptor =
+      getDescriptor().getMessageTypes().get(6);
+    internal_static_org_drasyl_remote_protocol_ChunkHeader_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_org_drasyl_remote_protocol_ChunkHeader_descriptor,
+        new java.lang.String[] { "Id", "NetworkId", "Recipient", "HopCount", });
+    internal_static_org_drasyl_remote_protocol_FirstChunk_descriptor =
+      getDescriptor().getMessageTypes().get(7);
+    internal_static_org_drasyl_remote_protocol_FirstChunk_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_org_drasyl_remote_protocol_FirstChunk_descriptor,
+        new java.lang.String[] { "TotalLength", "Payload", });
+    internal_static_org_drasyl_remote_protocol_Chunk_descriptor =
+      getDescriptor().getMessageTypes().get(8);
+    internal_static_org_drasyl_remote_protocol_Chunk_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_org_drasyl_remote_protocol_Chunk_descriptor,
+        new java.lang.String[] { "Count", "Payload", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
