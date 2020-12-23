@@ -59,7 +59,7 @@ public class Message2ByteBufHandler extends SimpleOutboundHandler<IntermediateEn
         }
         catch (final IOException e) {
             ReferenceCountUtil.safeRelease(byteBuf);
-            LOG.error("Unable to serialize '{}': {}", sanitizeLogArg(msg), e.getMessage());
+            LOG.error("Unable to serialize '{}': {}", () -> sanitizeLogArg(msg), e::getMessage);
             future.completeExceptionally(new Exception("Message could not be serialized. This could indicate a bug in drasyl.", e));
         }
     }
