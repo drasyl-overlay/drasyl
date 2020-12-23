@@ -46,9 +46,7 @@ public class InetSocketAddressWrapper implements Address {
 
     @Override
     public String toString() {
-        return "InetAddressWrapper{" +
-                "address=" + address +
-                '}';
+        return address.toString();
     }
 
     @Override
