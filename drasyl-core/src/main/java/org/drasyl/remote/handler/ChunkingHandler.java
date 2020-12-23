@@ -182,6 +182,8 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
             LOG.debug("The message `{}` has a size of {} bytes and must be split to {} chunks (MTU = {}).", msg, messageSize, totalChunks, mtu);
             final CompletableFuture<Void>[] chunkFutures = new CompletableFuture[totalChunks.getValue()];
 
+            final int chunkSize = getChunkSize(partialChunkHeader, mtu);
+
             while (messageByteBuf.readableBytes() > 0) {
                 ByteBuf chunkBodyByteBuf = null;
                 final ByteBuf chunkByteBuf = PooledByteBufAllocator.DEFAULT.buffer();
@@ -191,7 +193,7 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                     chunkHeader.writeDelimitedTo(outputStream);
 
                     // chunk body
-                    final int chunkBodyLength = Math.min(messageByteBuf.readableBytes(), mtu - chunkByteBuf.writerIndex());
+                    final int chunkBodyLength = Math.min(messageByteBuf.readableBytes(), chunkSize);
                     chunkBodyByteBuf = messageByteBuf.readRetainedSlice(chunkBodyLength);
                     chunkByteBuf.writeBytes(chunkBodyByteBuf);
 
@@ -246,10 +248,22 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
     private UnsignedShort totalChunks(final int payloadSize,
                                       final int mtu,
                                       final PublicHeader header) {
-        final int headerSize = header.getSerializedSize();
-        final double totalHeaderSize = CodedOutputStream.computeUInt32SizeNoTag(headerSize) + headerSize;
-        final int totalChunks = (int) Math.ceil(payloadSize / (mtu - totalHeaderSize));
+        final double chunkSize = getChunkSize(header, mtu);
+        final int totalChunks = (int) Math.ceil(payloadSize / chunkSize);
 
         return UnsignedShort.of(totalChunks);
+    }
+
+    /**
+     * Calculates the chunk size.
+     *
+     * @param header the header of each chunk
+     * @param mtu    the mtu value
+     * @return the size of each chunk
+     */
+    private int getChunkSize(final PublicHeader header, final int mtu) {
+        final int headerSize = header.getSerializedSize();
+
+        return mtu - (CodedOutputStream.computeUInt32SizeNoTag(headerSize) + headerSize);
     }
 }
