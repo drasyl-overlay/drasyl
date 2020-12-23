@@ -285,8 +285,8 @@ public class PortMappingUtil {
 
                 scheduleMappingRefresh(min(max(ofSeconds(mappedPort.getLifetime()).dividedBy(2), RETRY_DELAY), PORT_LIFETIME));
             }
-            catch (final IllegalArgumentException e) {
-                // can occur when router returns non-positive mapping lifetime
+            catch (final IllegalArgumentException | NullPointerException e) {
+                // can occur when router returns non-positive mapping lifetime or other unexpected answers
                 throw new IllegalStateException(e);
             }
             catch (final InterruptedException e) {

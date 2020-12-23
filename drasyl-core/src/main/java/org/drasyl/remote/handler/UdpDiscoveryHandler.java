@@ -352,7 +352,7 @@ public class UdpDiscoveryHandler extends SimpleDuplexHandler<IntermediateEnvelop
                     processMessage(ctx, envelope.getRecipient(), envelope, future);
                 }
                 else {
-                    LOG.debug("We're not a super peer. Message {} from {} for relaying was dropped.", envelope, sender);
+                    LOG.debug("We're not a super peer. Message `{}` from `{}` (`{}`) to `{}` for relaying was dropped.", () -> envelope, envelope::getSender, () -> sender, envelope::getRecipient);
                 }
             }
         }

@@ -47,13 +47,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Set;
 import java.util.function.Function;
 
-import static io.netty.buffer.Unpooled.copiedBuffer;
 import static java.net.InetSocketAddress.createUnresolved;
 import static org.drasyl.remote.handler.UdpServer.determineActualEndpoints;
 import static org.drasyl.util.NetworkUtil.getAddresses;
@@ -62,6 +62,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -204,21 +205,22 @@ class UdpServerTest {
         }
 
         @Test
+        @SuppressWarnings("unchecked")
         void shouldPassIngoingMessagesToPipeline(@Mock final NodeUpEvent event,
-                                                 @Mock final ChannelHandlerContext ctx,
-                                                 @Mock(answer = RETURNS_DEEP_STUBS) final Bootstrap bootstrap2,
+                                                 @Mock final ChannelHandlerContext channelCtx,
                                                  @Mock(answer = RETURNS_DEEP_STUBS) final ChannelFuture channelFuture) {
-            final DatagramPacket msg = new DatagramPacket(copiedBuffer(new byte[]{}), createUnresolved("example.com", 1234), createUnresolved("example.com", 4567));
-            when(bootstrap.handler(any())).thenAnswer(invocation -> {
-                invocation.getArgument(0, SimpleChannelInboundHandler.class).channelRead(ctx, msg);
-                return bootstrap2;
+            when(bootstrap.handler(any())).then((Answer<Bootstrap>) invocation -> {
+                final SimpleChannelInboundHandler<DatagramPacket> handler = invocation.getArgument(0, SimpleChannelInboundHandler.class);
+                handler.channelRead(channelCtx, new DatagramPacket(mock(ByteBuf.class), new InetSocketAddress(22527), new InetSocketAddress(25421)));
+                return bootstrap;
             });
-            when(bootstrap2.bind(any(InetAddress.class), anyInt())).thenReturn(channelFuture);
+            when(bootstrap.bind(any(InetAddress.class), anyInt())).thenReturn(channelFuture);
             when(channelFuture.isSuccess()).thenReturn(true);
             when(channelFuture.channel().localAddress()).thenReturn(new InetSocketAddress(22527));
-            when(config.getRemoteEndpoints()).thenReturn(Set.of(Endpoint.of("udp://foo.bar:22527#030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22")));
+            when(config.getRemoteEndpoints()).thenReturn(Set.of());
 
             final UdpServer handler = new UdpServer(bootstrap, scheduler, portExposer, null);
+
             final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
             final TestObserver<Pair<Address, Object>> inboundMessages = pipeline.inboundMessages().test();
 

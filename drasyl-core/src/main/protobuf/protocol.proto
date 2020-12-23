@@ -5,12 +5,14 @@ package org.drasyl.remote.protocol;
 message PublicHeader {
     bytes id = 1; // 12 bytes fix
     bytes userAgent = 2; // 2 bytes fix
-    int32 networkId = 3;
+    int32 networkId = 3; // 4 bytes
     bytes sender = 4; // 33 bytes fix
-    int32 proofOfWork = 5;
+    int32 proofOfWork = 5; // 4 bytes
     bytes recipient = 6; // 33 bytes fix
-    bytes hopCount = 7; // 1 byte
+    bytes hopCount = 7; // 1 byte fix
     bytes signature = 8; // 32 bytes fix
+    bytes chunkNo = 9; // 2 bytes fix
+    bytes totalChunks = 10; // 2 bytes fix
 }
 
 message PrivateHeader {
@@ -41,24 +43,4 @@ message Unite {
     bytes publicKey = 1; // 33 bytes fix
     string address = 2; // hostname
     bytes port = 3; // 2 bytes fix
-}
-
-/**
- * Chunking
- */
-message ChunkHeader {
-    bytes id = 1; // 12 bytes fix
-    int32 networkId = 3;
-    bytes recipient = 6; // 33 bytes fix
-    bytes hopCount = 7; // 1 byte
-}
-
-message FirstChunk {
-    uint32 totalLength = 1;
-    bytes payload = 2;
-}
-
-message Chunk {
-    uint32 count = 1;
-    bytes payload = 2;
 }
