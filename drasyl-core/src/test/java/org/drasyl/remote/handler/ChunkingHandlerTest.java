@@ -40,6 +40,7 @@ import org.drasyl.remote.protocol.UserAgent;
 import org.drasyl.util.Pair;
 import org.drasyl.util.ReferenceCountUtil;
 import org.drasyl.util.UnsignedShort;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -105,6 +106,9 @@ class ChunkingHandlerTest {
 
             @Test
             void shouldCacheChunkedMessageIfOtherChunksAreStillMissing() throws IOException, InterruptedException, CryptoException {
+                when(config.getRemoteMessageMaxContentLength()).thenReturn(remoteMaxContentLength);
+                when(config.getRemoteMessageComposedMessageTransferTimeout()).thenReturn(messageComposedMessageTransferTimeout);
+
                 final CompressedPublicKey sender = CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22");
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 final MessageId messageId = randomMessageId();
@@ -138,6 +142,9 @@ class ChunkingHandlerTest {
 
             @Test
             void shouldBuildMessageAfterReceivingLastMissingChunk() throws CryptoException, IOException {
+                when(config.getRemoteMessageMaxContentLength()).thenReturn(remoteMaxContentLength);
+                when(config.getRemoteMessageComposedMessageTransferTimeout()).thenReturn(messageComposedMessageTransferTimeout);
+
                 final CompressedPublicKey sender = CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22");
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 final MessageId messageId = randomMessageId();
@@ -153,8 +160,7 @@ class ChunkingHandlerTest {
                 final Protocol.PublicHeader chunkHeader = Protocol.PublicHeader.newBuilder()
                         .setId(ByteString.copyFrom(messageId.byteArrayValue()))
                         .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
-                        .setSender(ByteString.copyFrom(sender.byteArrayValue())) // TODO: required?
-                        .setProofOfWork(proofOfWork.intValue()) // TODO: required?
+                        .setSender(ByteString.copyFrom(sender.byteArrayValue()))
                         .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
                         .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
                         .setChunkNo(ByteString.copyFrom(UnsignedShort.of(1).toBytes()))
@@ -168,8 +174,7 @@ class ChunkingHandlerTest {
                 final Protocol.PublicHeader headChunkHeader = Protocol.PublicHeader.newBuilder()
                         .setId(ByteString.copyFrom(messageId.byteArrayValue()))
                         .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
-                        .setSender(ByteString.copyFrom(sender.byteArrayValue())) // TODO: required?
-                        .setProofOfWork(proofOfWork.intValue()) // TODO: required?
+                        .setSender(ByteString.copyFrom(sender.byteArrayValue()))
                         .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
                         .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
                         .setTotalChunks(ByteString.copyFrom(UnsignedShort.of(2).toBytes()))
@@ -195,6 +200,9 @@ class ChunkingHandlerTest {
 
             @Test
             void shouldCompleteExceptionallyWhenChunkedMessageExceedMaxSize() throws CryptoException, IOException, InterruptedException {
+                when(config.getRemoteMessageMaxContentLength()).thenReturn(remoteMaxContentLength);
+                when(config.getRemoteMessageComposedMessageTransferTimeout()).thenReturn(messageComposedMessageTransferTimeout);
+
                 final CompressedPublicKey sender = CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22");
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 final MessageId messageId = randomMessageId();
@@ -210,8 +218,7 @@ class ChunkingHandlerTest {
                 final Protocol.PublicHeader headChunkHeader = Protocol.PublicHeader.newBuilder()
                         .setId(ByteString.copyFrom(messageId.byteArrayValue()))
                         .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
-                        .setSender(ByteString.copyFrom(sender.byteArrayValue())) // TODO: required?
-                        .setProofOfWork(proofOfWork.intValue()) // TODO: required?
+                        .setSender(ByteString.copyFrom(sender.byteArrayValue()))
                         .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
                         .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
                         .setTotalChunks(ByteString.copyFrom(UnsignedShort.of(2).toBytes()))
@@ -222,8 +229,7 @@ class ChunkingHandlerTest {
                 final Protocol.PublicHeader chunkHeader = Protocol.PublicHeader.newBuilder()
                         .setId(ByteString.copyFrom(messageId.byteArrayValue()))
                         .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
-                        .setSender(ByteString.copyFrom(sender.byteArrayValue())) // TODO: required?
-                        .setProofOfWork(proofOfWork.intValue()) // TODO: required?
+                        .setSender(ByteString.copyFrom(sender.byteArrayValue()))
                         .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
                         .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
                         .setChunkNo(ByteString.copyFrom(UnsignedShort.of(1).toBytes()))
@@ -283,8 +289,7 @@ class ChunkingHandlerTest {
                 final Protocol.PublicHeader headChunkHeader = Protocol.PublicHeader.newBuilder()
                         .setId(ByteString.copyFrom(messageId.byteArrayValue()))
                         .setUserAgent(ByteString.copyFrom(userAgent.getVersion().toBytes()))
-                        .setSender(ByteString.copyFrom(sender.byteArrayValue())) // TODO: required?
-                        .setProofOfWork(proofOfWork.intValue()) // TODO: required?
+                        .setSender(ByteString.copyFrom(sender.byteArrayValue()))
                         .setRecipient(ByteString.copyFrom(recipient.byteArrayValue()))
                         .setHopCount(ByteString.copyFrom(new byte[]{ (byte) 0 }))
                         .setTotalChunks(ByteString.copyFrom(UnsignedShort.of(2).toBytes()))
@@ -314,6 +319,9 @@ class ChunkingHandlerTest {
             @Test
             @Timeout(value = 5_000, unit = MILLISECONDS)
             void shouldPassthroughMessageNotExceedingMtuSize(@Mock final Address address) throws CryptoException {
+                when(config.getRemoteMessageMtu()).thenReturn(remoteMessageMtu);
+                when(config.getRemoteMessageMaxContentLength()).thenReturn(remoteMaxContentLength);
+
                 final CompressedPublicKey sender = CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22");
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 when(identity.getPublicKey()).thenReturn(sender);
@@ -340,6 +348,8 @@ class ChunkingHandlerTest {
             @Test
             @Timeout(value = 5_000, unit = MILLISECONDS)
             void shouldDropMessageExceedingMaximumMessageSize(@Mock final Address address) throws CryptoException, InterruptedException {
+                when(config.getRemoteMessageMaxContentLength()).thenReturn(remoteMaxContentLength);
+
                 final CompressedPublicKey sender = CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22");
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 when(identity.getPublicKey()).thenReturn(sender);
@@ -359,6 +369,9 @@ class ChunkingHandlerTest {
             @Test
             @Timeout(value = 5_000, unit = MILLISECONDS)
             void shouldChunkMessageExceedingMtuSize(@Mock final Address address) throws CryptoException {
+                when(config.getRemoteMessageMtu()).thenReturn(remoteMessageMtu);
+                when(config.getRemoteMessageMaxContentLength()).thenReturn(remoteMaxContentLength);
+
                 final CompressedPublicKey sender = CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22");
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 when(identity.getPublicKey()).thenReturn(sender);
