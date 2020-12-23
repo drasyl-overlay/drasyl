@@ -62,7 +62,7 @@ public class InvalidProofOfWorkFilter extends SimpleInboundHandler<IntermediateE
             }
         }
         catch (final IllegalArgumentException | IOException e) {
-            LOG.debug("Message {} can't be read and was dropped due to the following error: ", msg, e);
+            LOG.debug("Message {} can't be read and was dropped due to the following error: ", () -> sanitizeLogArg(msg), e::getMessage);
             future.completeExceptionally(new Exception("Message can't be read and was dropped due to the following error: ", e));
             ReferenceCountUtil.safeRelease(msg);
         }

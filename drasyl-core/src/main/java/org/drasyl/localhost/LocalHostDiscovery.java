@@ -268,7 +268,7 @@ public class LocalHostDiscovery extends SimpleOutboundHandler<Object, Address> {
             postedPeerInformation = peerInformation;
         }
         catch (final IOException e) {
-            LOG.warn("Unable to write peer information to '{}': {}", filePath.toAbsolutePath(), e.getMessage());
+            LOG.warn("Unable to write peer information to '{}': {}", filePath::toAbsolutePath, e::getMessage);
         }
     }
 }
