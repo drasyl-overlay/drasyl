@@ -425,7 +425,7 @@ class ChunkingHandlerTest {
                         .assertValueCount(3)
                         .assertValueAt(0, p -> {
                             try {
-                                return ((IntermediateEnvelope<?>) p.second()).getChunkNo().getValue() == 0;
+                                return ((IntermediateEnvelope<?>) p.second()).getTotalChunks().getValue() == 3;
                             }
                             finally {
                                 ReferenceCountUtil.safeRelease(p.second());
