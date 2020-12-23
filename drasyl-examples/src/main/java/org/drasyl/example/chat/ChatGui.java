@@ -71,7 +71,7 @@ public class ChatGui {
         // send message on enter
         messageField.addActionListener(event -> {
             if (node != null) {
-                final String recipient = recipientField.getText();
+                final String recipient = recipientField.getText().trim();
                 if (!recipient.isBlank()) {
                     messageField.setEditable(false);
                     node.send(recipient, messageField.getText()).whenComplete((result, e) -> {
