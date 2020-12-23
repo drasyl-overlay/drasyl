@@ -23,6 +23,8 @@ import com.google.common.cache.RemovalListener;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufOutputStream;
+import io.netty.buffer.PooledByteBufAllocator;
 import org.drasyl.DrasylConfig;
 import org.drasyl.pipeline.HandlerContext;
 import org.drasyl.pipeline.address.Address;
@@ -169,25 +171,29 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
             UnsignedShort chunkNo = UnsignedShort.of(0);
             while (messageByteBuf.readableBytes() > 0) {
                 ByteBuf chunkPayload = null;
-                try {
+                final ByteBuf byteBuf = PooledByteBufAllocator.DEFAULT.buffer();
+                try (final ByteBufOutputStream outputStream = new ByteBufOutputStream(byteBuf)) {
                     // chunk header
                     final PublicHeader chunkHeader = buildChunkHeader(totalChunks, msgPublicHeader, chunkNo);
+                    chunkHeader.writeDelimitedTo(outputStream);
 
                     // chunk body
-                    // use zero-copy
-                    final int chunkBodyLength = Math.min(messageByteBuf.readableBytes(), mtu);  // FIXME: the wrong length is used here. We have to subtract the length of the PublicHeader here
+                    final int chunkBodyLength = Math.min(messageByteBuf.readableBytes(), mtu - byteBuf.writerIndex());
                     chunkPayload = messageByteBuf.readRetainedSlice(chunkBodyLength);
+                    byteBuf.writeBytes(chunkPayload);
 
                     // send chunk
-                    final IntermediateEnvelope<MessageLite> chunk = IntermediateEnvelope.of(chunkHeader, chunkPayload);
+                    final IntermediateEnvelope<MessageLite> chunk = IntermediateEnvelope.of(byteBuf);
+
                     chunkFutures[chunkNo.getValue()] = new CompletableFuture<>();
                     ctx.write(recipient, chunk, chunkFutures[chunkNo.getValue()]);
-
-                    chunkNo = chunkNo.increment();
                 }
                 finally {
+                    ReferenceCountUtil.safeRelease(byteBuf);
                     ReferenceCountUtil.safeRelease(chunkPayload);
                 }
+
+                chunkNo = chunkNo.increment();
             }
 
             FutureUtil.completeOnAllOf(future, chunkFutures);
@@ -217,8 +223,6 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
             builder.setChunkNo(ByteString.copyFrom(chunkNo.toBytes()));
         }
 
-        final PublicHeader chunkHeader = builder
-                .build();
-        return chunkHeader;
+        return builder.build();
     }
 }
