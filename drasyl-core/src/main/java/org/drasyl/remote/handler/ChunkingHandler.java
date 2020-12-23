@@ -124,7 +124,7 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
             if (ctx.identity().getPublicKey().equals(msg.getSender())) {
                 // message from us, check if we have to chunk it
                 final ByteBuf messageByteBuf = msg.getOrBuildByteBuf();
-                final int messageLength = messageByteBuf.readableBytes(); // FIXME: the wrong length is used here. We need the length without public header
+                final int messageLength = messageByteBuf.readableBytes();
                 final int messageMaxContentLength = ctx.config().getRemoteMessageMaxContentLength();
                 if (messageMaxContentLength > 0 && messageLength > messageMaxContentLength) {
                     LOG.debug("The message `{}` has a size of {} bytes and is too large. The max allowed size is {} bytes. Message dropped.", msg, messageLength, messageMaxContentLength);
@@ -175,7 +175,8 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
 
                     // chunk body
                     // use zero-copy
-                    chunkPayload = messageByteBuf.readRetainedSlice(Math.min(messageByteBuf.readableBytes(), mtu));
+                    final int chunkBodyLength = Math.min(messageByteBuf.readableBytes(), mtu);  // FIXME: the wrong length is used here. We have to subtract the length of the PublicHeader here
+                    chunkPayload = messageByteBuf.readRetainedSlice(chunkBodyLength);
 
                     // send chunk
                     final IntermediateEnvelope<MessageLite> chunk = IntermediateEnvelope.of(chunkHeader, chunkPayload);
