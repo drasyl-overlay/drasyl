@@ -326,10 +326,11 @@ class DrasylConfigTest {
                     serverHandshakeTimeout, remotePingTimeout, remotePingCommunicationTimeout, remoteUniteMinInterval, remotePingMaxPeers, serverEndpoints,
                     remoteExposeEnabled, superPeerEnabled, superPeerEndpoint, remoteMessageMaxContentLength, remoteMessageHopLimit, composedMessageTransferTimeout,
                     remoteMessageMtu, remoteThrottleOutboundTrafficLimit, remoteThrottleInboundTrafficLimit, remoteThrottleOutboundBufferLimit,
-                    intraVmDiscoveryEnabled, localHostDiscoveryEnabled, Path.of(localHostDiscoveryPathAsString), localHostDiscoveryLeaseTime, monitoringEnabled,
-                    monitoringHostTag, monitoringInfluxUri, monitoringInfluxUser, monitoringInfluxPassword,
-                    monitoringInfluxDatabase, monitoringInfluxReportingFrequency, plugins, marshallingInboundAllowedTypes,
-                    marshallingInboundAllowAllPrimitives, marshallingInboundAllowArrayOfDefinedTypes, marshallingInboundAllowedPackages, marshallingOutboundAllowedTypes, marshallingOutboundAllowAllPrimitives, marshallingOutboundAllowArrayOfDefinedTypes, marshallingOutboundAllowedPackages);
+                    intraVmDiscoveryEnabled, localHostDiscoveryEnabled, Path.of(localHostDiscoveryPathAsString),
+                    localHostDiscoveryLeaseTime, monitoringEnabled, monitoringHostTag, monitoringInfluxUri, monitoringInfluxUser,
+                    monitoringInfluxPassword, monitoringInfluxDatabase, monitoringInfluxReportingFrequency, plugins,
+                    marshallingInboundAllowedTypes, marshallingInboundAllowAllPrimitives, marshallingInboundAllowArrayOfDefinedTypes, marshallingInboundAllowedPackages,
+                    marshallingOutboundAllowedTypes, marshallingOutboundAllowAllPrimitives, marshallingOutboundAllowArrayOfDefinedTypes, marshallingOutboundAllowedPackages);
 
             assertThat(config.toString(), not(containsString(identityPrivateKey.toString())));
         }

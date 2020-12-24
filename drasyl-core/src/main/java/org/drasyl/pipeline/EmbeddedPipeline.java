@@ -45,7 +45,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @SuppressWarnings({ "java:S107" })
 public class EmbeddedPipeline extends DefaultPipeline implements AutoCloseable {
-    private static final Logger LOG = LoggerFactory.getLogger(EmbeddedPipeline.class);
     private final Subject<Pair<Address, Object>> inboundMessages;
     private final Subject<Event> inboundEvents;
     private final Subject<Pair<Address, Object>> outboundMessages;
