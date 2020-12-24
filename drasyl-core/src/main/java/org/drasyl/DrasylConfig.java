@@ -82,9 +82,11 @@ public class DrasylConfig {
     static final String REMOTE_MESSAGE_MAX_CONTENT_LENGTH = "drasyl.remote.message.max-content-length";
     static final String REMOTE_MESSAGE_HOP_LIMIT = "drasyl.remote.message.hop-limit";
     static final String REMOTE_MESSAGE_COMPOSED_MESSAGE_TRANSFER_TIMEOUT = "drasyl.remote.message.composed-message-transfer-timeout";
-    static final String REMOTE_THROTTLE_OUTBOUND_TRAFFIC_LIMIT = "drasyl.remote.throttle.outbound-traffic-limit";
-    static final String REMOTE_THROTTLE_INBOUND_TRAFFIC_LIMIT = "drasyl.remote.throttle.inbound-traffic-limit";
-    static final String REMOTE_THROTTLE_OUTBOUND_BUFFER_LIMIT = "drasyl.remote.throttle.outbound-buffer-limit";
+    static final String REMOTE_TRAFFIC_OUTBOUND_LIMIT = "drasyl.remote.traffic.outbound-limit";
+    static final String REMOTE_TRAFFIC_INBOUND_LIMIT = "drasyl.remote.traffic.inbound-limit";
+    static final String REMOTE_TRAFFIC_OUTBOUND_BUFFER_LIMIT = "drasyl.remote.traffic.outbound-buffer-limit";
+    static final String REMOTE_TRAFFIC_SOCKET_RECEIVE_BUFFER = "drasyl.remote.traffic.socket-receive-buffer";
+    static final String REMOTE_TRAFFIC_SOCKET_SEND_BUFFER = "drasyl.remote.traffic.socket-send-buffer";
     static final String INTRA_VM_DISCOVERY_ENABLED = "drasyl.intra-vm-discovery.enabled";
     static final String LOCAL_HOST_DISCOVERY_ENABLED = "drasyl.local-host-discovery.enabled";
     static final String LOCAL_HOST_DISCOVERY_PATH = "drasyl.local-host-discovery.path";
@@ -127,9 +129,11 @@ public class DrasylConfig {
     private final Duration remoteMessageComposedMessageTransferTimeout;
     private final boolean remoteSuperPeerEnabled;
     private final Endpoint remoteSuperPeerEndpoint;
-    private final long remoteThrottleOutboundTrafficLimit;
-    private final long remoteThrottleInboundTrafficLimit;
-    private final long remoteThrottleOutboundBufferLimit;
+    private final long remoteTrafficOutboundLimit;
+    private final long remoteTrafficInboundLimit;
+    private final long remoteTrafficOutboundBufferLimit;
+    private final int remoteTrafficSocketReceiveBuffer;
+    private final int remoteTrafficSocketSendBuffer;
     private final boolean intraVmDiscoveryEnabled;
     private final boolean localHostDiscoveryEnabled;
     private final Path localHostDiscoveryPath;
@@ -203,9 +207,11 @@ public class DrasylConfig {
         this.remoteMessageMaxContentLength = (int) Math.min(config.getMemorySize(REMOTE_MESSAGE_MAX_CONTENT_LENGTH).toBytes(), Integer.MAX_VALUE);
         this.remoteMessageComposedMessageTransferTimeout = config.getDuration(REMOTE_MESSAGE_COMPOSED_MESSAGE_TRANSFER_TIMEOUT);
         this.remoteMessageHopLimit = getByte(config, REMOTE_MESSAGE_HOP_LIMIT);
-        this.remoteThrottleOutboundTrafficLimit = config.getBytes(REMOTE_THROTTLE_OUTBOUND_TRAFFIC_LIMIT);
-        this.remoteThrottleInboundTrafficLimit = config.getBytes(REMOTE_THROTTLE_INBOUND_TRAFFIC_LIMIT);
-        this.remoteThrottleOutboundBufferLimit = config.getBytes(REMOTE_THROTTLE_OUTBOUND_BUFFER_LIMIT);
+        this.remoteTrafficOutboundLimit = config.getBytes(REMOTE_TRAFFIC_OUTBOUND_LIMIT);
+        this.remoteTrafficInboundLimit = config.getBytes(REMOTE_TRAFFIC_INBOUND_LIMIT);
+        this.remoteTrafficOutboundBufferLimit = config.getBytes(REMOTE_TRAFFIC_OUTBOUND_BUFFER_LIMIT);
+        this.remoteTrafficSocketReceiveBuffer = Math.toIntExact(config.getBytes(REMOTE_TRAFFIC_SOCKET_RECEIVE_BUFFER));
+        this.remoteTrafficSocketSendBuffer = Math.toIntExact(config.getBytes(REMOTE_TRAFFIC_SOCKET_SEND_BUFFER));
 
         this.intraVmDiscoveryEnabled = config.getBoolean(INTRA_VM_DISCOVERY_ENABLED);
 
@@ -264,9 +270,11 @@ public class DrasylConfig {
                  final byte remoteMessageHopLimit,
                  final Duration remoteMessageComposedMessageTransferTimeout,
                  final int remoteMessageMtu,
-                 final long remoteThrottleOutboundTrafficLimit,
-                 final long remoteThrottleInboundTrafficLimit,
-                 final long remoteThrottleOutboundBufferLimit,
+                 final long remoteTrafficOutboundLimit,
+                 final long remoteTrafficInboundLimit,
+                 final long remoteTrafficOutboundBufferLimit,
+                 final int remoteTrafficSocketReceiveBuffer,
+                 final int remoteTrafficSocketSendBuffer,
                  final boolean intraVmDiscoveryEnabled,
                  final boolean localHostDiscoveryEnabled,
                  final Path localHostDiscoveryPath,
@@ -308,9 +316,11 @@ public class DrasylConfig {
         this.remoteMessageMaxContentLength = remoteMessageMaxContentLength;
         this.remoteMessageHopLimit = remoteMessageHopLimit;
         this.remoteMessageComposedMessageTransferTimeout = remoteMessageComposedMessageTransferTimeout;
-        this.remoteThrottleOutboundTrafficLimit = remoteThrottleOutboundTrafficLimit;
-        this.remoteThrottleInboundTrafficLimit = remoteThrottleInboundTrafficLimit;
-        this.remoteThrottleOutboundBufferLimit = remoteThrottleOutboundBufferLimit;
+        this.remoteTrafficOutboundLimit = remoteTrafficOutboundLimit;
+        this.remoteTrafficInboundLimit = remoteTrafficInboundLimit;
+        this.remoteTrafficOutboundBufferLimit = remoteTrafficOutboundBufferLimit;
+        this.remoteTrafficSocketReceiveBuffer = remoteTrafficSocketReceiveBuffer;
+        this.remoteTrafficSocketSendBuffer = remoteTrafficSocketSendBuffer;
         this.intraVmDiscoveryEnabled = intraVmDiscoveryEnabled;
         this.localHostDiscoveryEnabled = localHostDiscoveryEnabled;
         this.localHostDiscoveryPath = localHostDiscoveryPath;
@@ -647,9 +657,11 @@ public class DrasylConfig {
                 config.remoteMessageMaxContentLength,
                 config.remoteMessageComposedMessageTransferTimeout,
                 config.remoteMessageHopLimit,
-                config.remoteThrottleOutboundTrafficLimit,
-                config.remoteThrottleInboundTrafficLimit,
-                config.remoteThrottleOutboundBufferLimit,
+                config.remoteTrafficOutboundLimit,
+                config.remoteTrafficInboundLimit,
+                config.remoteTrafficOutboundBufferLimit,
+                config.remoteTrafficSocketReceiveBuffer,
+                config.remoteTrafficSocketSendBuffer,
                 config.intraVmDiscoveryEnabled,
                 config.localHostDiscoveryEnabled,
                 config.localHostDiscoveryPath,
@@ -675,7 +687,7 @@ public class DrasylConfig {
 
     @Override
     public int hashCode() {
-        return Objects.hash(networkId, identityProofOfWork, identityPublicKey, identityPrivateKey, identityPath, remoteBindHost, remoteEnabled, remoteBindPort, remotePingInterval, remotePingTimeout, remotePingCommunicationTimeout, remoteUniteMinInterval, remotePingMaxPeers, remoteEndpoints, remoteExposeEnabled, remoteMessageMtu, remoteMessageMaxContentLength, remoteMessageComposedMessageTransferTimeout, remoteMessageHopLimit, remoteSuperPeerEnabled, remoteSuperPeerEndpoint, remoteThrottleOutboundTrafficLimit, remoteThrottleInboundTrafficLimit, remoteThrottleOutboundBufferLimit, intraVmDiscoveryEnabled, localHostDiscoveryEnabled, localHostDiscoveryPath, localHostDiscoveryLeaseTime, monitoringEnabled, monitoringHostTag, monitoringInfluxUri, monitoringInfluxUser, monitoringInfluxPassword, monitoringInfluxDatabase, monitoringInfluxReportingFrequency, pluginSet, marshallingInboundAllowedTypes, marshallingInboundAllowAllPrimitives, marshallingInboundAllowArrayOfDefinedTypes, marshallingInboundAllowedPackages, marshallingOutboundAllowedTypes, marshallingOutboundAllowAllPrimitives, marshallingOutboundAllowArrayOfDefinedTypes, marshallingOutboundAllowedPackages);
+        return Objects.hash(networkId, identityProofOfWork, identityPublicKey, identityPrivateKey, identityPath, remoteBindHost, remoteEnabled, remoteBindPort, remotePingInterval, remotePingTimeout, remotePingCommunicationTimeout, remoteUniteMinInterval, remotePingMaxPeers, remoteEndpoints, remoteExposeEnabled, remoteMessageMtu, remoteMessageMaxContentLength, remoteMessageComposedMessageTransferTimeout, remoteMessageHopLimit, remoteSuperPeerEnabled, remoteSuperPeerEndpoint, remoteTrafficOutboundLimit, remoteTrafficInboundLimit, remoteTrafficOutboundBufferLimit, remoteTrafficSocketReceiveBuffer, remoteTrafficSocketSendBuffer, intraVmDiscoveryEnabled, localHostDiscoveryEnabled, localHostDiscoveryPath, localHostDiscoveryLeaseTime, monitoringEnabled, monitoringHostTag, monitoringInfluxUri, monitoringInfluxUser, monitoringInfluxPassword, monitoringInfluxDatabase, monitoringInfluxReportingFrequency, pluginSet, marshallingInboundAllowedTypes, marshallingInboundAllowAllPrimitives, marshallingInboundAllowArrayOfDefinedTypes, marshallingInboundAllowedPackages, marshallingOutboundAllowedTypes, marshallingOutboundAllowAllPrimitives, marshallingOutboundAllowArrayOfDefinedTypes, marshallingOutboundAllowedPackages);
     }
 
     @Override
@@ -703,9 +715,11 @@ public class DrasylConfig {
                 marshallingInboundAllowArrayOfDefinedTypes == that.marshallingInboundAllowArrayOfDefinedTypes &&
                 marshallingOutboundAllowAllPrimitives == that.marshallingOutboundAllowAllPrimitives &&
                 marshallingOutboundAllowArrayOfDefinedTypes == that.marshallingOutboundAllowArrayOfDefinedTypes &&
-                remoteThrottleOutboundTrafficLimit == that.remoteThrottleOutboundTrafficLimit &&
-                remoteThrottleInboundTrafficLimit == that.remoteThrottleInboundTrafficLimit &&
-                remoteThrottleOutboundBufferLimit == that.remoteThrottleOutboundBufferLimit &&
+                remoteTrafficOutboundLimit == that.remoteTrafficOutboundLimit &&
+                remoteTrafficInboundLimit == that.remoteTrafficInboundLimit &&
+                remoteTrafficOutboundBufferLimit == that.remoteTrafficOutboundBufferLimit &&
+                remoteTrafficSocketReceiveBuffer == that.remoteTrafficSocketReceiveBuffer &&
+                remoteTrafficSocketSendBuffer == that.remoteTrafficSocketSendBuffer &&
                 Objects.equals(identityProofOfWork, that.identityProofOfWork) &&
                 Objects.equals(identityPublicKey, that.identityPublicKey) &&
                 Objects.equals(identityPrivateKey, that.identityPrivateKey) &&
@@ -757,9 +771,11 @@ public class DrasylConfig {
                 ", remoteMessageHopLimit=" + remoteMessageHopLimit +
                 ", remoteSuperPeerEnabled=" + remoteSuperPeerEnabled +
                 ", remoteSuperPeerEndpoint=" + remoteSuperPeerEndpoint +
-                ", remoteThrottleOutboundTrafficLimit=" + remoteThrottleOutboundTrafficLimit +
-                ", remoteThrottleInboundTrafficLimit=" + remoteThrottleInboundTrafficLimit +
-                ", remoteThrottleOutboundBufferLimit=" + remoteThrottleOutboundBufferLimit +
+                ", remoteTrafficOutboundLimit=" + remoteTrafficOutboundLimit +
+                ", remoteTrafficInboundLimit=" + remoteTrafficInboundLimit +
+                ", remoteTrafficOutboundBufferLimit=" + remoteTrafficOutboundBufferLimit +
+                ", remoteTrafficSocketReceiveBuffer=" + remoteTrafficSocketReceiveBuffer +
+                ", remoteTrafficSocketSendBuffer=" + remoteTrafficSocketSendBuffer +
                 ", intraVmDiscoveryEnabled=" + intraVmDiscoveryEnabled +
                 ", localHostDiscoveryEnabled=" + localHostDiscoveryEnabled +
                 ", localHostDiscoveryPath=" + localHostDiscoveryPath +
@@ -895,16 +911,24 @@ public class DrasylConfig {
         return remoteMessageHopLimit;
     }
 
-    public long getRemoteThrottleOutboundTrafficLimit() {
-        return remoteThrottleOutboundTrafficLimit;
+    public long getRemoteTrafficOutboundLimit() {
+        return remoteTrafficOutboundLimit;
     }
 
-    public long getRemoteThrottleInboundTrafficLimit() {
-        return remoteThrottleInboundTrafficLimit;
+    public long getRemoteTrafficInboundLimit() {
+        return remoteTrafficInboundLimit;
     }
 
-    public long getRemoteThrottleOutboundBufferLimit() {
-        return remoteThrottleOutboundBufferLimit;
+    public long getRemoteTrafficOutboundBufferLimit() {
+        return remoteTrafficOutboundBufferLimit;
+    }
+
+    public int getRemoteTrafficSocketReceiveBuffer() {
+        return remoteTrafficSocketReceiveBuffer;
+    }
+
+    public int getRemoteTrafficSocketSendBuffer() {
+        return remoteTrafficSocketSendBuffer;
     }
 
     public boolean isIntraVmDiscoveryEnabled() {
@@ -982,9 +1006,11 @@ public class DrasylConfig {
         private Duration remoteMessageComposedMessageTransferTimeout;
         private boolean remoteSuperPeerEnabled;
         private Endpoint remoteSuperPeerEndpoint;
-        private long remoteThrottleOutboundTrafficLimit;
-        private long remoteThrottleInboundTrafficLimit;
-        private long remoteThrottleOutboundBufferLimit;
+        private long remoteTrafficOutboundLimit;
+        private long remoteTrafficInboundLimit;
+        private long remoteTrafficOutboundBufferLimit;
+        private int remoteTrafficSocketReceiveBuffer;
+        private int remoteTrafficSocketSendBuffer;
         private boolean intraVmDiscoveryEnabled;
         private boolean localHostDiscoveryEnabled;
         private Path localHostDiscoveryPath;
@@ -1031,9 +1057,11 @@ public class DrasylConfig {
                        final int remoteMessageMaxContentLength,
                        final Duration remoteMessageComposedMessageTransferTimeout,
                        final byte remoteMessageHopLimit,
-                       final long remoteThrottleOutboundTrafficLimit,
-                       final long remoteThrottleInboundTrafficLimit,
-                       final long remoteThrottleOutboundBufferLimit,
+                       final long remoteTrafficOutboundLimit,
+                       final long remoteTrafficInboundLimit,
+                       final long remoteTrafficOutboundBufferLimit,
+                       final int remoteTrafficSocketReceiveBuffer,
+                       final int remoteTrafficSocketSendBuffer,
                        final boolean intraVmDiscoveryEnabled,
                        final boolean localHostDiscoveryEnabled,
                        final Path localHostDiscoveryPath,
@@ -1076,9 +1104,11 @@ public class DrasylConfig {
             this.remoteMessageComposedMessageTransferTimeout = remoteMessageComposedMessageTransferTimeout;
             this.remoteSuperPeerEnabled = remoteSuperPeerEnabled;
             this.remoteSuperPeerEndpoint = remoteSuperPeerEndpoint;
-            this.remoteThrottleOutboundTrafficLimit = remoteThrottleOutboundTrafficLimit;
-            this.remoteThrottleInboundTrafficLimit = remoteThrottleInboundTrafficLimit;
-            this.remoteThrottleOutboundBufferLimit = remoteThrottleOutboundBufferLimit;
+            this.remoteTrafficOutboundLimit = remoteTrafficOutboundLimit;
+            this.remoteTrafficInboundLimit = remoteTrafficInboundLimit;
+            this.remoteTrafficOutboundBufferLimit = remoteTrafficOutboundBufferLimit;
+            this.remoteTrafficSocketReceiveBuffer = remoteTrafficSocketReceiveBuffer;
+            this.remoteTrafficSocketSendBuffer = remoteTrafficSocketSendBuffer;
             this.intraVmDiscoveryEnabled = intraVmDiscoveryEnabled;
             this.localHostDiscoveryEnabled = localHostDiscoveryEnabled;
             this.localHostDiscoveryPath = localHostDiscoveryPath;
@@ -1205,18 +1235,28 @@ public class DrasylConfig {
             return this;
         }
 
-        public Builder remoteThrottleOutboundTrafficLimit(final long throttleOutboundTrafficLimit) {
-            this.remoteThrottleOutboundBufferLimit = throttleOutboundTrafficLimit;
+        public Builder remoteTrafficOutboundLimit(final long trafficOutboundLimit) {
+            this.remoteTrafficOutboundBufferLimit = trafficOutboundLimit;
             return this;
         }
 
-        public Builder remoteThrottleInboundTrafficLimit(final long throttleInboundTrafficLimit) {
-            this.remoteThrottleInboundTrafficLimit = throttleInboundTrafficLimit;
+        public Builder remoteTrafficInboundLimit(final long trafficInboundLimit) {
+            this.remoteTrafficInboundLimit = trafficInboundLimit;
             return this;
         }
 
-        public Builder remoteThrottleOutboundBufferLimit(final long throttleOutboundBufferLimit) {
-            this.remoteThrottleOutboundBufferLimit = throttleOutboundBufferLimit;
+        public Builder remoteTrafficOutboundBufferLimit(final long trafficOutboundBufferLimit) {
+            this.remoteTrafficOutboundBufferLimit = trafficOutboundBufferLimit;
+            return this;
+        }
+
+        public Builder remoteTrafficSocketReceiveBuffer(final int trafficSocketReceiveBuffer) {
+            this.remoteTrafficSocketReceiveBuffer = trafficSocketReceiveBuffer;
+            return this;
+        }
+
+        public Builder remoteTrafficSocketSendBuffer(final int trafficSocketSendBuffer) {
+            this.remoteTrafficSocketSendBuffer = trafficSocketSendBuffer;
             return this;
         }
 
@@ -1321,7 +1361,7 @@ public class DrasylConfig {
         }
 
         public DrasylConfig build() {
-            return new DrasylConfig(networkId, identityProofOfWork, identityPublicKey, identityPrivateKey, identityPath, remoteBindHost, remoteEnabled, remoteBindPort, remotePingInterval, remotePingTimeout, remotePingCommunicationTimeout, remoteUniteMinInterval, remotePingMaxPeers, remoteEndpoints, remoteExposeEnabled, remoteSuperPeerEnabled, remoteSuperPeerEndpoint, remoteMessageMaxContentLength, remoteMessageHopLimit, remoteMessageComposedMessageTransferTimeout, remoteMessageMtu, remoteThrottleOutboundTrafficLimit, remoteThrottleInboundTrafficLimit, remoteThrottleOutboundBufferLimit, intraVmDiscoveryEnabled, localHostDiscoveryEnabled, localHostDiscoveryPath, localHostDiscoveryLeaseTime, monitoringEnabled, monitoringHost, monitoringInfluxUri, monitoringInfluxUser, monitoringInfluxPassword, monitoringInfluxDatabase, monitoringInfluxReportingFrequency, pluginSet, marshallingInboundAllowedTypes, marshallingInboundAllowAllPrimitives, marshallingInboundAllowArrayOfDefinedTypes, marshallingInboundAllowedPackages, marshallingOutboundAllowedTypes, marshallingOutboundAllowAllPrimitives, marshallingOutboundAllowArrayOfDefinedTypes, marshallingOutboundAllowedPackages);
+            return new DrasylConfig(networkId, identityProofOfWork, identityPublicKey, identityPrivateKey, identityPath, remoteBindHost, remoteEnabled, remoteBindPort, remotePingInterval, remotePingTimeout, remotePingCommunicationTimeout, remoteUniteMinInterval, remotePingMaxPeers, remoteEndpoints, remoteExposeEnabled, remoteSuperPeerEnabled, remoteSuperPeerEndpoint, remoteMessageMaxContentLength, remoteMessageHopLimit, remoteMessageComposedMessageTransferTimeout, remoteMessageMtu, remoteTrafficOutboundLimit, remoteTrafficInboundLimit, remoteTrafficOutboundBufferLimit, remoteTrafficSocketReceiveBuffer, remoteTrafficSocketSendBuffer, intraVmDiscoveryEnabled, localHostDiscoveryEnabled, localHostDiscoveryPath, localHostDiscoveryLeaseTime, monitoringEnabled, monitoringHost, monitoringInfluxUri, monitoringInfluxUser, monitoringInfluxPassword, monitoringInfluxDatabase, monitoringInfluxReportingFrequency, pluginSet, marshallingInboundAllowedTypes, marshallingInboundAllowAllPrimitives, marshallingInboundAllowArrayOfDefinedTypes, marshallingInboundAllowedPackages, marshallingOutboundAllowedTypes, marshallingOutboundAllowAllPrimitives, marshallingOutboundAllowArrayOfDefinedTypes, marshallingOutboundAllowedPackages);
         }
     }
 }

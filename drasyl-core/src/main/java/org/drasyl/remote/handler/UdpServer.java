@@ -20,6 +20,7 @@ package org.drasyl.remote.handler;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -34,7 +35,6 @@ import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
-import io.netty.handler.flush.FlushConsolidationHandler;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Scheduler;
@@ -71,7 +71,6 @@ import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 
-import static io.netty.handler.flush.FlushConsolidationHandler.DEFAULT_EXPLICIT_FLUSH_AFTER_FLUSHES;
 import static java.util.Optional.ofNullable;
 import static org.drasyl.util.NetworkUtil.getAddresses;
 import static org.drasyl.util.ObservableUtil.pairWithPreviousObservable;
@@ -110,7 +109,9 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
                 new Bootstrap()
                         .group(bossGroup)
                         .channel(getBestDatagramChannel())
-                        .option(ChannelOption.SO_BROADCAST, false),
+                        .option(ChannelOption.SO_BROADCAST, false)
+                        .option(ChannelOption.SO_REUSEADDR, true)
+                        .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT),
                 DrasylScheduler.getInstanceHeavy(),
                 address -> PortMappingUtil.expose(address, UDP),
                 null
@@ -185,6 +186,8 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
             LOG.debug("Start Server...");
             bootstrap.option(ChannelOption.RCVBUF_ALLOCATOR,
                     new FixedRecvByteBufAllocator(ctx.config().getRemoteMessageMtu()));
+            bootstrap.option(ChannelOption.SO_RCVBUF, ctx.config().getRemoteTrafficSocketReceiveBuffer());
+            bootstrap.option(ChannelOption.SO_SNDBUF, ctx.config().getRemoteTrafficSocketSendBuffer());
             final ChannelFuture channelFuture = bootstrap
                     .handler(new ChannelInitializer<DatagramChannel>() {
                         @Override
@@ -192,21 +195,26 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
                             final ChannelPipeline pipeline = ch.pipeline();
                             final ChannelTrafficShapingHandler trafficHandler =
                                     new ChannelTrafficShapingHandler(
-                                            ctx.config().getRemoteThrottleOutboundTrafficLimit(),
-                                            ctx.config().getRemoteThrottleInboundTrafficLimit());
+                                            ctx.config().getRemoteTrafficOutboundLimit(),
+                                            ctx.config().getRemoteTrafficInboundLimit());
                             outboundBufferSizeSupplier = trafficHandler::queueSize;
 
+                            pipeline.addLast(new SimpleChannelInboundHandler<DatagramPacket>(false) {
+                                @Override
+                                protected void channelRead0(final ChannelHandlerContext channelContext,
+                                                            final DatagramPacket msg) {
+                                    ctx.scheduler().scheduleDirect(() -> channelContext.fireChannelRead(msg));
+                                }
+                            });
+
                             pipeline.addLast(trafficHandler);
-                            // Use buffer for better IO performance
-                            pipeline.addLast(
-                                    new FlushConsolidationHandler(DEFAULT_EXPLICIT_FLUSH_AFTER_FLUSHES, true));
-                            pipeline.addLast(new SimpleChannelInboundHandler<DatagramPacket>() {
+
+                            pipeline.addLast(new SimpleChannelInboundHandler<DatagramPacket>(false) {
                                 @Override
                                 protected void channelRead0(final ChannelHandlerContext channelCtx,
                                                             final DatagramPacket msg) {
                                     LOG.trace("Datagram received {}", msg);
                                     final ByteBuf byteBuf = msg.content();
-                                    byteBuf.retain();
                                     ctx.pipeline().processInbound(InetSocketAddressWrapper.of(msg.sender()), byteBuf);
                                 }
                             });
@@ -264,7 +272,7 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
                                 final InetSocketAddressWrapper recipient,
                                 final ByteBuf byteBuf,
                                 final CompletableFuture<Void> future) {
-        final long bufferLimit = ctx.config().getRemoteThrottleOutboundBufferLimit();
+        final long bufferLimit = ctx.config().getRemoteTrafficOutboundBufferLimit();
         if (bufferLimit > 0 &&
                 outboundBufferSizeSupplier.getAsLong() > bufferLimit) {
             ReferenceCountUtil.safeRelease(byteBuf);
