@@ -28,6 +28,7 @@ import org.drasyl.util.ReferenceCountUtil;
 import org.drasyl.util.logging.Logger;
 import org.drasyl.util.logging.LoggerFactory;
 
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 import static org.drasyl.util.LoggingUtil.sanitizeLogArg;
@@ -50,7 +51,7 @@ public class OtherNetworkFilter extends SimpleInboundHandler<IntermediateEnvelop
                                final IntermediateEnvelope<MessageLite> msg,
                                final CompletableFuture<Void> future) {
         try {
-            if (ctx.config().getNetworkId() == msg.getNetworkId()) {
+            if (msg.isChunk() || ctx.config().getNetworkId() == msg.getNetworkId()) {
                 ctx.fireRead(sender, msg, future);
             }
             else {
@@ -59,10 +60,10 @@ public class OtherNetworkFilter extends SimpleInboundHandler<IntermediateEnvelop
                 future.completeExceptionally(new Exception("Message from other network dropped"));
             }
         }
-        catch (final IllegalArgumentException e) {
-            LOG.error("Unable to read network id from message '{}': {}", () -> sanitizeLogArg(msg), e::getMessage);
+        catch (final IllegalArgumentException | IOException e) {
+            LOG.debug("Message {} can't be read and was dropped due to the following error: ", () -> sanitizeLogArg(msg), e::getMessage);
+            future.completeExceptionally(new Exception("Message can't be read and was dropped due to the following error: ", e));
             ReferenceCountUtil.safeRelease(msg);
-            future.completeExceptionally(new Exception("Unable to read network id from message.", e));
         }
     }
 }
