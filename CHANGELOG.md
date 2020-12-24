@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.0] - 2020-xx-xx
 ### Added
 - Hole Punching is now used to traverse NATs. This will allow drasyl to create direct connections to peers behind a NAT.
--
+- Messages that are too large for a single UDP datagram are now automatically split into multiple datagrams.
 -
 -
 -
