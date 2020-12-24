@@ -120,6 +120,7 @@ class SimpleDuplexHandlerTest {
             inboundMessageTestObserver.awaitCount(1).assertValueCount(1);
             inboundMessageTestObserver.assertValue(Pair.of(sender, payload));
             outboundMessageTestObserver.assertNoValues();
+            pipeline.close();
         }
 
         @Test
@@ -171,6 +172,7 @@ class SimpleDuplexHandlerTest {
             outboundMessageTestObserver.awaitCount(1).assertValueCount(1);
             outboundMessageTestObserver.assertValue(new ApplicationMessage(sender, recipient, ObjectHolder.of(byte[].class, payload)));
             inboundMessageTestObserver.assertNoValues();
+            pipeline.close();
         }
     }
 
@@ -227,6 +229,7 @@ class SimpleDuplexHandlerTest {
             outboundMessageTestObserver.assertValue(new ApplicationMessage(sender, sender, ObjectHolder.of(byte[].class, msg)));
             inboundMessageTestObserver.assertNoValues();
             eventTestObserver.assertNoValues();
+            pipeline.close();
         }
 
         @Test
@@ -283,6 +286,7 @@ class SimpleDuplexHandlerTest {
             eventTestObserver.awaitCount(1).assertValueCount(1);
             eventTestObserver.assertValue(new MessageEvent(msg.getSender(), payload));
             outboundMessageTestObserver.assertNoValues();
+            pipeline.close();
         }
 
         @Test
@@ -320,6 +324,7 @@ class SimpleDuplexHandlerTest {
 
             eventTestObserver.await(1, TimeUnit.SECONDS);
             eventTestObserver.assertNoValues();
+            pipeline.close();
         }
 
         @Test
@@ -357,6 +362,7 @@ class SimpleDuplexHandlerTest {
 
             eventTestObserver.awaitCount(1).assertValueCount(1);
             eventTestObserver.assertValue(event);
+            pipeline.close();
         }
 
         @Test

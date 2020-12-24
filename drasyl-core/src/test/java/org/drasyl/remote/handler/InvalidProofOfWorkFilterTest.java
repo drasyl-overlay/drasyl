@@ -69,6 +69,7 @@ class InvalidProofOfWorkFilterTest {
 
         inboundMessages.await(1, SECONDS);
         inboundMessages.assertNoValues();
+        pipeline.close();
     }
 
     @Test
@@ -84,6 +85,7 @@ class InvalidProofOfWorkFilterTest {
 
         inboundMessages.awaitCount(1).assertValueCount(1);
         inboundMessages.assertValue(Pair.of(message.getSender(), message));
+        pipeline.close();
     }
 
     @Test
@@ -98,5 +100,6 @@ class InvalidProofOfWorkFilterTest {
 
         assertThrows(Exception.class, future::join);
         inboundMessages.assertNoValues();
+        pipeline.close();
     }
 }

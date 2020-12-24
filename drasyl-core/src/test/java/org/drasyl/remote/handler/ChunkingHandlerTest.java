@@ -26,6 +26,7 @@ import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.reactivex.rxjava3.observers.TestObserver;
 import org.drasyl.DrasylConfig;
+import org.drasyl.crypto.Crypto;
 import org.drasyl.crypto.CryptoException;
 import org.drasyl.identity.CompressedPublicKey;
 import org.drasyl.identity.Identity;
@@ -97,14 +98,9 @@ class ChunkingHandlerTest {
 
                 inboundMessages.awaitCount(1)
                         .assertValueCount(1)
-                        .assertValueAt(0, p -> {
-                            try {
-                                return p.second().equals(msg);
-                            }
-                            finally {
-                                ReferenceCountUtil.safeRelease(p.second());
-                            }
-                        });
+                        .assertValueAt(0, p -> p.second().equals(msg));
+
+                pipeline.close();
             }
 
             @Test
@@ -142,6 +138,7 @@ class ChunkingHandlerTest {
                     inboundMessages.assertNoValues();
 
                     ReferenceCountUtil.safeRelease(headChunk);
+                    pipeline.close();
                 }
                 finally {
                     if (headChunkPayload != null) {
@@ -212,6 +209,7 @@ class ChunkingHandlerTest {
                                     ReferenceCountUtil.safeRelease(envelope);
                                 }
                             });
+                    pipeline.close();
                 }
                 finally {
                     if (headChunkPayload != null) {
@@ -272,6 +270,7 @@ class ChunkingHandlerTest {
                     assertThrows(ExecutionException.class, () -> pipeline.processInbound(sender, headChunk).get());
                     inboundMessages.await(1, SECONDS);
                     inboundMessages.assertNoValues();
+                    pipeline.close();
                 }
                 finally {
                     if (headChunkPayload != null) {
@@ -301,14 +300,9 @@ class ChunkingHandlerTest {
 
                 inboundMessages.awaitCount(1)
                         .assertValueCount(1)
-                        .assertValueAt(0, p -> {
-                            try {
-                                return p.second().equals(msg);
-                            }
-                            finally {
-                                ReferenceCountUtil.safeRelease(p.second());
-                            }
-                        });
+                        .assertValueAt(0, p -> p.second().equals(msg));
+
+                pipeline.close();
             }
 
             @Test
@@ -338,14 +332,9 @@ class ChunkingHandlerTest {
 
                 inboundMessages.awaitCount(1)
                         .assertValueCount(1)
-                        .assertValueAt(0, p -> {
-                            try {
-                                return ((IntermediateEnvelope<?>) p.second()).isChunk();
-                            }
-                            finally {
-                                ReferenceCountUtil.safeRelease(p.second());
-                            }
-                        });
+                        .assertValueAt(0, p -> ((IntermediateEnvelope<?>) p.second()).isChunk());
+
+                pipeline.close();
             }
         }
     }
@@ -373,14 +362,9 @@ class ChunkingHandlerTest {
 
                 outboundMessages.awaitCount(1)
                         .assertValueCount(1)
-                        .assertValueAt(0, p -> {
-                            try {
-                                return p.second().equals(msg);
-                            }
-                            finally {
-                                ReferenceCountUtil.safeRelease(p.second());
-                            }
-                        });
+                        .assertValueAt(0, p -> p.second().equals(msg));
+
+                pipeline.close();
             }
 
             @Test
@@ -402,6 +386,7 @@ class ChunkingHandlerTest {
                 outboundMessages.assertNoValues();
 
                 ReferenceCountUtil.safeRelease(msg);
+                pipeline.close();
             }
 
             @Test
@@ -414,7 +399,7 @@ class ChunkingHandlerTest {
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
                 when(identity.getPublicKey()).thenReturn(sender);
 
-                final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), new byte[remoteMessageMtu * 2]);
+                final Object msg = IntermediateEnvelope.application(0, sender, ProofOfWork.of(6518542), recipient, byte[].class.getName(), Crypto.randomBytes(remoteMessageMtu * 2));
                 final Handler handler = new ChunkingHandler();
                 final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
                 final TestObserver<Pair<Address, Object>> outboundMessages = pipeline.outboundMessages().test();
@@ -424,29 +409,19 @@ class ChunkingHandlerTest {
                 outboundMessages.awaitCount(3)
                         .assertValueCount(3)
                         .assertValueAt(0, p -> {
-                            try {
-                                return ((IntermediateEnvelope<?>) p.second()).getChunkNo().getValue() == 0;
-                            }
-                            finally {
-                                ReferenceCountUtil.safeRelease(p.second());
-                            }
+                            final IntermediateEnvelope<?> envelope = (IntermediateEnvelope<?>) p.second();
+                            return envelope.getTotalChunks().getValue() == 3 && envelope.getByteBuf().readableBytes() == remoteMessageMtu;
                         })
                         .assertValueAt(1, p -> {
-                            try {
-                                return ((IntermediateEnvelope<?>) p.second()).getChunkNo().getValue() == 1;
-                            }
-                            finally {
-                                ReferenceCountUtil.safeRelease(p.second());
-                            }
+                            final IntermediateEnvelope<?> envelope = (IntermediateEnvelope<?>) p.second();
+                            return envelope.getChunkNo().getValue() == 1 && envelope.getByteBuf().readableBytes() == remoteMessageMtu;
                         })
                         .assertValueAt(2, p -> {
-                            try {
-                                return ((IntermediateEnvelope<?>) p.second()).getChunkNo().getValue() == 2;
-                            }
-                            finally {
-                                ReferenceCountUtil.safeRelease(p.second());
-                            }
-                        });
+                            final IntermediateEnvelope<?> envelope = (IntermediateEnvelope<?>) p.second();
+                            return envelope.getChunkNo().getValue() == 2 && envelope.getByteBuf().readableBytes() < remoteMessageMtu;
+                        });;
+
+                pipeline.close();
             }
         }
 
@@ -468,14 +443,9 @@ class ChunkingHandlerTest {
 
                 outboundMessages.awaitCount(1)
                         .assertValueCount(1)
-                        .assertValueAt(0, p -> {
-                            try {
-                                return p.second().equals(msg);
-                            }
-                            finally {
-                                ReferenceCountUtil.safeRelease(p.second());
-                            }
-                        });
+                        .assertValueAt(0, p -> p.second().equals(msg));
+
+                pipeline.close();
             }
         }
     }

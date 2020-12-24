@@ -138,6 +138,7 @@ class GroupsClientHandlerTest {
 
             testObserver.awaitCount(1).assertValueCount(1);
             testObserver.assertValue(new GroupLeaveMessage(group));
+            pipeline.close();
         }
     }
 
@@ -160,6 +161,7 @@ class GroupsClientHandlerTest {
 
             testObserver.awaitCount(1).assertValueCount(1);
             testObserver.assertValue(event);
+            pipeline.close();
         }
 
         @Test
@@ -189,6 +191,7 @@ class GroupsClientHandlerTest {
 
             eventObserver.awaitCount(1).assertValueCount(1);
             eventObserver.assertValue(event);
+            pipeline.close();
         }
     }
 
@@ -212,6 +215,7 @@ class GroupsClientHandlerTest {
             eventObserver.awaitCount(1).assertValueCount(1);
             eventObserver.assertValue(new GroupMemberJoinedEvent(publicKey, group));
             assertTrue(future.isDone());
+            pipeline.close();
         }
 
         @Test
@@ -232,6 +236,7 @@ class GroupsClientHandlerTest {
             eventObserver.awaitCount(1).assertValueCount(1);
             eventObserver.assertValue(new GroupMemberLeftEvent(publicKey, group));
             assertTrue(future.isDone());
+            pipeline.close();
         }
 
         @Test
@@ -259,6 +264,7 @@ class GroupsClientHandlerTest {
             assertTrue(future.isDone());
 
             verify(renewTasks).add(any());
+            pipeline.close();
         }
 
         @Test
@@ -282,6 +288,7 @@ class GroupsClientHandlerTest {
             }));
 
             assertTrue(future.isDone());
+            pipeline.close();
         }
     }
 }

@@ -67,6 +67,7 @@ class LoopbackInboundMessageSinkHandlerTest {
         pipeline.processInbound(message.getSender(), message);
 
         inboundMessages.assertNoValues();
+        pipeline.close();
     }
 
     @Test
@@ -84,6 +85,7 @@ class LoopbackInboundMessageSinkHandlerTest {
         pipeline.processInbound(message.getSender(), message);
 
         inboundMessages.assertNoValues();
+        pipeline.close();
     }
 
     @Test
@@ -106,5 +108,6 @@ class LoopbackInboundMessageSinkHandlerTest {
         future.join();
 
         inboundMessages.awaitCount(1).assertValueCount(1);
+        pipeline.close();
     }
 }

@@ -81,16 +81,10 @@ class SignatureHandlerTest {
             pipeline.processOutbound(recipient, messageEnvelope);
 
             outboundMessages.awaitCount(1).assertValueCount(1);
-            outboundMessages.assertValue(m -> {
-                try {
-                    return m.getSignature().getBytes().length != 0;
-                }
-                finally {
-                    ReferenceCountUtil.safeRelease(m);
-                }
-            });
+            outboundMessages.assertValue(m -> m.getSignature().getBytes().length != 0);
 
             ReferenceCountUtil.safeRelease(messageEnvelope);
+            pipeline.close();
         }
 
         @Test
@@ -107,16 +101,10 @@ class SignatureHandlerTest {
             pipeline.processOutbound(recipient, messageEnvelope);
 
             outboundMessages.awaitCount(1).assertValueCount(1);
-            outboundMessages.assertValue(m -> {
-                try {
-                    return m.getSignature().getBytes().length == 0;
-                }
-                finally {
-                    ReferenceCountUtil.safeRelease(m);
-                }
-            });
+            outboundMessages.assertValue(m -> m.getSignature().getBytes().length == 0);
 
             ReferenceCountUtil.safeRelease(messageEnvelope);
+            pipeline.close();
         }
 
         @Test
@@ -138,6 +126,7 @@ class SignatureHandlerTest {
 
             ReferenceCountUtil.safeRelease(messageEnvelope);
             ReferenceCountUtil.safeRelease(armedMessage);
+            pipeline.close();
         }
     }
 
@@ -157,16 +146,10 @@ class SignatureHandlerTest {
             pipeline.processInbound(sender, messageEnvelope);
 
             inboundMessages.awaitCount(1).assertValueCount(1);
-            inboundMessages.assertValue(p -> {
-                try {
-                    return p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader() != null;
-                }
-                finally {
-                    ReferenceCountUtil.safeRelease(p.second());
-                }
-            });
+            inboundMessages.assertValue(p -> p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader() != null);
 
             ReferenceCountUtil.safeRelease(messageEnvelope);
+            pipeline.close();
         }
 
         @Test
@@ -186,6 +169,7 @@ class SignatureHandlerTest {
             inboundMessages.assertValue(p -> p.second().equals(messageEnvelope));
 
             ReferenceCountUtil.safeRelease(messageEnvelope);
+            pipeline.close();
         }
 
         @Test
@@ -207,6 +191,7 @@ class SignatureHandlerTest {
 
             ReferenceCountUtil.safeRelease(messageEnvelope);
             ReferenceCountUtil.safeRelease(disarmed);
+            pipeline.close();
         }
     }
 }

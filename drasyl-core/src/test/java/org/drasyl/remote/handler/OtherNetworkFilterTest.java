@@ -63,6 +63,7 @@ class OtherNetworkFilterTest {
 
         inboundMessages.await(1, SECONDS);
         inboundMessages.assertNoValues();
+        pipeline.close();
     }
 
     @Test
@@ -78,5 +79,6 @@ class OtherNetworkFilterTest {
 
         inboundMessages.awaitCount(1).assertValueCount(1);
         inboundMessages.assertValue(Pair.of(message.getSender(), message));
+        pipeline.close();
     }
 }

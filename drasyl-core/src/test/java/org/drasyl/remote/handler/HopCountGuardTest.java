@@ -64,6 +64,7 @@ class HopCountGuardTest {
         outboundMessages.awaitCount(1).assertValueCount(1);
         outboundMessages.assertValue(m -> m instanceof IntermediateEnvelope);
         verify(message).incrementHopCount();
+        pipeline.close();
     }
 
     @Test
@@ -80,5 +81,6 @@ class HopCountGuardTest {
 
         outboundMessages.await(1, SECONDS);
         outboundMessages.assertNoValues();
+        pipeline.close();
     }
 }

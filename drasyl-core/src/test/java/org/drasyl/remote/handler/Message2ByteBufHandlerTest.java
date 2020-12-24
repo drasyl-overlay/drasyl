@@ -70,6 +70,7 @@ class Message2ByteBufHandlerTest {
         outboundMessages.assertValue(messageEnvelope.getOrBuildByteBuf());
 
         ReferenceCountUtil.safeRelease(messageEnvelope);
+        pipeline.close();
     }
 
     @Test
@@ -81,5 +82,6 @@ class Message2ByteBufHandlerTest {
         final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, inboundValidator, outboundValidator, handler);
 
         assertThrows(ExecutionException.class, () -> pipeline.processOutbound(recipient, messageEnvelope).get());
+        pipeline.close();
     }
 }

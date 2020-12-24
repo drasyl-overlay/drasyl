@@ -110,6 +110,7 @@ class SimpleInboundHandlerTest {
         outboundMessageTestObserver.assertValue(new ApplicationMessage(sender, sender, ObjectHolder.of(byte[].class, msg)));
         inboundMessageTestObserver.assertNoValues();
         eventTestObserver.assertNoValues();
+        pipeline.close();
     }
 
     @Test
@@ -158,6 +159,7 @@ class SimpleInboundHandlerTest {
         eventTestObserver.awaitCount(1).assertValueCount(1);
         eventTestObserver.assertValue(new MessageEvent(msg.getSender(), payload));
         outboundMessageTestObserver.assertNoValues();
+        pipeline.close();
     }
 
     @Test
@@ -187,6 +189,7 @@ class SimpleInboundHandlerTest {
 
         eventTestObserver.await(1, TimeUnit.SECONDS);
         eventTestObserver.assertNoValues();
+        pipeline.close();
     }
 
     @Test
@@ -216,6 +219,7 @@ class SimpleInboundHandlerTest {
 
         eventTestObserver.awaitCount(1).assertValueCount(1);
         eventTestObserver.assertValue(event);
+        pipeline.close();
     }
 
     @Test

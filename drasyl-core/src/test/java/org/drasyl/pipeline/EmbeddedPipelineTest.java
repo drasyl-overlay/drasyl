@@ -104,6 +104,7 @@ class EmbeddedPipelineTest {
         eventTestObserver.awaitCount(1).assertValueCount(1);
         eventTestObserver.assertValue(new MessageEvent(sender, "Hello World"));
         outboundMessageTestObserver.assertNoValues();
+        pipeline.close();
     }
 
     @Test
@@ -132,5 +133,6 @@ class EmbeddedPipelineTest {
         outboundMessageTestObserver.assertValue(new ApplicationMessage(sender, recipient, ObjectHolder.of(byte[].class, msg)));
         inboundMessageTestObserver.assertNoValues();
         eventTestObserver.assertNoValues();
+        pipeline.close();
     }
 }
