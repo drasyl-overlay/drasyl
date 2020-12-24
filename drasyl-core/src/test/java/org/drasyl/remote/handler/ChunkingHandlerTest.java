@@ -408,9 +408,18 @@ class ChunkingHandlerTest {
 
                 outboundMessages.awaitCount(3)
                         .assertValueCount(3)
-                        .assertValueAt(0, p -> ((IntermediateEnvelope<?>) p.second()).getTotalChunks().getValue() == 3)
-                        .assertValueAt(1, p -> ((IntermediateEnvelope<?>) p.second()).getChunkNo().getValue() == 1)
-                        .assertValueAt(2, p -> ((IntermediateEnvelope<?>) p.second()).getChunkNo().getValue() == 2);
+                        .assertValueAt(0, p -> {
+                            final IntermediateEnvelope<?> envelope = (IntermediateEnvelope<?>) p.second();
+                            return envelope.getTotalChunks().getValue() == 3 && envelope.getByteBuf().readableBytes() == remoteMessageMtu;
+                        })
+                        .assertValueAt(1, p -> {
+                            final IntermediateEnvelope<?> envelope = (IntermediateEnvelope<?>) p.second();
+                            return envelope.getChunkNo().getValue() == 1 && envelope.getByteBuf().readableBytes() == remoteMessageMtu;
+                        })
+                        .assertValueAt(2, p -> {
+                            final IntermediateEnvelope<?> envelope = (IntermediateEnvelope<?>) p.second();
+                            return envelope.getChunkNo().getValue() == 2 && envelope.getByteBuf().readableBytes() < remoteMessageMtu;
+                        });;
 
                 pipeline.close();
             }
