@@ -195,7 +195,6 @@ class UdpServerTest {
         @Test
         void shouldPassOutgoingMessagesToUdp(@Mock final InetSocketAddressWrapper recipient,
                                              @Mock final ByteBuf msg) {
-            when(channel.isWritable()).thenReturn(true);
             when(recipient.getAddress()).thenReturn(createUnresolved("example.com", 1234));
             when(channel.writeAndFlush(any()).isDone()).thenReturn(true);
             when(channel.writeAndFlush(any()).isSuccess()).thenReturn(true);
