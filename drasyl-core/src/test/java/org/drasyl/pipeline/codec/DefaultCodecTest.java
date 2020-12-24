@@ -95,6 +95,7 @@ class DefaultCodecTest {
 
             testObserver.awaitCount(1).assertValueCount(1);
             testObserver.assertValue(new ApplicationMessage(sender, recipient, ObjectHolder.of(byte[].class, msg)));
+            pipeline.close();
         }
 
         @Test
@@ -142,6 +143,7 @@ class DefaultCodecTest {
             testObserver.assertValue(new ApplicationMessage(sender, recipient, ObjectHolder.of(Integer.class.getName(), JSONUtil.JACKSON_WRITER.writeValueAsBytes(msg))));
             future.join();
             assertTrue(future.isDone());
+            pipeline.close();
         }
     }
 
@@ -165,6 +167,7 @@ class DefaultCodecTest {
 
             testObserver.awaitCount(1).assertValueCount(1);
             testObserver.assertValue(Pair.of(sender, new byte[]{}));
+            pipeline.close();
         }
 
         @Test
@@ -219,6 +222,7 @@ class DefaultCodecTest {
 
             testObserver.awaitCount(1).assertValueCount(1);
             testObserver.assertValue(Pair.of(sender, integer));
+            pipeline.close();
         }
     }
 
@@ -242,6 +246,7 @@ class DefaultCodecTest {
 
             testObserver.awaitCount(1).assertValueCount(1);
             testObserver.assertValue(event);
+            pipeline.close();
         }
     }
 }

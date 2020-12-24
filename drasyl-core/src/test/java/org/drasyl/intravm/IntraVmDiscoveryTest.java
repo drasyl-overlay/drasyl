@@ -126,6 +126,7 @@ class IntraVmDiscoveryTest {
             pipeline.processOutbound(recipient, message).join();
 
             verify(ctx).fireRead(any(), any(), any());
+            pipeline.close();
         }
 
         @Test
@@ -139,6 +140,7 @@ class IntraVmDiscoveryTest {
             pipeline.processOutbound(recipient, message).join();
 
             outboundMessages.assertValueCount(1);
+            pipeline.close();
         }
 
         @Test
@@ -158,6 +160,7 @@ class IntraVmDiscoveryTest {
             pipeline.processInbound(sender, message).join();
 
             verify(ctx).fireRead(any(), any(), any());
+            pipeline.close();
         }
 
         @Test
@@ -170,6 +173,7 @@ class IntraVmDiscoveryTest {
             pipeline.processInbound(sender, message).join();
 
             inboundMessages.assertValueCount(1);
+            pipeline.close();
         }
     }
 }

@@ -99,6 +99,7 @@ class SimpleOutboundHandlerTest {
         inboundMessageTestObserver.awaitCount(1).assertValueCount(1);
         inboundMessageTestObserver.assertValue(Pair.of(sender, payload));
         outboundMessageTestObserver.assertNoValues();
+        pipeline.close();
     }
 
     @Test
@@ -135,6 +136,7 @@ class SimpleOutboundHandlerTest {
         outboundMessageTestObserver.awaitCount(1).assertValueCount(1);
         outboundMessageTestObserver.assertValue(new ApplicationMessage(sender, recipient, ObjectHolder.of(byte[].class, payload)));
         inboundMessageTestObserver.assertNoValues();
+        pipeline.close();
     }
 
     @Test

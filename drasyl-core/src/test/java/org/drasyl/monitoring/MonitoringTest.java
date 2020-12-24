@@ -82,6 +82,7 @@ class MonitoringTest {
             pipeline.processInbound(event).join();
 
             verify(registrySupplier).apply(any());
+            pipeline.close();
         }
     }
 
@@ -95,6 +96,7 @@ class MonitoringTest {
             pipeline.processInbound(event).join();
 
             verify(registry).close();
+            pipeline.close();
         }
 
         @Test
@@ -105,6 +107,7 @@ class MonitoringTest {
             pipeline.processInbound(event).join();
 
             verify(registry).close();
+            pipeline.close();
         }
     }
 
@@ -119,6 +122,7 @@ class MonitoringTest {
             pipeline.processInbound(event);
 
             inboundEvents.awaitCount(1).assertValue(event);
+            pipeline.close();
         }
 
         @Test
@@ -131,6 +135,7 @@ class MonitoringTest {
             pipeline.processInbound(sender, message);
 
             inboundMessages.awaitCount(1).assertValueCount(1);
+            pipeline.close();
         }
 
         @Test
@@ -143,6 +148,7 @@ class MonitoringTest {
             pipeline.processOutbound(recipient, message);
 
             outboundMessages.awaitCount(1).assertValueCount(1);
+            pipeline.close();
         }
     }
 }

@@ -115,6 +115,7 @@ class UdpDiscoveryHandlerTest {
 
         inboundEvents.awaitCount(1).assertValueCount(1);
         inboundEvents.assertValue(m -> m instanceof NodeEvent);
+        pipeline.close();
     }
 
     @Nested
@@ -129,6 +130,7 @@ class UdpDiscoveryHandlerTest {
             pipeline.processInbound(event).join();
 
             verify(handler).startHeartbeat(any());
+            pipeline.close();
         }
 
         @Test
@@ -139,6 +141,7 @@ class UdpDiscoveryHandlerTest {
             pipeline.processInbound(event).join();
 
             verify(handler).stopHeartbeat();
+            pipeline.close();
         }
 
         @Test
@@ -149,6 +152,7 @@ class UdpDiscoveryHandlerTest {
             pipeline.processInbound(event).join();
 
             verify(handler).stopHeartbeat();
+            pipeline.close();
         }
 
         @Test
@@ -169,6 +173,7 @@ class UdpDiscoveryHandlerTest {
             outboundMessages.awaitCount(1).assertValueCount(1);
             outboundMessages.assertValue(m -> m instanceof IntermediateEnvelope && ((IntermediateEnvelope) m).getPrivateHeader().getType() == ACKNOWLEDGEMENT);
             verify(peersManager, never()).setPeerInformationAndAddPath(any(), any(), any());
+            pipeline.close();
         }
 
         @Test
@@ -186,6 +191,7 @@ class UdpDiscoveryHandlerTest {
             pipeline.processInbound(address, acknowledgementMessage).join();
 
             verify(peersManager).setPeerInformationAndAddPath(any(), any(), any());
+            pipeline.close();
         }
 
         @Test
@@ -203,6 +209,7 @@ class UdpDiscoveryHandlerTest {
             pipeline.processInbound(address, acknowledgementMessage).join();
 
             verify(peersManager).setPeerInformationAndAddPathAndSetSuperPeer(any(), any(), any());
+            pipeline.close();
         }
 
         @Test
@@ -320,6 +327,7 @@ class UdpDiscoveryHandlerTest {
             verify(rendezvousPeers).add(any());
 
             ReferenceCountUtil.safeRelease(uniteMessage);
+            pipeline.close();
         }
 
         @Test
@@ -347,22 +355,9 @@ class UdpDiscoveryHandlerTest {
             pipeline.processInbound(sender, message).join();
 
             outboundMessages.awaitCount(3).assertValueCount(3);
-            outboundMessages.assertValueAt(1, p -> {
-                try {
-                    return p.first().equals(senderSocketAddress) && p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == UNITE;
-                }
-                finally {
-                    ReferenceCountUtil.safeRelease(p.second());
-                }
-            });
-            outboundMessages.assertValueAt(2, p -> {
-                try {
-                    return p.first().equals(recipientSocketAddress) && p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == UNITE;
-                }
-                finally {
-                    ReferenceCountUtil.safeRelease(p.second());
-                }
-            });
+            outboundMessages.assertValueAt(1, p -> p.first().equals(senderSocketAddress) && p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == UNITE);
+            outboundMessages.assertValueAt(2, p -> p.first().equals(recipientSocketAddress) && p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == UNITE);
+            pipeline.close();
         }
     }
 
@@ -384,6 +379,7 @@ class UdpDiscoveryHandlerTest {
 
                 outboundMessages.awaitCount(1).assertValueCount(1);
                 outboundMessages.assertValue(p -> p.first().equals(recipientPeer.getAddress()) && p.second().equals(message));
+                pipeline.close();
             }
 
             @Test
@@ -400,6 +396,7 @@ class UdpDiscoveryHandlerTest {
                 assertThrows(ExecutionException.class, () -> pipeline.processInbound(sender, message).get());
                 outboundMessages.await(1, SECONDS);
                 outboundMessages.assertNoValues();
+                pipeline.close();
             }
 
             @Test
@@ -421,16 +418,10 @@ class UdpDiscoveryHandlerTest {
 
                 verify(peer).applicationTrafficOccurred();
                 inboundMessages.awaitCount(1).assertValueCount(1);
-                inboundMessages.assertValue(p -> {
-                    try {
-                        return p.second() instanceof ApplicationMessage;
-                    }
-                    finally {
-                        ReferenceCountUtil.safeRelease(p.second());
-                    }
-                });
+                inboundMessages.assertValue(p -> p.second() instanceof ApplicationMessage);
 
                 ReferenceCountUtil.safeRelease(applicationMessage);
+                pipeline.close();
             }
         }
 
@@ -454,14 +445,8 @@ class UdpDiscoveryHandlerTest {
                 pipeline.processOutbound(recipient, message).join();
 
                 outboundMessages.awaitCount(1).assertValueCount(1);
-                outboundMessages.assertValue(p -> {
-                    try {
-                        return p.first().equals(recipientSocketAddress) && p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == APPLICATION;
-                    }
-                    finally {
-                        ReferenceCountUtil.safeRelease(p.second());
-                    }
-                });
+                outboundMessages.assertValue(p -> p.first().equals(recipientSocketAddress) && p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == APPLICATION);
+                pipeline.close();
             }
 
             @Test
@@ -482,14 +467,8 @@ class UdpDiscoveryHandlerTest {
                 pipeline.processOutbound(recipient, message).join();
 
                 outboundMessages.awaitCount(1).assertValueCount(1);
-                outboundMessages.assertValue(p -> {
-                    try {
-                        return p.first().equals(superPeerSocketAddress) && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == APPLICATION;
-                    }
-                    finally {
-                        ReferenceCountUtil.safeRelease(p.second());
-                    }
-                });
+                outboundMessages.assertValue(p -> p.first().equals(superPeerSocketAddress) && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == APPLICATION);
+                pipeline.close();
             }
 
             @Test
@@ -507,14 +486,8 @@ class UdpDiscoveryHandlerTest {
                 pipeline.processOutbound(recipient, message).join();
 
                 outboundMessages.awaitCount(1).assertValueCount(1);
-                outboundMessages.assertValue(p -> {
-                    try {
-                        return p.first().equals(recipient) && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == APPLICATION;
-                    }
-                    finally {
-                        ReferenceCountUtil.safeRelease(p.second());
-                    }
-                });
+                outboundMessages.assertValue(p -> p.first().equals(recipient) && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == APPLICATION);
+                pipeline.close();
             }
 
             @Test
@@ -532,6 +505,7 @@ class UdpDiscoveryHandlerTest {
                 pipeline.processOutbound(recipient, message).join();
 
                 verify(peer).applicationTrafficOccurred();
+                pipeline.close();
             }
         }
     }

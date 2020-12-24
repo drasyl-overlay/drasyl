@@ -30,14 +30,12 @@ import org.drasyl.identity.Identity;
 import org.drasyl.peer.PeersManager;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.codec.TypeValidator;
-import org.drasyl.remote.protocol.IntermediateEnvelope;
 import org.drasyl.util.DrasylScheduler;
 import org.drasyl.util.Pair;
 import org.drasyl.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,7 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Embedded {@link Pipeline} implementation, that allows easy testing of {@link Handler}s.
  */
 @SuppressWarnings({ "java:S107" })
-public class EmbeddedPipeline extends DefaultPipeline {
+public class EmbeddedPipeline extends DefaultPipeline implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(EmbeddedPipeline.class);
     private final Subject<Pair<Address, Object>> inboundMessages;
     private final Subject<Event> inboundEvents;
@@ -90,22 +88,8 @@ public class EmbeddedPipeline extends DefaultPipeline {
                               final Address recipient,
                               final Object msg,
                               final CompletableFuture<Void> future) {
-                try {
                     outboundMessages.onNext(Pair.of(recipient, msg));
                     future.complete(null);
-                }
-                finally {
-                    if (msg instanceof IntermediateEnvelope) {
-                        try {
-                            ((IntermediateEnvelope<?>) msg).getBodyAndRelease();
-                        }
-                        catch (final IOException e) {
-                            LOG.warn("Can't decode envelope: {}", msg, e);
-                        }
-                    }
-
-                    ReferenceCountUtil.safeRelease(msg);
-                }
             }
         };
         this.tail = new TailContext(inboundEvents::onNext, config, this, DrasylScheduler.getInstanceHeavy(), identity, peersManager, inboundValidator, outboundValidator) {
@@ -166,5 +150,20 @@ public class EmbeddedPipeline extends DefaultPipeline {
      */
     public Observable<Pair<Address, Object>> outboundMessages() {
         return outboundMessages;
+    }
+
+    /**
+     * This method does release all potentially acquired {@link io.netty.util.ReferenceCounted}
+     * objects.
+     */
+    @Override
+    public void close() {
+        for (final Pair o : ((ReplaySubject<Pair<Address, Object>>) outboundMessages).getValues(new Pair[]{})) {
+            ReferenceCountUtil.safeRelease(o.second());
+        }
+
+        for (final Pair o : ((ReplaySubject<Pair<Address, Object>>) inboundMessages).getValues(new Pair[]{})) {
+            ReferenceCountUtil.safeRelease(o.second());
+        }
     }
 }

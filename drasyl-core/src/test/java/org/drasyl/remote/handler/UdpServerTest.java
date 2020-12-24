@@ -104,6 +104,7 @@ class UdpServerTest {
             pipeline.processInbound(event).join();
 
             verify(bootstrap.handler(any())).bind(any(InetAddress.class), anyInt());
+            pipeline.close();
         }
 
         @Test
@@ -128,6 +129,7 @@ class UdpServerTest {
             pipeline.processInbound(event).join();
 
             verify(portExposer).apply(any());
+            pipeline.close();
         }
 
         @Nested
@@ -171,6 +173,7 @@ class UdpServerTest {
             pipeline.processInbound(event).join();
 
             verify(channel).close();
+            pipeline.close();
         }
 
         @Test
@@ -183,6 +186,7 @@ class UdpServerTest {
             pipeline.processInbound(event).join();
 
             verify(channel).close();
+            pipeline.close();
         }
     }
 
@@ -202,6 +206,7 @@ class UdpServerTest {
             pipeline.processOutbound(recipient, msg).join();
 
             verify(channel, times(3)).writeAndFlush(any());
+            pipeline.close();
         }
 
         @Test
@@ -227,6 +232,7 @@ class UdpServerTest {
             pipeline.processInbound(event).join();
 
             inboundMessages.awaitCount(1).assertValueCount(1);
+            pipeline.close();
         }
     }
 }

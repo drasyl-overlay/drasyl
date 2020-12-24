@@ -77,15 +77,9 @@ class ByteBuf2MessageHandlerTest {
         pipeline.processInbound(sender, byteBuf);
 
         inboundMessages.awaitCount(1).assertValueCount(1);
-        inboundMessages.assertValue(pair -> {
-            try {
-                return pair.second() instanceof IntermediateEnvelope;
-            }
-            finally {
-                ReferenceCountUtil.safeRelease(pair.second());
-            }
-        });
+        inboundMessages.assertValue(pair -> pair.second() instanceof IntermediateEnvelope);
 
         ReferenceCountUtil.safeRelease(byteBuf);
+        pipeline.close();
     }
 }

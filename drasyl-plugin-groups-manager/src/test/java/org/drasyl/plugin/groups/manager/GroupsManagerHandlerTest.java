@@ -176,6 +176,7 @@ class GroupsManagerHandlerTest {
 
             testObserver.awaitCount(1).assertValueCount(1);
             testObserver.assertValue(event);
+            pipeline.close();
         }
     }
 
@@ -206,6 +207,7 @@ class GroupsManagerHandlerTest {
                     new GroupWelcomeMessage(org.drasyl.plugin.groups.client.Group.of(group.getName()), Set.of()),
                     new MemberJoinedMessage(publicKey, org.drasyl.plugin.groups.client.Group.of(group.getName())));
             assertTrue(future.isDone());
+            pipeline.close();
         }
 
         @Test
@@ -229,6 +231,7 @@ class GroupsManagerHandlerTest {
             testObserver.assertValues(
                     new GroupJoinFailedMessage(org.drasyl.plugin.groups.client.Group.of(group.getName()), ERROR_GROUP_NOT_FOUND));
             assertTrue(future.isCompletedExceptionally());
+            pipeline.close();
         }
 
         @Test
@@ -253,6 +256,7 @@ class GroupsManagerHandlerTest {
             testObserver.assertValues(
                     new GroupJoinFailedMessage(org.drasyl.plugin.groups.client.Group.of(group.getName()), ERROR_PROOF_TO_WEAK));
             assertTrue(future.isCompletedExceptionally());
+            pipeline.close();
         }
 
         @Test
@@ -278,6 +282,7 @@ class GroupsManagerHandlerTest {
             testObserver.assertValues(
                     new GroupJoinFailedMessage(org.drasyl.plugin.groups.client.Group.of(group.getName()), ERROR_UNKNOWN));
             assertTrue(future.isCompletedExceptionally());
+            pipeline.close();
         }
 
         @Test
@@ -298,6 +303,7 @@ class GroupsManagerHandlerTest {
             final CompletableFuture<Void> future = pipeline.processInbound(publicKey, msg);
 
             assertThrows(Exception.class, future::get);
+            pipeline.close();
         }
     }
 
@@ -326,6 +332,7 @@ class GroupsManagerHandlerTest {
                     new MemberLeftMessage(publicKey, msg.getGroup()));
 
             assertTrue(future.isDone());
+            pipeline.close();
         }
 
         @Test
@@ -347,6 +354,7 @@ class GroupsManagerHandlerTest {
 
             testObserver.assertNoValues();
             assertThrows(CompletionException.class, future::join);
+            pipeline.close();
         }
     }
 }

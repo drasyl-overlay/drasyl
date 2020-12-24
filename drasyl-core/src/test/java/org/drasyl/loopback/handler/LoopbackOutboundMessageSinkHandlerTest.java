@@ -60,6 +60,7 @@ class LoopbackOutboundMessageSinkHandlerTest {
         pipeline.processOutbound(recipient, message);
 
         outboundMessages.awaitCount(1).assertValueCount(1);
+        pipeline.close();
     }
 
     @Test
@@ -79,5 +80,6 @@ class LoopbackOutboundMessageSinkHandlerTest {
         pipeline.processOutbound(recipient, message);
 
         inboundMessages.awaitCount(1).assertValueCount(1);
+        pipeline.close();
     }
 }

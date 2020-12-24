@@ -143,6 +143,7 @@ class HandlerAdapterTest {
 
             events.awaitCount(1).assertValueCount(1);
             events.assertValue(event);
+            pipeline.close();
         }
 
         @Test
@@ -158,6 +159,7 @@ class HandlerAdapterTest {
 
             events.awaitCount(1).assertValueCount(1);
             events.assertValue(Pair.of(sender, msg));
+            pipeline.close();
         }
     }
 }

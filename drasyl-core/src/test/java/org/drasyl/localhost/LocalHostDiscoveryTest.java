@@ -108,6 +108,7 @@ class LocalHostDiscoveryTest {
             pipeline.processInbound(event).join();
 
             verify(scheduler).schedulePeriodicallyDirect(any(), eq(0L), eq(5L), eq(SECONDS));
+            pipeline.close();
         }
 
         @Test
@@ -123,6 +124,7 @@ class LocalHostDiscoveryTest {
             pipeline.processInbound(event).join();
 
             verify(discoveryPath).register(any(), eq(ENTRY_CREATE), eq(ENTRY_MODIFY), eq(ENTRY_DELETE));
+            pipeline.close();
         }
 
         @Test
@@ -139,6 +141,7 @@ class LocalHostDiscoveryTest {
 
             verify(scheduler).schedulePeriodicallyDirect(any(), eq(0L), eq(5L), eq(SECONDS));
             verify(scheduler).schedulePeriodicallyDirect(any(), eq(0L), eq(ofSeconds(55L).toMillis()), eq(MILLISECONDS));
+            pipeline.close();
         }
 
         @Test
@@ -166,6 +169,7 @@ class LocalHostDiscoveryTest {
 
             verify(discoveryPath.getFileSystem().newWatchService()).poll();
             assertThat(path.toFile(), anExistingFile());
+            pipeline.close();
         }
     }
 
@@ -181,6 +185,7 @@ class LocalHostDiscoveryTest {
 
             verify(watchDisposable).dispose();
             verify(postDisposable).dispose();
+            pipeline.close();
         }
 
         @Test
@@ -193,6 +198,7 @@ class LocalHostDiscoveryTest {
 
             verify(watchDisposable).dispose();
             verify(postDisposable).dispose();
+            pipeline.close();
         }
     }
 
@@ -207,6 +213,7 @@ class LocalHostDiscoveryTest {
             pipeline.processOutbound(recipient, message).join();
 
             verify(scheduler).scheduleDirect(any());
+            pipeline.close();
         }
     }
 
