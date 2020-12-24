@@ -129,4 +129,12 @@ class ChunksCollector {
     public boolean hasChunks() {
         return !chunks.isEmpty();
     }
+
+    public int getTotalChunks() {
+        return totalChunks;
+    }
+
+    public int getPresentChunks() {
+        return chunks.size();
+    }
 }

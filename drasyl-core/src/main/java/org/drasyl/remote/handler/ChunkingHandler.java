@@ -112,7 +112,7 @@ public class ChunkingHandler extends SimpleDuplexHandler<IntermediateEnvelope<? 
                 .expireAfterWrite(config.getRemoteMessageComposedMessageTransferTimeout())
                 .removalListener((RemovalListener<MessageId, ChunksCollector>) entry -> {
                     if (entry.getValue().hasChunks()) {
-                        LOG.debug("Not all chunks of message `{}` were received within {}ms. Message dropped.", entry::getKey, config.getRemoteMessageComposedMessageTransferTimeout()::toMillis);
+                        LOG.debug("Not all chunks of message `{}` were received within {}ms ({} of {} present). Message dropped.", entry::getKey, config.getRemoteMessageComposedMessageTransferTimeout()::toMillis, entry.getValue()::getPresentChunks, entry.getValue()::getTotalChunks);
                         entry.getValue().release();
                     }
                 })
