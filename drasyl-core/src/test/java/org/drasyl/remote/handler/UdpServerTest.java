@@ -96,6 +96,7 @@ class UdpServerTest {
             when(bootstrap.handler(any()).bind(any(InetAddress.class), anyInt())).thenReturn(channelFuture);
             when(channelFuture.isSuccess()).thenReturn(true);
             when(channelFuture.channel().localAddress()).thenReturn(new InetSocketAddress(22527));
+            when(config.getRemoteMessageMtu()).thenReturn(1);
             when(config.getRemoteEndpoints()).thenReturn(Set.of(Endpoint.of("udp://localhost:22527#030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22")));
 
             final UdpServer handler = new UdpServer(bootstrap, scheduler, portExposer, null);
@@ -116,6 +117,7 @@ class UdpServerTest {
             when(channelFuture.channel().localAddress()).thenReturn(new InetSocketAddress(22527));
             when(config.isRemoteExposeEnabled()).thenReturn(true);
             when(config.getRemoteEndpoints()).thenReturn(Set.of(Endpoint.of("udp://localhost:22527#030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22")));
+            when(config.getRemoteMessageMtu()).thenReturn(1);
             when(scheduler.scheduleDirect(any())).then(invocation -> {
                 final Runnable argument = invocation.getArgument(0, Runnable.class);
                 argument.run();
