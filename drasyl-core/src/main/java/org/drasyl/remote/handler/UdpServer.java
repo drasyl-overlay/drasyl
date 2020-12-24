@@ -184,12 +184,7 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
         if (channel == null) {
             LOG.debug("Start Server...");
             bootstrap.option(ChannelOption.RCVBUF_ALLOCATOR,
-                    new FixedRecvByteBufAllocator(ctx.config().getRemoteMessageMtu() + 300));
-            bootstrap.option(ChannelOption.SO_RCVBUF,
-                    Math.max(65_536, (ctx.config().getRemoteMessageMtu() + 300) * 10_000));
-            bootstrap.option(ChannelOption.SO_SNDBUF,
-                    Math.max(65_536, (ctx.config().getRemoteMessageMtu() + 300) * 10_000));
-
+                    new FixedRecvByteBufAllocator(ctx.config().getRemoteMessageMtu()));
             final ChannelFuture channelFuture = bootstrap
                     .handler(new ChannelInitializer<DatagramChannel>() {
                         @Override
