@@ -223,6 +223,7 @@ class UdpServerTest {
             when(bootstrap.bind(any(InetAddress.class), anyInt())).thenReturn(channelFuture);
             when(channelFuture.isSuccess()).thenReturn(true);
             when(channelFuture.channel().localAddress()).thenReturn(new InetSocketAddress(22527));
+            when(config.getRemoteMessageMtu()).thenReturn(1);
             when(config.getRemoteEndpoints()).thenReturn(Set.of());
 
             final UdpServer handler = new UdpServer(bootstrap, scheduler, portExposer, null);
