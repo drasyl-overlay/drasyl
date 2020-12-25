@@ -90,3 +90,7 @@ With this configuration the manager is created with the group `steezy-vips`, who
 authenticate themselves using the shared secret `my-shared-secret`. 
 The manager stores all groups, nodes and their memberships in memory. To persistent the data on
 file system, `database.uri` can be set to `jdbc:sqlite:groups-manager.sqlite`.
+
+An overview of all available parameters (e.g. to enable the REST API), their purpose and default values can be found in the
+plugin's [reference.conf](https://github.com/drasyl-overlay/drasyl/blob/master/drasyl-plugin-groups-manager/src/main/resources/reference.conf)
+file.

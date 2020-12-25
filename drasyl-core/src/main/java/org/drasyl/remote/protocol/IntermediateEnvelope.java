@@ -20,6 +20,8 @@ package org.drasyl.remote.protocol;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.MessageLite;
+import com.google.protobuf.MessageOrBuilder;
+import com.google.protobuf.TextFormat;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
@@ -103,9 +105,9 @@ public class IntermediateEnvelope<T extends MessageLite> implements ReferenceCou
     public String toString() {
         return "IntermediateEnvelope{" +
                 "originalMessage=" + originalMessage +
-                ", publicHeader=" + publicHeader +
-                ", privateHeader=" + privateHeader +
-                ", body=" + body +
+                ", publicHeader=" + (publicHeader != null ? TextFormat.shortDebugString(publicHeader) : null) +
+                ", privateHeader=" + (privateHeader != null ? TextFormat.shortDebugString(privateHeader) : null) +
+                ", body=" + (body instanceof MessageOrBuilder ? TextFormat.shortDebugString((MessageOrBuilder) body) : null) +
                 '}';
     }
 
