@@ -33,7 +33,6 @@ import org.drasyl.peer.PeerInformation;
 import org.drasyl.pipeline.HandlerContext;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.address.InetSocketAddressWrapper;
-import org.drasyl.pipeline.codec.ObjectHolder;
 import org.drasyl.pipeline.message.ApplicationMessage;
 import org.drasyl.pipeline.skeleton.SimpleDuplexHandler;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
@@ -236,7 +235,7 @@ public class UdpDiscoveryHandler extends SimpleDuplexHandler<IntermediateEnvelop
         }
 
         if (recipient instanceof CompressedPublicKey) {
-            final IntermediateEnvelope<Application> remoteMessageEnvelope = IntermediateEnvelope.application(ctx.config().getNetworkId(), ctx.identity().getPublicKey(), ctx.identity().getProofOfWork(), msg.getRecipient(), msg.getContent().getClazzAsString(), msg.getContent().getObject());
+            final IntermediateEnvelope<Application> remoteMessageEnvelope = IntermediateEnvelope.application(ctx.config().getNetworkId(), ctx.identity().getPublicKey(), ctx.identity().getProofOfWork(), msg.getRecipient(), msg.getType(), msg.getContent());
             processMessage(ctx, (CompressedPublicKey) recipient, remoteMessageEnvelope, future);
         }
         else {
@@ -478,7 +477,8 @@ public class UdpDiscoveryHandler extends SimpleDuplexHandler<IntermediateEnvelop
         }
 
         // convert to ApplicationMessage
-        final ApplicationMessage applicationMessage = new ApplicationMessage(envelope.getSender(), envelope.getRecipient(), ObjectHolder.of(requireNonNull(envelope.getBodyAndRelease().getType()), requireNonNull(envelope.getBodyAndRelease().getPayload().toByteArray())));
+        final Application application = envelope.getBodyAndRelease();
+        final ApplicationMessage applicationMessage = new ApplicationMessage(envelope.getSender(), envelope.getRecipient(), application.getType(), application.getPayload().toByteArray());
         ctx.fireRead(sender, applicationMessage, future);
     }
 

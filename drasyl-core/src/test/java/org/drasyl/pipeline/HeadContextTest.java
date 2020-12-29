@@ -27,7 +27,6 @@ import org.drasyl.identity.CompressedPublicKey;
 import org.drasyl.identity.Identity;
 import org.drasyl.peer.PeersManager;
 import org.drasyl.pipeline.address.Address;
-import org.drasyl.pipeline.codec.ObjectHolder;
 import org.drasyl.pipeline.codec.TypeValidator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -99,10 +98,9 @@ class HeadContextTest {
     @Nested
     class OnWrite {
         @Test
-        void shouldSkipOnFutureCompleted() {
+        void shouldSkipOnFutureCompleted(@Mock final Object msg) {
             final HeadContext headContext = new HeadContext(config, pipeline, scheduler, identity, peersManager, inboundValidator, outboundValidator);
             final CompressedPublicKey recipient = mock(CompressedPublicKey.class);
-            final ObjectHolder msg = ObjectHolder.of(byte[].class, new byte[]{});
 
             when(future.isDone()).thenReturn(true);
 
@@ -112,10 +110,9 @@ class HeadContextTest {
         }
 
         @Test
-        void shouldWriteCompleteExceptionallyIfFutureIsNotCompleted() {
+        void shouldWriteCompleteExceptionallyIfFutureIsNotCompleted(@Mock final Object msg) {
             final HeadContext headContext = new HeadContext(config, pipeline, scheduler, identity, peersManager, inboundValidator, outboundValidator);
             final CompressedPublicKey recipient = mock(CompressedPublicKey.class);
-            final ObjectHolder msg = ObjectHolder.of(byte[].class, new byte[]{});
 
             when(future.isDone()).thenReturn(false);
 

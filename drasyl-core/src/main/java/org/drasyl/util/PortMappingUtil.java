@@ -115,7 +115,7 @@ public class PortMappingUtil {
                     LOG.debug("{} router(s) discovered.", mappers.size());
                     return mappers;
                 }
-                catch (final InterruptedException e) {
+                catch (final InterruptedException | IllegalStateException e) {
                     Thread.currentThread().interrupt();
                     return List.of();
                 }

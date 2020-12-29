@@ -18,6 +18,7 @@
  */
 package org.drasyl.remote.handler;
 
+import com.google.common.hash.Hashing;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -184,6 +185,21 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
                                           final CompletableFuture<Void> future) {
         if (channel == null) {
             LOG.debug("Start Server...");
+            final int bindPort;
+            if (ctx.config().getRemoteBindPort() == -1) {
+                // derive a port in the range between 22528 and 65528 from its own identity.
+                // this is done because we also expose this port via UPnP-IGD/NAT-PMP/PCP and some
+                // NAT devices behave unexpectedly when multiple nodes in the local network try to
+                // expose the same local port.
+                // a completely random port would have the disadvantage that every time the node is
+                // started it would use a new port and this would make discovery more difficult
+                final int identityHash = Hashing.murmur3_32().hashBytes(ctx.identity().getPublicKey().byteArrayValue()).asInt();
+                bindPort = 22528 + identityHash % 43000;
+            }
+            else {
+                bindPort = ctx.config().getRemoteBindPort();
+            }
+
             bootstrap.option(ChannelOption.RCVBUF_ALLOCATOR,
                     new FixedRecvByteBufAllocator(ctx.config().getRemoteMessageMtu()));
             bootstrap.option(ChannelOption.SO_RCVBUF, ctx.config().getRemoteTrafficSocketReceiveBuffer());
@@ -220,7 +236,7 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
                             });
                         }
                     })
-                    .bind(ctx.config().getRemoteBindHost(), ctx.config().getRemoteBindPort());
+                    .bind(ctx.config().getRemoteBindHost(), bindPort);
             channelFuture.awaitUninterruptibly();
 
             if (channelFuture.isSuccess()) {
@@ -235,13 +251,13 @@ public class UdpServer extends SimpleOutboundHandler<ByteBuf, InetSocketAddressW
                 }
 
                 // consume NodeUpEvent and publish NodeUpEvent with endpoint
-                ctx.fireEventTriggered(new NodeUpEvent(Node.of(ctx.identity(), actualEndpoints)), future);
+                ctx.fireEventTriggered(new NodeUpEvent(Node.of(ctx.identity(), socketAddress.getPort())), future);
             }
             else {
                 // server start failed
                 LOG.warn("Unable to bind server to address {}:{}: {}", ctx.config()::getRemoteBindHost, ctx.config()::getRemoteBindPort, channelFuture.cause()::getMessage);
 
-                future.completeExceptionally(new Exception("Unable to bind server to address " + ctx.config().getRemoteBindHost() + ":" + ctx.config().getRemoteBindPort() + ": " + channelFuture.cause().getMessage()));
+                future.completeExceptionally(new Exception("Unable to bind server to address " + ctx.config().getRemoteBindHost() + ":" + bindPort + ": " + channelFuture.cause().getMessage()));
             }
         }
         else {

@@ -55,7 +55,7 @@ public class Message2ByteBufHandler extends SimpleOutboundHandler<IntermediateEn
         try {
             byteBuf = msg.getOrBuildByteBuf();
 
-            write(ctx, recipient, byteBuf, future);
+            ctx.write(recipient, byteBuf, future);
         }
         catch (final IOException e) {
             ReferenceCountUtil.safeRelease(byteBuf);

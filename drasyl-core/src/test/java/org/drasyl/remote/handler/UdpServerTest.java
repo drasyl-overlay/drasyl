@@ -28,11 +28,9 @@ import io.netty.channel.socket.DatagramPacket;
 import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.observers.TestObserver;
 import org.drasyl.DrasylConfig;
-import org.drasyl.crypto.CryptoException;
 import org.drasyl.event.NodeDownEvent;
 import org.drasyl.event.NodeUnrecoverableErrorEvent;
 import org.drasyl.event.NodeUpEvent;
-import org.drasyl.identity.CompressedPublicKey;
 import org.drasyl.identity.Identity;
 import org.drasyl.peer.Endpoint;
 import org.drasyl.peer.PeersManager;
@@ -55,10 +53,6 @@ import java.util.Set;
 import java.util.function.Function;
 
 import static java.net.InetSocketAddress.createUnresolved;
-import static org.drasyl.remote.handler.UdpServer.determineActualEndpoints;
-import static org.drasyl.util.NetworkUtil.getAddresses;
-import static org.drasyl.util.UriUtil.createUri;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -132,34 +126,6 @@ class UdpServerTest {
 
             verify(portExposer).apply(any());
             pipeline.close();
-        }
-
-        @Nested
-        class DetermineActualEndpoints {
-            @Test
-            void shouldReturnConfigEndpointsIfSpecified() {
-                when(config.getRemoteEndpoints()).thenReturn(Set.of(Endpoint.of("udp://foo.bar:22527#030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22")));
-
-                assertEquals(
-                        Set.of(Endpoint.of("udp://foo.bar:22527#030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22")),
-                        determineActualEndpoints(identity, config, new InetSocketAddress(22527))
-                );
-            }
-
-            @Test
-            void shouldReturnEndpointForSpecificAddressesIfServerIsBoundToSpecificInterfaces() throws CryptoException {
-                when(identity.getPublicKey()).thenReturn(CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22"));
-
-                final InetAddress firstAddress = getAddresses().iterator().next();
-                if (firstAddress != null) {
-                    when(config.getRemoteEndpoints().isEmpty()).thenReturn(true);
-
-                    assertEquals(
-                            Set.of(Endpoint.of(createUri("udp", firstAddress.getHostAddress(), 22527), CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22"))),
-                            determineActualEndpoints(identity, config, new InetSocketAddress(firstAddress, 22527))
-                    );
-                }
-            }
         }
     }
 

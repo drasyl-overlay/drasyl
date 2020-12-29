@@ -160,7 +160,7 @@ public abstract class DrasylNode {
             this.endpoints = new CopyOnWriteArraySet<>();
             this.acceptNewConnections = new AtomicBoolean();
             this.started = new AtomicBoolean();
-            this.pipeline = new DrasylPipeline(this::onEvent, this.config, identity, peersManager, started, LazyBossGroupHolder.INSTANCE, endpoints);
+            this.pipeline = new DrasylPipeline(this::onEvent, this.config, identity, peersManager, started, LazyBossGroupHolder.INSTANCE);
             this.pluginManager = new PluginManager(config, identity, pipeline);
             this.startSequence = new CompletableFuture<>();
             this.shutdownSequence = completedFuture(null);
@@ -342,14 +342,14 @@ public abstract class DrasylNode {
      */
     public CompletableFuture<Void> shutdown() {
         if (startSequence.isDone() && !startSequence.isCompletedExceptionally() && started.compareAndSet(true, false)) {
-            onInternalEvent(new NodeDownEvent(Node.of(identity, endpoints)));
+            onInternalEvent(new NodeDownEvent(Node.of(identity)));
             LOG.info("Shutdown drasyl Node with Identity '{}'...", identity);
             shutdownSequence = new CompletableFuture<>();
             pluginManager.beforeShutdown();
 
             startSequence.whenComplete((t, exp) -> getInstanceHeavy().scheduleDirect(() -> {
                 rejectNewConnections();
-                onInternalEvent(new NodeNormalTerminationEvent(Node.of(identity, endpoints))).join();
+                onInternalEvent(new NodeNormalTerminationEvent(Node.of(identity))).join();
 
                 LOG.info("drasyl Node with Identity '{}' has shut down", identity);
                 pluginManager.afterShutdown();
@@ -389,7 +389,7 @@ public abstract class DrasylNode {
                 pluginManager.beforeStart();
                 acceptNewConnections();
                 try {
-                    onInternalEvent(new NodeUpEvent(Node.of(identity, endpoints))).get();
+                    onInternalEvent(new NodeUpEvent(Node.of(identity))).get();
                     LOG.info("drasyl Node with Identity '{}' has started", identity);
                     startSequence.complete(null);
                     pluginManager.afterStart();
@@ -400,7 +400,7 @@ public abstract class DrasylNode {
                 catch (final ExecutionException e) {
                     LOG.warn("Could not start drasyl Node: {}", e.getCause().getMessage());
                     pluginManager.beforeShutdown();
-                    onInternalEvent(new NodeUnrecoverableErrorEvent(Node.of(identity, endpoints), e.getCause())).join();
+                    onInternalEvent(new NodeUnrecoverableErrorEvent(Node.of(identity), e.getCause())).join();
                     pluginManager.afterShutdown();
                     INSTANCES.remove(DrasylNode.this);
                     startSequence.completeExceptionally(e);

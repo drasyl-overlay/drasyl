@@ -45,9 +45,7 @@ import static org.drasyl.loopback.handler.LoopbackInboundMessageSinkHandler.LOOP
 import static org.drasyl.loopback.handler.LoopbackOutboundMessageSinkHandler.LOOPBACK_OUTBOUND_MESSAGE_SINK_HANDLER;
 import static org.drasyl.pipeline.HeadContext.DRASYL_HEAD_HANDLER;
 import static org.drasyl.pipeline.TailContext.DRASYL_TAIL_HANDLER;
-import static org.drasyl.pipeline.codec.ApplicationMessage2ObjectHolderHandler.APP_MSG2OBJECT_HOLDER;
 import static org.drasyl.pipeline.codec.DefaultCodec.DEFAULT_CODEC;
-import static org.drasyl.pipeline.codec.ObjectHolder2ApplicationMessageHandler.OBJECT_HOLDER2APP_MSG;
 import static org.drasyl.remote.handler.ByteBuf2MessageHandler.BYTE_BUF_2_MESSAGE_HANDLER;
 import static org.drasyl.remote.handler.ChunkingHandler.CHUNKING_HANDLER;
 import static org.drasyl.remote.handler.HopCountGuard.HOP_COUNT_GUARD;
@@ -100,7 +98,7 @@ class DrasylPipelineTest {
     void shouldCreateNewPipeline() {
         when(config.isRemoteEnabled()).thenReturn(true);
 
-        final Pipeline pipeline = new DrasylPipeline(eventConsumer, config, identity, peersManager, started, workerGroup, endpoints);
+        final Pipeline pipeline = new DrasylPipeline(eventConsumer, config, identity, peersManager, started, workerGroup);
 
         // Test if head and tail handlers are added
         assertNull(pipeline.get(DRASYL_HEAD_HANDLER));
@@ -110,8 +108,6 @@ class DrasylPipelineTest {
 
         // Test if default handler are added
         assertNotNull(pipeline.get(DEFAULT_CODEC), "This handler is required in the DrasylPipeline");
-        assertNotNull(pipeline.get(APP_MSG2OBJECT_HOLDER), "This handler is required in the DrasylPipeline");
-        assertNotNull(pipeline.get(OBJECT_HOLDER2APP_MSG), "This handler is required in the DrasylPipeline");
         assertNotNull(pipeline.get(HOP_COUNT_GUARD), "This handler is required in the DrasylPipeline");
         assertNotNull(pipeline.get(LOOPBACK_INBOUND_MESSAGE_SINK_HANDLER), "This handler is required in the DrasylPipeline");
         assertNotNull(pipeline.get(LOOPBACK_OUTBOUND_MESSAGE_SINK_HANDLER), "This handler is required in the DrasylPipeline");

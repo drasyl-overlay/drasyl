@@ -25,6 +25,9 @@ package org.drasyl.event;
  * This is an immutable object.
  */
 public class PeerRelayEvent extends AbstractPeerEvent {
+    /**
+     * @throws NullPointerException if {@code peer} is {@code null}
+     */
     public PeerRelayEvent(final Peer peer) {
         super(peer);
     }

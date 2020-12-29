@@ -19,25 +19,68 @@
 package org.drasyl.pipeline.message;
 
 import org.drasyl.identity.CompressedPublicKey;
-import org.drasyl.pipeline.codec.ObjectHolder;
+
+import java.util.Arrays;
+import java.util.Objects;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * A message that is sent by an application running on drasyl.
  */
-public class ApplicationMessage extends DefaultAddressedEnvelope<CompressedPublicKey, ObjectHolder> {
+public class ApplicationMessage extends DefaultAddressedEnvelope<CompressedPublicKey, byte[]> {
+    private final String type;
+
     public ApplicationMessage(final CompressedPublicKey sender,
                               final CompressedPublicKey recipient,
-                              final ObjectHolder content) {
+                              final Class<?> type,
+                              final byte[] content) {
+        this(sender, recipient, type.getName(), content);
+    }
+
+    public ApplicationMessage(final CompressedPublicKey sender,
+                              final CompressedPublicKey recipient,
+                              final String type,
+                              final byte[] content) {
         super(sender, recipient, content);
+        this.type = requireNonNull(type);
     }
 
     @Override
     public boolean equals(final Object o) {
-        return super.equals(o);
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        final ApplicationMessage that = (ApplicationMessage) o;
+        return Objects.equals(type, that.type);
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode();
+        return Objects.hash(super.hashCode(), type);
+    }
+
+    @Override
+    public String toString() {
+        return "ApplicationMessage{" +
+                "sender='" + getSender() + "'," +
+                "recipient='" + getRecipient() + "'," +
+                "type='" + getRecipient() + "'," +
+                "content='" + Arrays.toString(getContent()) + '\'' +
+                '}';
+    }
+
+    public Class<?> getTypeClazz() throws ClassNotFoundException {
+        return Class.forName(type);
+    }
+
+    public String getType() {
+        return type;
     }
 }

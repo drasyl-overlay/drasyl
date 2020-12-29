@@ -20,7 +20,10 @@ package org.drasyl.pipeline.codec;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.drasyl.DrasylConfig;
+import org.drasyl.crypto.CryptoException;
+import org.drasyl.identity.CompressedPublicKey;
 import org.drasyl.pipeline.HandlerContext;
+import org.drasyl.pipeline.message.ApplicationMessage;
 import org.drasyl.util.JSONUtil;
 import org.mockito.Answers;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -41,7 +44,9 @@ import static org.mockito.Mockito.when;
 public class DefaultCodecBenchmark {
     private final HandlerContext ctx;
     private final String msg;
-    private ObjectHolder msgEncoded;
+    private ApplicationMessage msgEncoded;
+    private CompressedPublicKey sender;
+    private CompressedPublicKey recipient;
 
     public DefaultCodecBenchmark() {
         ctx = mock(HandlerContext.class, Answers.RETURNS_DEEP_STUBS);
@@ -51,9 +56,11 @@ public class DefaultCodecBenchmark {
         new Random().nextBytes(bytes);
         msg = new String(bytes);
         try {
-            msgEncoded = ObjectHolder.of(msg.getClass(), JSONUtil.JACKSON_WRITER.writeValueAsBytes(msg));
+            sender = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
+            recipient = CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22");
+            msgEncoded = new ApplicationMessage(sender, recipient, msg.getClass(), JSONUtil.JACKSON_WRITER.writeValueAsBytes(msg));
         }
-        catch (final JsonProcessingException e) {
+        catch (final JsonProcessingException | CryptoException e) {
             e.printStackTrace();
         }
     }
@@ -61,14 +68,14 @@ public class DefaultCodecBenchmark {
     @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public void encode() {
-        DefaultCodec.INSTANCE.encode(ctx, msg, passOnConsumer -> {
+        DefaultCodec.INSTANCE.encode(ctx, recipient, msg, msgEncoded -> {
         });
     }
 
     @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public void decode() {
-        DefaultCodec.INSTANCE.decode(ctx, msgEncoded, passOnConsumer -> {
+        DefaultCodec.INSTANCE.decode(ctx, sender, msgEncoded, (sender, msg) -> {
         });
     }
 }

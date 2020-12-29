@@ -22,6 +22,8 @@ import org.drasyl.identity.CompressedPublicKey;
 
 import java.util.Objects;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Used by {@link Event} to describe an event related to a Peer (e.g. {@link PeerRelayEvent}, {@link
  * PeerDirectEvent}).
@@ -32,7 +34,7 @@ public class Peer {
     private final CompressedPublicKey publicKey;
 
     Peer(final CompressedPublicKey publicKey) {
-        this.publicKey = publicKey;
+        this.publicKey = requireNonNull(publicKey);
     }
 
     /**
@@ -68,6 +70,9 @@ public class Peer {
                 '}';
     }
 
+    /**
+     * @throws NullPointerException if {@code publicKey} is {@code null}
+     */
     public static Peer of(final CompressedPublicKey publicKey) {
         return new Peer(publicKey);
     }

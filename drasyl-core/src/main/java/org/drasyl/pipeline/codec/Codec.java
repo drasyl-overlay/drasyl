@@ -25,6 +25,7 @@ import org.drasyl.util.FutureUtil;
 
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -33,9 +34,9 @@ import java.util.function.Consumer;
  * A codec can be used to encode/decode a given set of objects into the correct format to process
  * the object in the ongoing steps.
  * <br>
- * A codec must have a symmetrical construction. {@link #encode(HandlerContext, Object, Consumer)}
- * converts an object of type D into type E and {@link #decode(HandlerContext, Object, Consumer)}
- * vice versa.
+ * A codec must have a symmetrical construction. {@link #encode(HandlerContext, Address, Object,
+ * Consumer)} converts an object of type D into type E and {@link #decode(HandlerContext, Address,
+ * Object, BiConsumer)} vice versa.
  *
  * <p>
  * <b>Note</b>: You can use the {@link HandlerContext#inboundValidator()}} or {@link
@@ -43,6 +44,7 @@ import java.util.function.Consumer;
  * encode/decode.
  * </p>
  */
+@SuppressWarnings({ "java:S110" })
 public abstract class Codec<E, D, A extends Address> extends SimpleDuplexHandler<E, D, A> {
     @Override
     protected void matchedRead(final HandlerContext ctx,
@@ -56,15 +58,35 @@ public abstract class Codec<E, D, A extends Address> extends SimpleDuplexHandler
 
         final ArrayList<CompletableFuture<?>> futures = new ArrayList<>();
 
-        decode(ctx, msg, decodedMessage -> {
+        decode(ctx, sender, msg, (decodedSender, decodedMessage) -> {
             final CompletableFuture<Void> dependingFuture = new CompletableFuture<>();
             futures.add(dependingFuture);
 
-            ctx.fireRead(sender, decodedMessage, dependingFuture);
+            ctx.fireRead(decodedSender, decodedMessage, dependingFuture);
         });
 
         FutureUtil.completeOnAllOf(future, futures);
     }
+
+    /**
+     * Decodes a given object of type {@code E} into type {@code D}.
+     * <p>
+     * You have to use the given {@code passOnConsumer} to pass all objects to the next handler in
+     * the pipeline, no matter whether they have been decoded or not.
+     * <p>
+     * A codec should never act as a guard, but rather pass on all messages that it could not
+     * handle. There is always the possibility that there is another codec in the pipeline that can
+     * handle this object.
+     *
+     * @param ctx            the handler context
+     * @param sender         the sender
+     * @param msg            the message that should be decoded
+     * @param passOnConsumer to pass messages to the next handler in the pipeline
+     */
+    abstract void decode(HandlerContext ctx,
+                         A sender,
+                         E msg,
+                         BiConsumer<Address, Object> passOnConsumer);
 
     @Override
     protected void matchedWrite(final HandlerContext ctx,
@@ -78,7 +100,7 @@ public abstract class Codec<E, D, A extends Address> extends SimpleDuplexHandler
 
         final ArrayList<CompletableFuture<?>> futures = new ArrayList<>();
 
-        encode(ctx, msg, encodedMessage -> {
+        encode(ctx, recipient, msg, encodedMessage -> {
             final CompletableFuture<Void> dependingFuture = new CompletableFuture<>();
             futures.add(dependingFuture);
 
@@ -100,26 +122,12 @@ public abstract class Codec<E, D, A extends Address> extends SimpleDuplexHandler
      * handle this object.
      *
      * @param ctx            the handler context
+     * @param recipient      the recipient
      * @param msg            the message that should be encoded
      * @param passOnConsumer to pass messages to the next handler in the pipeline
      */
     abstract void encode(HandlerContext ctx,
+                         A recipient,
                          D msg,
                          Consumer<Object> passOnConsumer);
-
-    /**
-     * Decodes a given object of type {@code E} into type {@code D}.
-     * <p>
-     * You have to use the given {@code passOnConsumer} to pass all objects to the next handler in
-     * the pipeline, no matter whether they have been decoded or not.
-     * <p>
-     * A codec should never act as a guard, but rather pass on all messages that it could not
-     * handle. There is always the possibility that there is another codec in the pipeline that can
-     * handle this object.
-     *
-     * @param ctx            the handler context
-     * @param msg            the message that should be decoded
-     * @param passOnConsumer to pass messages to the next handler in the pipeline
-     */
-    abstract void decode(HandlerContext ctx, E msg, Consumer<Object> passOnConsumer);
 }

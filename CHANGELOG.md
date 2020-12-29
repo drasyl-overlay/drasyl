@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Changed
-- 
+- By default, each node now listens on a port in the range 22528 and 65528, which is derived from its identity.
 - UDP is now used instead of TCP for communication with remote peers.
 -
 -

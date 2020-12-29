@@ -26,10 +26,7 @@ import org.drasyl.identity.CompressedPublicKey;
 import org.drasyl.identity.Identity;
 import org.drasyl.peer.PeersManager;
 import org.drasyl.pipeline.address.Address;
-import org.drasyl.pipeline.codec.ApplicationMessage2ObjectHolderHandler;
 import org.drasyl.pipeline.codec.DefaultCodec;
-import org.drasyl.pipeline.codec.ObjectHolder;
-import org.drasyl.pipeline.codec.ObjectHolder2ApplicationMessageHandler;
 import org.drasyl.pipeline.codec.TypeValidator;
 import org.drasyl.pipeline.message.ApplicationMessage;
 import org.drasyl.pipeline.skeleton.HandlerAdapter;
@@ -67,12 +64,7 @@ class EmbeddedPipelineTest {
                 identity,
                 peersManager,
                 TypeValidator.ofInboundValidator(config),
-                TypeValidator.of(List.of(), List.of(), false, false),
-                ApplicationMessage2ObjectHolderHandler.INSTANCE,
-                ObjectHolder2ApplicationMessageHandler.INSTANCE,
-                DefaultCodec.INSTANCE,
-                new HandlerAdapter(),
-                new HandlerAdapter());
+                TypeValidator.of(List.of(), List.of(), false, false));
         final TestObserver<Pair<Address, Object>> inboundMessageTestObserver = pipeline.inboundMessages().test();
         final TestObserver<ApplicationMessage> outboundMessageTestObserver = pipeline.outboundOnlyMessages(ApplicationMessage.class).test();
         final TestObserver<Event> eventTestObserver = pipeline.inboundEvents().test();
@@ -81,28 +73,13 @@ class EmbeddedPipelineTest {
         final ApplicationMessage msg = mock(ApplicationMessage.class);
 
         when(msg.getSender()).thenReturn(sender);
-        when(msg.getContent()).thenReturn(ObjectHolder.of(String.class.getName(), new byte[]{
-                34,
-                72,
-                101,
-                108,
-                108,
-                111,
-                32,
-                87,
-                111,
-                114,
-                108,
-                100,
-                34
-        }));
 
         pipeline.processInbound(msg.getSender(), msg);
 
         inboundMessageTestObserver.awaitCount(1).assertValueCount(1);
-        inboundMessageTestObserver.assertValue(Pair.of(sender, "Hello World"));
+        inboundMessageTestObserver.assertValue(Pair.of(sender, msg));
         eventTestObserver.awaitCount(1).assertValueCount(1);
-        eventTestObserver.assertValue(new MessageEvent(sender, "Hello World"));
+        eventTestObserver.assertValue(new MessageEvent(sender, msg));
         outboundMessageTestObserver.assertNoValues();
         pipeline.close();
     }
@@ -114,7 +91,6 @@ class EmbeddedPipelineTest {
                 identity,
                 peersManager, TypeValidator.of(List.of(), List.of(), false, false),
                 TypeValidator.ofOutboundValidator(config),
-                ObjectHolder2ApplicationMessageHandler.INSTANCE,
                 DefaultCodec.INSTANCE,
                 new HandlerAdapter(),
                 new HandlerAdapter()
@@ -130,7 +106,7 @@ class EmbeddedPipelineTest {
         pipeline.processOutbound(recipient, msg);
 
         outboundMessageTestObserver.awaitCount(1).assertValueCount(1);
-        outboundMessageTestObserver.assertValue(new ApplicationMessage(sender, recipient, ObjectHolder.of(byte[].class, msg)));
+        outboundMessageTestObserver.assertValue(new ApplicationMessage(sender, recipient, byte[].class, msg));
         inboundMessageTestObserver.assertNoValues();
         eventTestObserver.assertNoValues();
         pipeline.close();

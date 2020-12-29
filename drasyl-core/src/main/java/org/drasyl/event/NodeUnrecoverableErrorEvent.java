@@ -21,6 +21,8 @@ package org.drasyl.event;
 
 import java.util.Objects;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * This events signals that the node encountered an unrecoverable error.
  * <p>
@@ -29,9 +31,12 @@ import java.util.Objects;
 public class NodeUnrecoverableErrorEvent extends AbstractNodeEvent {
     private final Throwable error;
 
+    /**
+     * @throws NullPointerException if {@code node} or {@code error} is {@code null}
+     */
     public NodeUnrecoverableErrorEvent(final Node node, final Throwable error) {
         super(node);
-        this.error = error;
+        this.error = requireNonNull(error);
     }
 
     /**

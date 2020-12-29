@@ -26,6 +26,8 @@ import io.netty.buffer.Unpooled;
 import org.drasyl.identity.CompressedPublicKey;
 import org.drasyl.pipeline.HandlerContext;
 import org.drasyl.pipeline.Stateless;
+import org.drasyl.pipeline.address.Address;
+import org.drasyl.pipeline.message.ApplicationMessage;
 import org.drasyl.util.JSONUtil;
 import org.drasyl.util.logging.Logger;
 import org.drasyl.util.logging.LoggerFactory;
@@ -33,6 +35,7 @@ import org.drasyl.util.logging.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static java.util.Objects.requireNonNull;
@@ -42,7 +45,7 @@ import static java.util.Objects.requireNonNull;
  */
 @Stateless
 @SuppressWarnings({ "java:S110" })
-public class DefaultCodec extends Codec<ObjectHolder, Object, CompressedPublicKey> {
+public class DefaultCodec extends Codec<ApplicationMessage, Object, Address> {
     public static final DefaultCodec INSTANCE = new DefaultCodec();
     public static final String DEFAULT_CODEC = "defaultCodec";
     private static final Logger LOG = LoggerFactory.getLogger(DefaultCodec.class);
@@ -52,15 +55,16 @@ public class DefaultCodec extends Codec<ObjectHolder, Object, CompressedPublicKe
 
     @Override
     void encode(final HandlerContext ctx,
+                final Address recipient,
                 final Object msg,
                 final Consumer<Object> passOnConsumer) {
-        if (msg instanceof byte[]) {
+        if (recipient instanceof CompressedPublicKey && msg instanceof byte[]) {
             // skip byte arrays
-            passOnConsumer.accept(ObjectHolder.of(byte[].class, (byte[]) msg));
+            passOnConsumer.accept(new ApplicationMessage(ctx.identity().getPublicKey(), (CompressedPublicKey) recipient, byte[].class, (byte[]) msg));
 
             LOG.trace("[{}]: Encoded Message '{}'", ctx::name, () -> msg);
         }
-        else if (ctx.outboundValidator().validate(msg.getClass()) && JSONUtil.JACKSON_WRITER.canSerialize(msg.getClass())) {
+        else if (recipient instanceof CompressedPublicKey && ctx.outboundValidator().validate(msg.getClass()) && JSONUtil.JACKSON_WRITER.canSerialize(msg.getClass())) {
             final ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer();
             try (final ByteBufOutputStream bos = new ByteBufOutputStream(buf)) {
 
@@ -69,7 +73,7 @@ public class DefaultCodec extends Codec<ObjectHolder, Object, CompressedPublicKe
                 final byte[] b = new byte[buf.readableBytes()];
                 buf.getBytes(buf.readerIndex(), b);
 
-                passOnConsumer.accept(ObjectHolder.of(msg.getClass(), b));
+                passOnConsumer.accept(new ApplicationMessage(ctx.identity().getPublicKey(), (CompressedPublicKey) recipient, msg.getClass(), b));
 
                 LOG.trace("[{}]: Encoded Message '{}'", ctx::name, () -> msg);
             }
@@ -89,43 +93,44 @@ public class DefaultCodec extends Codec<ObjectHolder, Object, CompressedPublicKe
 
     @Override
     void decode(final HandlerContext ctx,
-                final ObjectHolder msg,
-                final Consumer<Object> passOnConsumer) {
+                final Address sender,
+                final ApplicationMessage msg,
+                final BiConsumer<Address, Object> passOnConsumer) {
         try {
-            if (byte[].class == msg.getClazz()) {
+            if (byte[].class == msg.getTypeClazz()) {
                 // skip byte arrays
-                passOnConsumer.accept(msg.getObject());
+                passOnConsumer.accept(msg.getSender(), msg.getContent());
 
-                LOG.trace("[{}]: Decoded Message '{}'", ctx::name, msg::getObject);
+                LOG.trace("[{}]: Decoded Message '{}'", ctx::name, msg::getContent);
             }
-            else if (ctx.inboundValidator().validate(msg.getClazz()) && JSONUtil.JACKSON_WRITER.canSerialize(msg.getClazz())) {
+            else if (ctx.inboundValidator().validate(msg.getTypeClazz()) && JSONUtil.JACKSON_WRITER.canSerialize(msg.getTypeClazz())) {
                 decodeObjectHolder(ctx, msg, passOnConsumer);
             }
             else {
                 // can't decode, pass message to the next handler in the pipeline
-                passOnConsumer.accept(msg);
+                passOnConsumer.accept(sender, msg);
             }
         }
         catch (final ClassNotFoundException e) {
             LOG.warn("[{}]: Unable to deserialize '{}': ", ctx::name, () -> msg, () -> e);
             // can't decode, pass message to the next handler in the pipeline
-            passOnConsumer.accept(msg);
+            passOnConsumer.accept(sender, msg);
         }
     }
 
     void decodeObjectHolder(final HandlerContext ctx,
-                            final ObjectHolder msg,
-                            final Consumer<Object> passOnConsumer) throws ClassNotFoundException {
-        final ByteBuf buf = Unpooled.wrappedBuffer(msg.getObject());
+                            final ApplicationMessage msg,
+                            final BiConsumer<Address, Object> passOnConsumer) throws ClassNotFoundException {
+        final ByteBuf buf = Unpooled.wrappedBuffer(msg.getContent());
         try (final ByteBufInputStream bis = new ByteBufInputStream(buf)) {
-            final Object decodedMessage = requireNonNull(JSONUtil.JACKSON_READER.readValue((InputStream) bis, msg.getClazz()));
-            passOnConsumer.accept(decodedMessage);
+            final Object decodedMessage = requireNonNull(JSONUtil.JACKSON_READER.readValue((InputStream) bis, msg.getTypeClazz()));
+            passOnConsumer.accept(msg.getSender(), decodedMessage);
 
             LOG.trace("[{}]: Decoded Message '{}'", ctx::name, () -> decodedMessage);
         }
         catch (final IOException | IllegalArgumentException e) {
             LOG.warn("[{}]: Unable to deserialize '{}': ", ctx::name, () -> msg, () -> e);
-            passOnConsumer.accept(msg);
+            passOnConsumer.accept(msg.getSender(), msg);
         }
         finally {
             buf.release();

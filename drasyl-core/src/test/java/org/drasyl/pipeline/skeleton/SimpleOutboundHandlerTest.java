@@ -22,21 +22,12 @@ import io.reactivex.rxjava3.observers.TestObserver;
 import org.drasyl.DrasylConfig;
 import org.drasyl.identity.CompressedPublicKey;
 import org.drasyl.identity.Identity;
-import org.drasyl.identity.ProofOfWork;
 import org.drasyl.peer.PeersManager;
 import org.drasyl.pipeline.EmbeddedPipeline;
 import org.drasyl.pipeline.HandlerContext;
 import org.drasyl.pipeline.HandlerMask;
 import org.drasyl.pipeline.address.Address;
-import org.drasyl.pipeline.codec.ApplicationMessage2ObjectHolderHandler;
-import org.drasyl.pipeline.codec.DefaultCodec;
-import org.drasyl.pipeline.codec.ObjectHolder;
-import org.drasyl.pipeline.codec.ObjectHolder2ApplicationMessageHandler;
 import org.drasyl.pipeline.codec.TypeValidator;
-import org.drasyl.pipeline.message.AddressedEnvelope;
-import org.drasyl.pipeline.message.ApplicationMessage;
-import org.drasyl.util.Pair;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -45,40 +36,25 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SimpleOutboundHandlerTest {
-    private final int networkId = 1;
     @Mock
     private Identity identity;
     @Mock
     private PeersManager peersManager;
     @Mock
-    private ProofOfWork proofOfWork;
     private DrasylConfig config;
 
-    @BeforeEach
-    void setUp() {
-        config = DrasylConfig.newBuilder().build();
-    }
-
     @Test
-    void shouldTriggerOnMatchedMessage() {
-        final CompressedPublicKey sender = mock(CompressedPublicKey.class);
-        when(identity.getPublicKey()).thenReturn(sender);
-        final byte[] payload = new byte[]{};
-        final CompressedPublicKey recipient = mock(CompressedPublicKey.class);
-
-        final SimpleOutboundHandler<byte[], CompressedPublicKey> handler = new SimpleOutboundHandler<>() {
+    void shouldTriggerOnMatchedMessage(@Mock final Address recipient) {
+        final SimpleOutboundHandler<byte[], Address> handler = new SimpleOutboundHandler<>() {
             @Override
             protected void matchedWrite(final HandlerContext ctx,
-                                        final CompressedPublicKey recipient,
+                                        final Address recipient,
                                         final byte[] msg,
                                         final CompletableFuture<Void> future) {
-                // Emit this message as inbound message to test
-                ctx.pipeline().processInbound(identity.getPublicKey(), new ApplicationMessage(identity.getPublicKey(), recipient, ObjectHolder.of(byte[].class, msg)));
+                ctx.write(recipient, new String(msg), future);
             }
         };
 
@@ -88,30 +64,25 @@ class SimpleOutboundHandlerTest {
                 peersManager,
                 TypeValidator.ofInboundValidator(config),
                 TypeValidator.ofOutboundValidator(config),
-                ApplicationMessage2ObjectHolderHandler.INSTANCE,
-                ObjectHolder2ApplicationMessageHandler.INSTANCE,
-                DefaultCodec.INSTANCE, handler);
-        final TestObserver<Pair<Address, Object>> inboundMessageTestObserver = pipeline.inboundMessages().test();
-        final TestObserver<ApplicationMessage> outboundMessageTestObserver = pipeline.outboundOnlyMessages(ApplicationMessage.class).test();
+                handler);
+        final TestObserver<String> outboundMessageTestObserver = pipeline.outboundOnlyMessages(String.class).test();
 
-        pipeline.processOutbound(recipient, payload);
+        pipeline.processOutbound(recipient, "Hallo Welt".getBytes());
 
-        inboundMessageTestObserver.awaitCount(1).assertValueCount(1);
-        inboundMessageTestObserver.assertValue(Pair.of(sender, payload));
-        outboundMessageTestObserver.assertNoValues();
+        outboundMessageTestObserver.awaitCount(1).assertValueCount(1);
+        outboundMessageTestObserver.assertValue("Hallo Welt");
         pipeline.close();
     }
 
     @Test
-    void shouldPassthroughsNotMatchingMessage() {
-        final SimpleOutboundHandler<MyMessage, CompressedPublicKey> handler = new SimpleOutboundHandler<>(MyMessage.class, CompressedPublicKey.class) {
+    void shouldPassthroughsNotMatchingMessage(@Mock final CompressedPublicKey recipient) {
+        final SimpleOutboundHandler<byte[], Address> handler = new SimpleOutboundHandler<>() {
             @Override
             protected void matchedWrite(final HandlerContext ctx,
-                                        final CompressedPublicKey recipient,
-                                        final MyMessage msg,
+                                        final Address recipient,
+                                        final byte[] msg,
                                         final CompletableFuture<Void> future) {
-                // Emit this message as inbound message to test
-                ctx.pipeline().processInbound(msg.getSender(), msg);
+                ctx.write(recipient, new String(msg), future);
             }
         };
 
@@ -121,43 +92,17 @@ class SimpleOutboundHandlerTest {
                 peersManager,
                 TypeValidator.ofInboundValidator(config),
                 TypeValidator.ofOutboundValidator(config),
-                ApplicationMessage2ObjectHolderHandler.INSTANCE,
-                ObjectHolder2ApplicationMessageHandler.INSTANCE,
-                DefaultCodec.INSTANCE, handler);
-        final TestObserver<Pair<Address, Object>> inboundMessageTestObserver = pipeline.inboundMessages().test();
-        final TestObserver<ApplicationMessage> outboundMessageTestObserver = pipeline.outboundOnlyMessages(ApplicationMessage.class).test();
+                handler);
+        final TestObserver<String> outboundMessageTestObserver = pipeline.outboundOnlyMessages(String.class).test();
 
-        final CompressedPublicKey sender = mock(CompressedPublicKey.class);
-        when(identity.getPublicKey()).thenReturn(sender);
-        final CompressedPublicKey recipient = mock(CompressedPublicKey.class);
-        final byte[] payload = new byte[]{};
-        pipeline.processOutbound(recipient, payload);
+        pipeline.processOutbound(recipient, 1337);
 
-        outboundMessageTestObserver.awaitCount(1).assertValueCount(1);
-        outboundMessageTestObserver.assertValue(new ApplicationMessage(sender, recipient, ObjectHolder.of(byte[].class, payload)));
-        inboundMessageTestObserver.assertNoValues();
+        outboundMessageTestObserver.assertNoValues();
         pipeline.close();
     }
 
     @Test
     void shouldReturnCorrectHandlerMask() {
         assertEquals(HandlerMask.WRITE_MASK, HandlerMask.mask(SimpleOutboundHandler.class));
-    }
-
-    static class MyMessage implements AddressedEnvelope<CompressedPublicKey, Object> {
-        @Override
-        public CompressedPublicKey getSender() {
-            return null;
-        }
-
-        @Override
-        public CompressedPublicKey getRecipient() {
-            return null;
-        }
-
-        @Override
-        public Object getContent() {
-            return null;
-        }
     }
 }

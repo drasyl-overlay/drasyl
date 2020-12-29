@@ -22,6 +22,8 @@ import org.drasyl.identity.CompressedPublicKey;
 
 import java.util.Objects;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * This event signals that the node has received a message addressed to it.
  * <p>
@@ -36,10 +38,11 @@ public class MessageEvent implements Event {
      *
      * @param sender  the message's sender
      * @param payload content of the message
+     * @throws NullPointerException if {@code sender} or {@code payload} is {@code null}
      */
     public MessageEvent(final CompressedPublicKey sender, final Object payload) {
-        this.sender = sender;
-        this.payload = payload;
+        this.sender = requireNonNull(sender);
+        this.payload = requireNonNull(payload);
     }
 
     /**

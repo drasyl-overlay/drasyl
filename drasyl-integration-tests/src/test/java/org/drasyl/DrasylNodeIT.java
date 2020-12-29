@@ -148,7 +148,7 @@ class DrasylNodeIT {
                         .build();
                 superPeer = createStartedNode(config);
                 final NodeEvent superPeerNodeUp = (NodeEvent) superPeer.second().filter(e -> e instanceof NodeUpEvent).firstElement().blockingGet();
-                final int superPeerPort = superPeerNodeUp.getNode().getEndpoints().iterator().next().getPort();
+                final int superPeerPort = superPeerNodeUp.getNode().getPort();
                 colorizedPrintln("CREATED superPeer", COLOR_CYAN, STYLE_REVERSED);
 
                 // client1

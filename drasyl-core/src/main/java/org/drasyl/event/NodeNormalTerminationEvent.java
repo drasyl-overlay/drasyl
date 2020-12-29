@@ -25,6 +25,9 @@ package org.drasyl.event;
  * This is an immutable object.
  */
 public class NodeNormalTerminationEvent extends AbstractNodeEvent {
+    /**
+     * @throws NullPointerException if {@code node} is {@code null}
+     */
     public NodeNormalTerminationEvent(final Node node) {
         super(node);
     }

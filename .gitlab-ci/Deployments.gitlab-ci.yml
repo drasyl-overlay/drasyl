@@ -126,11 +126,12 @@ production:
   variables:
     APP_IMAGE: "${CI_REGISTRY_IMAGE}:latest"
     APP_DEPLOY_HOST: "production.${APP_HOST}"
-    SENTRY_ENVIRONMENT: production
+    PORT: 22527
     DRASYL_NETWORK_ID: 1
     DRASYL_PROOF_OF_WORK: 10992904
     DRASYL_PUBLIC_KEY: 025fff6f625f5dee816d9f8fe43895479aecfda187cb6a3330894a07e698bc5bd8
     # DRASYL_PRIVATE_KEY is defined securely in GitLab CI/CD Settings
+    SENTRY_ENVIRONMENT: production
   environment:
     name: production
     url: https://$APP_HOST
@@ -150,6 +151,7 @@ stop_production:
     GIT_STRATEGY: none
     APP_IMAGE: "${CI_REGISTRY_IMAGE}:latest"
     APP_DEPLOY_HOST: "production.${APP_HOST}"
+    PORT: 22527
     SENTRY_ENVIRONMENT: production
     DRASYL_NETWORK_ID: 1
     DRASYL_PROOF_OF_WORK: 10992904

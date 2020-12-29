@@ -27,7 +27,6 @@ import org.drasyl.event.NodeDownEvent;
 import org.drasyl.event.NodeUnrecoverableErrorEvent;
 import org.drasyl.event.NodeUpEvent;
 import org.drasyl.identity.CompressedPublicKey;
-import org.drasyl.peer.Endpoint;
 import org.drasyl.peer.PeerInformation;
 import org.drasyl.peer.PeersManager;
 import org.drasyl.pipeline.HandlerContext;
@@ -43,7 +42,6 @@ import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.nio.file.WatchService;
 import java.time.Duration;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -78,7 +76,6 @@ public class LocalHostDiscovery extends SimpleOutboundHandler<Object, Address> {
     private final Path discoveryPath;
     private final Duration leaseTime;
     private final CompressedPublicKey ownPublicKey;
-    private final Set<Endpoint> endpoints;
     private final AtomicBoolean doScan;
     private final Scheduler scheduler;
     private Disposable watchDisposable;
@@ -87,13 +84,11 @@ public class LocalHostDiscovery extends SimpleOutboundHandler<Object, Address> {
     private PeerInformation postedPeerInformation;
 
     public LocalHostDiscovery(final DrasylConfig config,
-                              final CompressedPublicKey ownPublicKey,
-                              final Set<Endpoint> endpoints) {
+                              final CompressedPublicKey ownPublicKey) {
         this(
                 config.getLocalHostDiscoveryPath().resolve(String.valueOf(config.getNetworkId())),
                 config.getLocalHostDiscoveryLeaseTime(),
                 ownPublicKey,
-                endpoints,
                 new AtomicBoolean(),
                 DrasylScheduler.getInstanceLight(),
                 null,
@@ -105,7 +100,6 @@ public class LocalHostDiscovery extends SimpleOutboundHandler<Object, Address> {
     LocalHostDiscovery(final Path discoveryPath,
                        final Duration leaseTime,
                        final CompressedPublicKey ownPublicKey,
-                       final Set<Endpoint> endpoints,
                        final AtomicBoolean doScan,
                        final Scheduler scheduler,
                        final Disposable watchDisposable,
@@ -113,7 +107,6 @@ public class LocalHostDiscovery extends SimpleOutboundHandler<Object, Address> {
         this.discoveryPath = discoveryPath;
         this.leaseTime = leaseTime;
         this.ownPublicKey = ownPublicKey;
-        this.endpoints = endpoints;
         this.doScan = doScan;
         this.scheduler = scheduler;
         this.watchDisposable = watchDisposable;
@@ -125,7 +118,7 @@ public class LocalHostDiscovery extends SimpleOutboundHandler<Object, Address> {
                                final Event event,
                                final CompletableFuture<Void> future) {
         if (event instanceof NodeUpEvent) {
-            startDiscovery(ctx);
+            startDiscovery(ctx, ((NodeUpEvent) event).getNode().getPort());
         }
         else if (event instanceof NodeUnrecoverableErrorEvent || event instanceof NodeDownEvent) {
             stopDiscovery();
@@ -147,7 +140,7 @@ public class LocalHostDiscovery extends SimpleOutboundHandler<Object, Address> {
         ctx.write(recipient, msg, future);
     }
 
-    private synchronized void startDiscovery(final HandlerContext ctx) {
+    private synchronized void startDiscovery(final HandlerContext ctx, final int port) {
         LOG.debug("Start Local Host Discovery...");
         final File directory = discoveryPath.toFile();
         if (!directory.exists() && !directory.mkdirs()) {
@@ -159,7 +152,7 @@ public class LocalHostDiscovery extends SimpleOutboundHandler<Object, Address> {
         else {
             tryWatchDirectory();
             scan(ctx);
-            keepOwnInformationUpToDate();
+            keepOwnInformationUpToDate(port);
         }
         LOG.debug("Local Host Discovery started.");
     }
@@ -204,7 +197,7 @@ public class LocalHostDiscovery extends SimpleOutboundHandler<Object, Address> {
     /**
      * Writes periodically the actual own information to {@link #discoveryPath}.
      */
-    private void keepOwnInformationUpToDate() {
+    private void keepOwnInformationUpToDate(final int port) {
         final Duration refreshInterval;
         if (leaseTime.toSeconds() > 5) {
             refreshInterval = leaseTime.minus(ofSeconds(5));
@@ -217,7 +210,7 @@ public class LocalHostDiscovery extends SimpleOutboundHandler<Object, Address> {
             if (watchService == null) {
                 doScan.set(true);
             }
-            postInformation();
+            postInformation(port);
         }, 0, refreshInterval.toMillis(), MILLISECONDS);
     }
 
@@ -252,8 +245,8 @@ public class LocalHostDiscovery extends SimpleOutboundHandler<Object, Address> {
     /**
      * Posts own {@link PeerInformation} to {@link #discoveryPath}.
      */
-    private void postInformation() {
-        final PeerInformation peerInformation = PeerInformation.of(endpoints);
+    private void postInformation(final int port) {
+        final PeerInformation peerInformation = PeerInformation.of(); // TODO: add port here
 
         final Path filePath = discoveryPath.resolve(ownPublicKey.toString() + ".json");
         LOG.trace("Post own Peer Information to {}", filePath);

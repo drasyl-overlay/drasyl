@@ -19,9 +19,9 @@
 package org.drasyl.remote.handler;
 
 import com.google.protobuf.MessageLite;
-import org.drasyl.identity.CompressedPublicKey;
 import org.drasyl.pipeline.HandlerContext;
 import org.drasyl.pipeline.Stateless;
+import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.skeleton.SimpleOutboundHandler;
 import org.drasyl.remote.protocol.IntermediateEnvelope;
 import org.drasyl.util.ReferenceCountUtil;
@@ -38,7 +38,7 @@ import static org.drasyl.util.LoggingUtil.sanitizeLogArg;
  * reached, the message is discarded. Otherwise the message can pass.
  */
 @Stateless
-public class HopCountGuard extends SimpleOutboundHandler<IntermediateEnvelope<MessageLite>, CompressedPublicKey> {
+public class HopCountGuard extends SimpleOutboundHandler<IntermediateEnvelope<MessageLite>, Address> {
     public static final HopCountGuard INSTANCE = new HopCountGuard();
     public static final String HOP_COUNT_GUARD = "HOP_COUNT_GUARD";
     private static final Logger LOG = LoggerFactory.getLogger(HopCountGuard.class);
@@ -48,7 +48,7 @@ public class HopCountGuard extends SimpleOutboundHandler<IntermediateEnvelope<Me
 
     @Override
     protected void matchedWrite(final HandlerContext ctx,
-                                final CompressedPublicKey recipient,
+                                final Address recipient,
                                 final IntermediateEnvelope<MessageLite> msg,
                                 final CompletableFuture<Void> future) {
         try {

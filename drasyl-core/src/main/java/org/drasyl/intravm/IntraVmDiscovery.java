@@ -25,6 +25,7 @@ import org.drasyl.event.NodeUpEvent;
 import org.drasyl.identity.CompressedPublicKey;
 import org.drasyl.peer.PeerInformation;
 import org.drasyl.pipeline.HandlerContext;
+import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.message.ApplicationMessage;
 import org.drasyl.pipeline.skeleton.SimpleDuplexHandler;
 import org.drasyl.util.Pair;
@@ -43,7 +44,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Inspired by: https://github.com/actoron/jadex/blob/10e464b230d7695dfd9bf2b36f736f93d69ee314/platform/base/src/main/java/jadex/platform/service/awareness/IntraVMAwarenessAgent.java
  */
 @SuppressWarnings({ "java:S110" })
-public class IntraVmDiscovery extends SimpleDuplexHandler<ApplicationMessage, ApplicationMessage, CompressedPublicKey> {
+public class IntraVmDiscovery extends SimpleDuplexHandler<ApplicationMessage, ApplicationMessage, Address> {
     public static final IntraVmDiscovery INSTANCE = new IntraVmDiscovery();
     public static final String INTRA_VM_DISCOVERY = "INTRA_VM_DISCOVERY";
     private static final Logger LOG = LoggerFactory.getLogger(IntraVmDiscovery.class);
@@ -79,7 +80,7 @@ public class IntraVmDiscovery extends SimpleDuplexHandler<ApplicationMessage, Ap
 
     @Override
     protected void matchedRead(final HandlerContext ctx,
-                               final CompressedPublicKey sender,
+                               final Address sender,
                                final ApplicationMessage msg,
                                final CompletableFuture<Void> future) {
         final CompressedPublicKey recipient = msg.getRecipient();
@@ -102,7 +103,7 @@ public class IntraVmDiscovery extends SimpleDuplexHandler<ApplicationMessage, Ap
 
     @Override
     protected void matchedWrite(final HandlerContext ctx,
-                                final CompressedPublicKey recipient,
+                                final Address recipient,
                                 final ApplicationMessage msg,
                                 final CompletableFuture<Void> future) {
         final HandlerContext discoveree = discoveries.get(Pair.of(ctx.config().getNetworkId(), msg.getRecipient()));

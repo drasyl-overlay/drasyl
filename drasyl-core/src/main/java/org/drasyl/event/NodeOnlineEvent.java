@@ -27,6 +27,9 @@ package org.drasyl.event;
  * This is an immutable object.
  */
 public class NodeOnlineEvent extends AbstractNodeEvent {
+    /**
+     * @throws NullPointerException if {@code node} is {@code null}
+     */
     public NodeOnlineEvent(final Node node) {
         super(node);
     }

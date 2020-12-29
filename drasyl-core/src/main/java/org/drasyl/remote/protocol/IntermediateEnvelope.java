@@ -71,7 +71,8 @@ public class IntermediateEnvelope<T extends MessageLite> implements ReferenceCou
     IntermediateEnvelope(final ByteBuf originalMessage,
                          final ByteBuf message,
                          final PublicHeader publicHeader,
-                         final PrivateHeader privateHeader, final T body) {
+                         final PrivateHeader privateHeader,
+                         final T body) {
         this.originalMessage = originalMessage;
         this.message = message;
         this.publicHeader = publicHeader;

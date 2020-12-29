@@ -36,7 +36,6 @@ import org.drasyl.pipeline.EmbeddedPipeline;
 import org.drasyl.pipeline.HandlerContext;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.address.InetSocketAddressWrapper;
-import org.drasyl.pipeline.codec.ObjectHolder;
 import org.drasyl.pipeline.codec.TypeValidator;
 import org.drasyl.pipeline.message.ApplicationMessage;
 import org.drasyl.remote.handler.UdpDiscoveryHandler.OpenPing;
@@ -157,7 +156,7 @@ class UdpDiscoveryHandlerTest {
 
         @Test
         void shouldReplyWithAcknowledgmentMessageToDiscoveryMessage(@Mock(answer = RETURNS_DEEP_STUBS) final Peer peer,
-                                                                    @Mock(answer = RETURNS_DEEP_STUBS) final InetSocketAddressWrapper address) throws CryptoException, IOException {
+                                                                    @Mock(answer = RETURNS_DEEP_STUBS) final InetSocketAddressWrapper address) throws CryptoException {
             final CompressedPublicKey sender = CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22");
             final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
             final IntermediateEnvelope<Discovery> discoveryMessage = IntermediateEnvelope.discovery(0, sender, ProofOfWork.of(6518542), recipient, System.currentTimeMillis());
@@ -171,7 +170,7 @@ class UdpDiscoveryHandlerTest {
             pipeline.processInbound(address, discoveryMessage);
 
             outboundMessages.awaitCount(1).assertValueCount(1);
-            outboundMessages.assertValue(m -> m instanceof IntermediateEnvelope && ((IntermediateEnvelope) m).getPrivateHeader().getType() == ACKNOWLEDGEMENT);
+            outboundMessages.assertValue(m -> m instanceof IntermediateEnvelope && ((IntermediateEnvelope<?>) m).getPrivateHeader().getType() == ACKNOWLEDGEMENT);
             verify(peersManager, never()).setPeerInformationAndAddPath(any(), any(), any());
             pipeline.close();
         }
@@ -355,8 +354,8 @@ class UdpDiscoveryHandlerTest {
             pipeline.processInbound(sender, message).join();
 
             outboundMessages.awaitCount(3).assertValueCount(3);
-            outboundMessages.assertValueAt(1, p -> p.first().equals(senderSocketAddress) && p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == UNITE);
-            outboundMessages.assertValueAt(2, p -> p.first().equals(recipientSocketAddress) && p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == UNITE);
+            outboundMessages.assertValueAt(1, p -> p.first().equals(senderSocketAddress) && p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope<?>) p.second()).getPrivateHeader().getType() == UNITE);
+            outboundMessages.assertValueAt(2, p -> p.first().equals(recipientSocketAddress) && p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope<?>) p.second()).getPrivateHeader().getType() == UNITE);
             pipeline.close();
         }
     }
@@ -399,6 +398,7 @@ class UdpDiscoveryHandlerTest {
                 pipeline.close();
             }
 
+            @SuppressWarnings("SuspiciousMethodCalls")
             @Test
             void shouldUpdateLastCommunicationTimeAndConvertToApplicationMessageForRemoteApplicationMessages(
                     @Mock final Peer peer,
@@ -432,7 +432,7 @@ class UdpDiscoveryHandlerTest {
                                                    @Mock final Peer recipientPeer) throws CryptoException {
                 final CompressedPublicKey sender = CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22");
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
-                final ApplicationMessage message = new ApplicationMessage(sender, recipient, ObjectHolder.of(String.class, "Hallo Welt".getBytes()));
+                final ApplicationMessage message = new ApplicationMessage(sender, recipient, byte[].class, "Hallo Welt".getBytes());
 
                 when(recipientPeer.getAddress()).thenReturn(recipientSocketAddress);
                 when(recipientPeer.isReachable(any())).thenReturn(true);
@@ -445,7 +445,7 @@ class UdpDiscoveryHandlerTest {
                 pipeline.processOutbound(recipient, message).join();
 
                 outboundMessages.awaitCount(1).assertValueCount(1);
-                outboundMessages.assertValue(p -> p.first().equals(recipientSocketAddress) && p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == APPLICATION);
+                outboundMessages.assertValue(p -> p.first().equals(recipientSocketAddress) && p.second() instanceof IntermediateEnvelope && ((IntermediateEnvelope<?>) p.second()).getPrivateHeader().getType() == APPLICATION);
                 pipeline.close();
             }
 
@@ -454,7 +454,7 @@ class UdpDiscoveryHandlerTest {
                                                                   @Mock(answer = RETURNS_DEEP_STUBS) final Peer superPeerPeer) throws CryptoException {
                 final CompressedPublicKey sender = CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22");
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
-                final ApplicationMessage message = new ApplicationMessage(sender, recipient, ObjectHolder.of(String.class, "Hallo Welt".getBytes()));
+                final ApplicationMessage message = new ApplicationMessage(sender, recipient, byte[].class, "Hallo Welt".getBytes());
 
                 when(superPeerPeer.getAddress()).thenReturn(superPeerSocketAddress);
                 when(peersManager.getSuperPeerKey()).thenReturn(recipient);
@@ -467,7 +467,7 @@ class UdpDiscoveryHandlerTest {
                 pipeline.processOutbound(recipient, message).join();
 
                 outboundMessages.awaitCount(1).assertValueCount(1);
-                outboundMessages.assertValue(p -> p.first().equals(superPeerSocketAddress) && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == APPLICATION);
+                outboundMessages.assertValue(p -> p.first().equals(superPeerSocketAddress) && ((IntermediateEnvelope<?>) p.second()).getPrivateHeader().getType() == APPLICATION);
                 pipeline.close();
             }
 
@@ -475,7 +475,7 @@ class UdpDiscoveryHandlerTest {
             void shouldPassthroughForUnknownRecipientWhenNoSuperPeerIsPresent() throws CryptoException {
                 final CompressedPublicKey sender = CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22");
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
-                final ApplicationMessage message = new ApplicationMessage(sender, recipient, ObjectHolder.of(String.class, "Hallo Welt".getBytes()));
+                final ApplicationMessage message = new ApplicationMessage(sender, recipient, byte[].class, "Hallo Welt".getBytes());
 
                 when(identity.getPublicKey()).thenReturn(sender);
 
@@ -486,15 +486,16 @@ class UdpDiscoveryHandlerTest {
                 pipeline.processOutbound(recipient, message).join();
 
                 outboundMessages.awaitCount(1).assertValueCount(1);
-                outboundMessages.assertValue(p -> p.first().equals(recipient) && ((IntermediateEnvelope) p.second()).getPrivateHeader().getType() == APPLICATION);
+                outboundMessages.assertValue(p -> p.first().equals(recipient) && ((IntermediateEnvelope<?>) p.second()).getPrivateHeader().getType() == APPLICATION);
                 pipeline.close();
             }
 
+            @SuppressWarnings("SuspiciousMethodCalls")
             @Test
             void shouldUpdateLastCommunicationTimeForApplicationMessages(@Mock final Peer peer) throws CryptoException {
                 final CompressedPublicKey sender = CompressedPublicKey.of("030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22");
                 final CompressedPublicKey recipient = CompressedPublicKey.of("025e91733428b535e812fd94b0372c4bf2d52520b45389209acfd40310ce305ff4");
-                final ApplicationMessage message = new ApplicationMessage(sender, recipient, ObjectHolder.of(String.class, "Hallo Welt".getBytes()));
+                final ApplicationMessage message = new ApplicationMessage(sender, recipient, byte[].class, "Hallo Welt".getBytes());
 
                 when(rendezvousPeers.contains(any())).thenReturn(true);
                 when(identity.getPublicKey()).thenReturn(recipient);

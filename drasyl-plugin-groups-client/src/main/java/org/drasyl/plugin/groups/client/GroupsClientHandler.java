@@ -23,6 +23,7 @@ import org.drasyl.event.NodeOnlineEvent;
 import org.drasyl.identity.CompressedPublicKey;
 import org.drasyl.identity.ProofOfWork;
 import org.drasyl.pipeline.HandlerContext;
+import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.skeleton.SimpleInboundEventAwareHandler;
 import org.drasyl.plugin.groups.client.event.GroupJoinFailedEvent;
 import org.drasyl.plugin.groups.client.event.GroupJoinedEvent;
@@ -51,7 +52,7 @@ import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-public class GroupsClientHandler extends SimpleInboundEventAwareHandler<GroupsServerMessage, NodeOnlineEvent, CompressedPublicKey> {
+public class GroupsClientHandler extends SimpleInboundEventAwareHandler<GroupsServerMessage, NodeOnlineEvent, Address> {
     private static final Logger LOG = LoggerFactory.getLogger(GroupsClientHandler.class);
     private final Map<Group, GroupUri> groups;
     private final List<Disposable> renewTasks;
@@ -107,7 +108,7 @@ public class GroupsClientHandler extends SimpleInboundEventAwareHandler<GroupsSe
 
     @Override
     protected void matchedRead(final HandlerContext ctx,
-                               final CompressedPublicKey sender,
+                               final Address sender,
                                final GroupsServerMessage msg,
                                final CompletableFuture<Void> future) {
         if (msg instanceof MemberJoinedMessage) {
@@ -185,7 +186,7 @@ public class GroupsClientHandler extends SimpleInboundEventAwareHandler<GroupsSe
      * @param future the message future
      */
     private void onWelcome(final HandlerContext ctx,
-                           final CompressedPublicKey sender,
+                           final Address sender,
                            final GroupWelcomeMessage msg,
                            final CompletableFuture<Void> future) {
         final Group group = msg.getGroup();

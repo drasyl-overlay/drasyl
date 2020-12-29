@@ -67,6 +67,7 @@ class LoopbackOutboundMessageSinkHandlerTest {
     void shouldBounceMessageIfRecipientIsLocalNode(@Mock final CompressedPublicKey recipient,
                                                    @Mock(answer = Answers.RETURNS_DEEP_STUBS) final ApplicationMessage message) {
         when(identity.getPublicKey()).thenReturn(recipient);
+        when(message.getRecipient()).thenReturn(recipient);
 
         final EmbeddedPipeline pipeline = new EmbeddedPipeline(
                 config,

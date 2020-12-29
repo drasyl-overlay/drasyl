@@ -20,6 +20,7 @@ package org.drasyl.pipeline.codec;
 
 import org.drasyl.identity.CompressedPublicKey;
 import org.drasyl.pipeline.HandlerContext;
+import org.drasyl.pipeline.address.Address;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -27,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -43,9 +45,10 @@ class CodecTest {
 
     @Test
     void shouldSkipDoneFutures() {
-        final Codec<Object, Object, CompressedPublicKey> codec = new Codec<>() {
+        final Codec<Object, Object, Address> codec = new Codec<>() {
             @Override
             void encode(final HandlerContext ctx,
+                        final Address recipient,
                         final Object msg,
                         final Consumer<Object> passOnConsumer) {
                 passOnConsumer.accept(msg);
@@ -53,9 +56,10 @@ class CodecTest {
 
             @Override
             void decode(final HandlerContext ctx,
+                        final Address sender,
                         final Object msg,
-                        final Consumer<Object> passOnConsumer) {
-                passOnConsumer.accept(msg);
+                        final BiConsumer<Address, Object> passOnConsumer) {
+                passOnConsumer.accept(sender, msg);
             }
         };
 
@@ -67,11 +71,13 @@ class CodecTest {
         verify(ctx).write(recipient, msg, future);
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void shouldCompleteParentFutureExceptionallyOnChildError() {
-        final Codec<Object, Object, CompressedPublicKey> codec = new Codec<>() {
+        final Codec<Object, Object, Address> codec = new Codec<>() {
             @Override
             void encode(final HandlerContext ctx,
+                        final Address recipient,
                         final Object msg,
                         final Consumer<Object> passOnConsumer) {
                 passOnConsumer.accept(msg);
@@ -79,9 +85,10 @@ class CodecTest {
 
             @Override
             void decode(final HandlerContext ctx,
+                        final Address sender,
                         final Object msg,
-                        final Consumer<Object> passOnConsumer) {
-                passOnConsumer.accept(msg);
+                        final BiConsumer<Address, Object> passOnConsumer) {
+                passOnConsumer.accept(sender, msg);
             }
         };
 

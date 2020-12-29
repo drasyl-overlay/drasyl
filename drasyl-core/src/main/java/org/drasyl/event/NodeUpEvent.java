@@ -25,6 +25,9 @@ package org.drasyl.event;
  * This is an immutable object.
  */
 public class NodeUpEvent extends AbstractNodeEvent {
+    /**
+     * @throws NullPointerException if {@code node} is {@code null}
+     */
     public NodeUpEvent(final Node node) {
         super(node);
     }

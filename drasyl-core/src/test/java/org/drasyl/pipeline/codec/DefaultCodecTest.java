@@ -24,13 +24,11 @@ import org.drasyl.DrasylConfig;
 import org.drasyl.event.Event;
 import org.drasyl.identity.CompressedPublicKey;
 import org.drasyl.identity.Identity;
-import org.drasyl.identity.ProofOfWork;
 import org.drasyl.peer.PeersManager;
 import org.drasyl.pipeline.EmbeddedPipeline;
 import org.drasyl.pipeline.HandlerContext;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.pipeline.message.ApplicationMessage;
-import org.drasyl.util.JSONUtil;
 import org.drasyl.util.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -43,8 +41,10 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import static org.drasyl.util.JSONUtil.JACKSON_WRITER;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -61,13 +61,12 @@ class DefaultCodecTest {
     @Mock
     private CompressedPublicKey sender;
     @Mock
-    private ProofOfWork proofOfWork;
-    @Mock
     private CompressedPublicKey recipient;
     @Mock
-    private Consumer<Object> passOnConsumer;
+    private Consumer<Object> encodePassOnConsumer;
+    @Mock
+    private BiConsumer<Address, Object> decodePassOnConsumer;
     private DrasylConfig config;
-    private final int networkId = 1;
 
     @BeforeEach
     void setUp() {
@@ -85,8 +84,6 @@ class DefaultCodecTest {
                     peersManager,
                     TypeValidator.ofOutboundValidator(config),
                     TypeValidator.of(List.of(), List.of(), false, false),
-                    ApplicationMessage2ObjectHolderHandler.INSTANCE,
-                    ObjectHolder2ApplicationMessageHandler.INSTANCE,
                     DefaultCodec.INSTANCE);
             final TestObserver<ApplicationMessage> testObserver = pipeline.outboundOnlyMessages(ApplicationMessage.class).test();
 
@@ -94,7 +91,7 @@ class DefaultCodecTest {
             pipeline.processOutbound(recipient, msg);
 
             testObserver.awaitCount(1).assertValueCount(1);
-            testObserver.assertValue(new ApplicationMessage(sender, recipient, ObjectHolder.of(byte[].class, msg)));
+            testObserver.assertValue(new ApplicationMessage(sender, recipient, byte[].class, msg));
             pipeline.close();
         }
 
@@ -104,9 +101,9 @@ class DefaultCodecTest {
 
             when(ctx.outboundValidator()).thenReturn(TypeValidator.ofOutboundValidator(config));
 
-            DefaultCodec.INSTANCE.encode(ctx, msg, passOnConsumer);
+            DefaultCodec.INSTANCE.encode(ctx, recipient, msg, encodePassOnConsumer);
 
-            verify(passOnConsumer).accept(msg);
+            verify(encodePassOnConsumer).accept(msg);
         }
 
         @Test
@@ -117,9 +114,9 @@ class DefaultCodecTest {
 
             when(ctx.outboundValidator()).thenReturn(TypeValidator.ofOutboundValidator(config));
 
-            DefaultCodec.INSTANCE.encode(ctx, msg, passOnConsumer);
+            DefaultCodec.INSTANCE.encode(ctx, recipient, msg, encodePassOnConsumer);
 
-            verify(passOnConsumer).accept(msg);
+            verify(encodePassOnConsumer).accept(msg);
         }
 
         @Test
@@ -131,8 +128,6 @@ class DefaultCodecTest {
                     peersManager,
                     TypeValidator.of(List.of(), List.of(), false, false),
                     TypeValidator.ofOutboundValidator(config),
-                    ApplicationMessage2ObjectHolderHandler.INSTANCE,
-                    ObjectHolder2ApplicationMessageHandler.INSTANCE,
                     DefaultCodec.INSTANCE);
             final TestObserver<ApplicationMessage> testObserver = pipeline.outboundOnlyMessages(ApplicationMessage.class).test();
 
@@ -140,7 +135,7 @@ class DefaultCodecTest {
             final CompletableFuture<Void> future = pipeline.processOutbound(recipient, msg);
 
             testObserver.awaitCount(1).assertValueCount(1);
-            testObserver.assertValue(new ApplicationMessage(sender, recipient, ObjectHolder.of(Integer.class.getName(), JSONUtil.JACKSON_WRITER.writeValueAsBytes(msg))));
+            testObserver.assertValue(new ApplicationMessage(sender, recipient, Integer.class, JACKSON_WRITER.writeValueAsBytes(msg)));
             future.join();
             assertTrue(future.isDone());
             pipeline.close();
@@ -151,15 +146,13 @@ class DefaultCodecTest {
     class Decode {
         @Test
         void shouldSkippByteArrays() {
-            final ApplicationMessage msg = new ApplicationMessage(sender, recipient, ObjectHolder.of(byte[].class, new byte[]{}));
+            final ApplicationMessage msg = new ApplicationMessage(sender, recipient, byte[].class, new byte[]{});
             final EmbeddedPipeline pipeline = new EmbeddedPipeline(
                     config,
                     identity,
                     peersManager,
                     TypeValidator.of(List.of(), List.of(), false, false),
                     TypeValidator.ofInboundValidator(config),
-                    ApplicationMessage2ObjectHolderHandler.INSTANCE,
-                    ObjectHolder2ApplicationMessageHandler.INSTANCE,
                     DefaultCodec.INSTANCE);
             final TestObserver<Pair<Address, Object>> testObserver = pipeline.inboundMessages().test();
 
@@ -172,49 +165,47 @@ class DefaultCodecTest {
 
         @Test
         void passthroughsOnNotSerializiableMessages() {
-            final ObjectHolder msg = ObjectHolder.of(StringBuilder.class, new byte[]{
+            final ApplicationMessage msg = new ApplicationMessage(sender, recipient, StringBuilder.class, new byte[]{
                     34, 34
             });
 
             when(ctx.inboundValidator()).thenReturn(TypeValidator.ofInboundValidator(config));
-            DefaultCodec.INSTANCE.decode(ctx, msg, passOnConsumer);
+            DefaultCodec.INSTANCE.decode(ctx, sender, msg, decodePassOnConsumer);
 
-            verify(passOnConsumer).accept(msg);
+            verify(decodePassOnConsumer).accept(sender, msg);
         }
 
         @Test
         void passthroughsOnNotSerializiableMessages2() {
             final TypeValidator validator = TypeValidator.ofInboundValidator(config);
             validator.addClass(Vector.class);
-            final ObjectHolder msg = ObjectHolder.of(Vector.class, new byte[]{});
+            final ApplicationMessage msg = new ApplicationMessage(sender, recipient, Vector.class, new byte[]{});
 
             when(ctx.inboundValidator()).thenReturn(validator);
-            DefaultCodec.INSTANCE.decode(ctx, msg, passOnConsumer);
+            DefaultCodec.INSTANCE.decode(ctx, sender, msg, decodePassOnConsumer);
 
-            verify(passOnConsumer).accept(msg);
+            verify(decodePassOnConsumer).accept(sender, msg);
         }
 
         @Test
         void passthroughsOnNotSerializiableMessages3() {
-            final ObjectHolder msg = ObjectHolder.of("foo.bar.Class", new byte[]{});
+            final ApplicationMessage msg = new ApplicationMessage(sender, recipient, "foo.bar.Class", new byte[]{});
 
-            DefaultCodec.INSTANCE.decode(ctx, msg, passOnConsumer);
+            DefaultCodec.INSTANCE.decode(ctx, sender, msg, decodePassOnConsumer);
 
-            verify(passOnConsumer).accept(msg);
+            verify(decodePassOnConsumer).accept(sender, msg);
         }
 
         @Test
         void shouldDecodePOJOs() throws JsonProcessingException {
             final Integer integer = Integer.valueOf("10000");
-            final ApplicationMessage msg = new ApplicationMessage(sender, recipient, ObjectHolder.of(Integer.class.getName(), JSONUtil.JACKSON_WRITER.writeValueAsBytes(integer)));
+            final ApplicationMessage msg = new ApplicationMessage(sender, recipient, Integer.class, JACKSON_WRITER.writeValueAsBytes(integer));
             final EmbeddedPipeline pipeline = new EmbeddedPipeline(
                     config,
                     identity,
                     peersManager,
                     TypeValidator.ofInboundValidator(config),
                     TypeValidator.of(List.of(), List.of(), false, false),
-                    ApplicationMessage2ObjectHolderHandler.INSTANCE,
-                    ObjectHolder2ApplicationMessageHandler.INSTANCE,
                     DefaultCodec.INSTANCE);
             final TestObserver<Pair<Address, Object>> testObserver = pipeline.inboundMessages().test();
 
@@ -237,8 +228,6 @@ class DefaultCodecTest {
                     peersManager,
                     TypeValidator.of(List.of(), List.of(), false, false),
                     TypeValidator.ofInboundValidator(config),
-                    ApplicationMessage2ObjectHolderHandler.INSTANCE,
-                    ObjectHolder2ApplicationMessageHandler.INSTANCE,
                     DefaultCodec.INSTANCE);
             final TestObserver<Event> testObserver = pipeline.inboundEvents().test();
 
