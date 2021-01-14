@@ -522,21 +522,10 @@
     &lt;/encoder&gt;
   &lt;/appender&gt;
 
-  &lt;!-- The errors sent by this library can/should be ignored... --&gt;
-  &lt;logger name="com.offbynull.portmapper" level="off" /&gt;
-
   &lt;root level="debug"&gt;
     &lt;appender-ref ref="STDOUT" /&gt;
   &lt;/root&gt;
 &lt;/configuration&gt;</code></pre>
-<div class="admonition important">
-<p class="admonition-title">Exceptions in <code>com.offbynull.portmapper</code> package</p>
-<p>To enable port forwarding on NAT-enabled routers, drasyl uses the
-<a href="https://github.com/offbynull/portmapper">Port Mapper</a> library. Sadly, it is "normal behavior"
-for this library to throw exceptions during operation and log them. This is annoying, but does
-not indicate a problem or error and should therefore be ignored by setting the log-level to
-<code>OFF</code> for packages in <code>com.offbynull.portmapper</code> (see example configuration above).</p>
-</div>
                 
                   
                     
