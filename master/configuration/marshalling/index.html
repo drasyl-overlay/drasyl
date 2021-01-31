@@ -529,15 +529,23 @@
                 
                 
                 <h1 id="marshalling">Marshalling<a class="headerlink" href="#marshalling" title="Permanent link">&para;</a></h1>
-<p>drasyl can automatically (un-) marshall given objects using <a href="https://github.com/FasterXML/jackson">Jackson</a>. To prevent security risks through unrestricted marshalling, types and packages can be defined in the config that are handled automatically.</p>
+<p>The messages that drasyl nodes send to each other are JVM objects. Message passing between nodes
+living on the same JVM is straightforward. It is done via reference passing. However, messages that
+must leave the JVM to reach a node running on a different host must go through some form of
+serialization (i.e., the objects must be converted to and from byte arrays).</p>
+<p>drasyl can (un-) marshall given objects using <a href="https://github.com/FasterXML/jackson">Jackson</a>. To
+prevent security risks through unrestricted marshalling, types and packages can be defined in the
+config that are handled automatically.</p>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
 <p>Since version 0.3.0, drasyl differs between in- and outbound messages. </p>
 </div>
 <h2 id="marshallinginboundallowed-types-marshallingoutboundallowed-types"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingInboundAllowedTypes(java.util.List)"><code>marshalling.inbound.allowed-types</code></a> / <a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingOutboundAllowedTypes(java.util.List)"><code>marshalling.outbound.allowed-types</code></a><a class="headerlink" href="#marshallinginboundallowed-types-marshallingoutboundallowed-types" title="Permanent link">&para;</a></h2>
 <p>This property is a list of all types that are supported by the codec for the drasyl pipeline.</p>
-<p>With this list, a developer guarantees that all classes are secure and cannot be misused as a deserialization gadget in the context of the marshaller.
-A reckless implementation of a permitted class can leave the entire application and all executing machines vulnerable to remote code execution.</p>
+<p>With this list, a developer guarantees that all classes are secure and cannot be misused as a
+deserialization gadget in the context of the marshaller. A reckless implementation of a permitted
+class can leave the entire application and all executing machines vulnerable to remote code
+execution.</p>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>An attacker is in general interested in all "non-pure" methods, which have promising side
