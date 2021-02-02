@@ -19,7 +19,7 @@
     
     
       
-        <title>Marshalling - drasyl</title>
+        <title>Serialization - drasyl</title>
       
     
     
@@ -66,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#marshalling" class="md-skip">
+        <a href="#serialization" class="md-skip">
           Skip to content
         </a>
       
@@ -93,7 +93,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              Marshalling
+              Serialization
             
           </span>
         </div>
@@ -260,12 +260,12 @@
     
     
       <label class="md-nav__link md-nav__link--active" for="__toc">
-        Marshalling
+        Serialization
         <span class="md-nav__icon md-icon"></span>
       </label>
     
-    <a href="./" title="Marshalling" class="md-nav__link md-nav__link--active">
-      Marshalling
+    <a href="./" title="Serialization" class="md-nav__link md-nav__link--active">
+      Serialization
     </a>
     
       
@@ -282,29 +282,42 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#marshallinginboundallowed-types-marshallingoutboundallowed-types" class="md-nav__link">
-    marshalling.inbound.allowed-types / marshalling.outbound.allowed-types
+  <a href="#configuration" class="md-nav__link">
+    Configuration
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#marshallinginboundallow-all-primitives-marshallingoutboundallow-all-primitives" class="md-nav__link">
-    marshalling.inbound.allow-all-primitives / marshalling.outbound.allow-all-primitives
+  <a href="#build-in-serializers" class="md-nav__link">
+    Build-in serializers
   </a>
+  
+    <nav class="md-nav" aria-label="Build-in serializers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enabled-and-bound-to-the-serializable-classes" class="md-nav__link">
+    Enabled and bound to the serializable classes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enabled-and-must-be-manually-bound" class="md-nav__link">
+    Enabled and must be manually bound
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#marshallinginboundallow-array-of-defined-types-marshallingoutboundallow-array-of-defined-types" class="md-nav__link">
-    marshalling.inbound.allow-array-of-defined-types / marshalling.outbound.allow-array-of-defined-types
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#marshallinginboundallowed-packages-marshallingoutboundallowed-packages" class="md-nav__link">
-    marshalling.inbound.allowed-packages / marshalling.outbound.allowed-packages
+  <a href="#security-notes" class="md-nav__link">
+    Security notes
   </a>
   
 </li>
@@ -481,29 +494,42 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#marshallinginboundallowed-types-marshallingoutboundallowed-types" class="md-nav__link">
-    marshalling.inbound.allowed-types / marshalling.outbound.allowed-types
+  <a href="#configuration" class="md-nav__link">
+    Configuration
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#marshallinginboundallow-all-primitives-marshallingoutboundallow-all-primitives" class="md-nav__link">
-    marshalling.inbound.allow-all-primitives / marshalling.outbound.allow-all-primitives
+  <a href="#build-in-serializers" class="md-nav__link">
+    Build-in serializers
   </a>
+  
+    <nav class="md-nav" aria-label="Build-in serializers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enabled-and-bound-to-the-serializable-classes" class="md-nav__link">
+    Enabled and bound to the serializable classes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enabled-and-must-be-manually-bound" class="md-nav__link">
+    Enabled and must be manually bound
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#marshallinginboundallow-array-of-defined-types-marshallingoutboundallow-array-of-defined-types" class="md-nav__link">
-    marshalling.inbound.allow-array-of-defined-types / marshalling.outbound.allow-array-of-defined-types
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#marshallinginboundallowed-packages-marshallingoutboundallowed-packages" class="md-nav__link">
-    marshalling.inbound.allowed-packages / marshalling.outbound.allowed-packages
+  <a href="#security-notes" class="md-nav__link">
+    Security notes
   </a>
   
 </li>
@@ -520,7 +546,7 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/drasyl-overlay/drasyl/edit/master/docs/content/configuration/marshalling.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/drasyl-overlay/drasyl/edit/master/docs/content/configuration/serialization.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
@@ -528,22 +554,162 @@
                   
                 
                 
-                <h1 id="marshalling">Marshalling<a class="headerlink" href="#marshalling" title="Permanent link">&para;</a></h1>
+                <h1 id="serialization">Serialization<a class="headerlink" href="#serialization" title="Permanent link">&para;</a></h1>
 <p>The messages that drasyl nodes send to each other are JVM objects. Message passing between nodes
-living on the same JVM is straightforward. It is done via reference passing. However, messages that
+living on the same JVM is straightforward: It is done via reference passing. However, messages that
 must leave the JVM to reach a node running on a different host must go through some form of
 serialization (i.e., the objects must be converted to and from byte arrays).</p>
-<p>drasyl can (un-) marshall given objects using <a href="https://github.com/FasterXML/jackson">Jackson</a>. To
-prevent security risks through unrestricted marshalling, types and packages can be defined in the
-config that are handled automatically.</p>
-<div class="admonition info">
-<p class="admonition-title">Info</p>
-<p>Since version 0.3.0, drasyl differs between in- and outbound messages. </p>
-</div>
-<h2 id="marshallinginboundallowed-types-marshallingoutboundallowed-types"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingInboundAllowedTypes(java.util.List)"><code>marshalling.inbound.allowed-types</code></a> / <a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingOutboundAllowedTypes(java.util.List)"><code>marshalling.outbound.allowed-types</code></a><a class="headerlink" href="#marshallinginboundallowed-types-marshallingoutboundallowed-types" title="Permanent link">&para;</a></h2>
-<p>This property is a list of all types that are supported by the codec for the drasyl pipeline.</p>
-<p>With this list, a developer guarantees that all classes are secure and cannot be misused as a
-deserialization gadget in the context of the marshaller. A reckless implementation of a permitted
+<p>The serialization mechanism in drasyl allows you to write custom serializers and to define which
+serializer should be used for what.</p>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<p>In order for drasyl to know which serializer to use for what, you need to edit your configuration:</p>
+<p>In the <code>drasyl.serialization.serializers</code>-section, bind names to implementations of
+<a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/serialization/Serializer.html"><code>Serializer</code></a>
+you want to use, like this:</p>
+<pre class="highlight"><code>drasyl {
+  serialization {
+    serializers {
+      java = "org.drasyl.serialization.JavaSerializer"
+      jackson-json = "org.drasyl.serialization.JacksonJsonSerializer"
+      proto = "org.drasyl.serialization.ProtobufSerializer"
+      myown = "docs.serialization.MyOwnSerializer"
+    }
+  }
+}</code></pre>
+<p>After you’ve bound names to different implementations of
+<a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/serialization/Serializer.html"><code>Serializer</code></a>
+you need to wire which classes should be serialized using which serializer. This is done in
+the <code>drasyl.serialization.bindings.inbound</code>-section for inbound messages and
+<code>drasyl.serialization.bindings.outbound</code>-section for outbound messages:</p>
+<pre class="highlight"><code>drasyl {
+  serialization {
+    serializers {
+      java = "org.drasyl.serialization.JavaSerializer"
+      jackson-json = "org.drasyl.serialization.JacksonJsonSerializer"
+      proto = "org.drasyl.serialization.ProtobufSerializer"
+      myown = "docs.serialization.MyOwnSerializer"
+    }
+
+    bindings {
+        inbound {
+          "[Ljava.lang.String;" = java
+          "docs.serialization.JsonSerializable" = jackson-json
+          "com.google.protobuf.Message" = proto
+          "docs.serialization.MyOwnSerializable" = myown
+        }
+
+        outbound {
+          "[Ljava.lang.String;" = java
+          "docs.serialization.JsonSerializable" = jackson-json
+          "com.google.protobuf.Message" = proto
+          "docs.serialization.MyOwnSerializable" = myown
+        }
+    }
+  }
+}</code></pre>
+<p>You only need to specify the name of an interface or abstract base class of the messages.</p>
+<h2 id="build-in-serializers">Build-in serializers<a class="headerlink" href="#build-in-serializers" title="Permanent link">&para;</a></h2>
+<p>drasyl ships some build-in serializers for the most common object types. Serializers are already
+defined and bound for the most common message types (Java primives, their wrapper classes, strings,
+and byte arrays). On the other hand, some serializers have to be bound manually to the desired
+classes.</p>
+<h3 id="enabled-and-bound-to-the-serializable-classes">Enabled and bound to the serializable classes<a class="headerlink" href="#enabled-and-bound-to-the-serializable-classes" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th align="left">Name</th>
+<th align="left">Class</th>
+<th align="left">Serializable Classes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>primitive-boolean</code></td>
+<td align="left"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/serialization/BooleanSerializer.html"><code>BooleanSerializer</code></a></td>
+<td align="left"><code>Boolean</code>, <code>boolean</code></td>
+</tr>
+<tr>
+<td align="left"><code>primitive-byte</code></td>
+<td align="left"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/serialization/ByteSerializer.html"><code>ByteSerializer</code></a></td>
+<td align="left"><code>Byte</code>, <code>byte</code></td>
+</tr>
+<tr>
+<td align="left"><code>primitive-char</code></td>
+<td align="left"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/serialization/CharacterSerializer.html"><code>CharacterSerializer</code></a></td>
+<td align="left"><code>Character</code>, <code>char</code></td>
+</tr>
+<tr>
+<td align="left"><code>primitive-float</code></td>
+<td align="left"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/serialization/FloatSerializer.html"><code>FloatSerializer</code></a></td>
+<td align="left"><code>Float</code>, <code>float</code></td>
+</tr>
+<tr>
+<td align="left"><code>primitive-int</code></td>
+<td align="left"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/serialization/IntegerSerializer.html"><code>IntegerSerializer</code></a></td>
+<td align="left"><code>Integer</code>, <code>int</code></td>
+</tr>
+<tr>
+<td align="left"><code>primitive-long</code></td>
+<td align="left"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/serialization/LongSerializer.html"><code>LongSerializer</code></a></td>
+<td align="left"><code>Long</code>, <code>long</code></td>
+</tr>
+<tr>
+<td align="left"><code>primitive-short</code></td>
+<td align="left"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/serialization/ShortSerializer.html"><code>ShortSerializer</code></a></td>
+<td align="left"><code>Short</code>, <code>short</code></td>
+</tr>
+<tr>
+<td align="left"><code>bytes</code></td>
+<td align="left"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/serialization/ByteArraySerializer.html"><code>ByteArraySerializer</code></a></td>
+<td align="left"><code>byte[]</code></td>
+</tr>
+<tr>
+<td align="left"><code>string</code></td>
+<td align="left"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/serialization/StringSerializer.html"><code>StringSerializer</code></a></td>
+<td align="left"><code>String</code></td>
+</tr>
+</tbody>
+</table>
+<p>So if you only send object types that are included in this table, you don't need to configure
+anything!</p>
+<h3 id="enabled-and-must-be-manually-bound">Enabled and must be manually bound<a class="headerlink" href="#enabled-and-must-be-manually-bound" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th align="left">Name</th>
+<th align="left">Class</th>
+<th align="left">Serializable Classes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>java</code></td>
+<td align="left"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/serialization/JavaSerializer.html"><code>JavaSerializer</code></a></td>
+<td align="left"><a href="https://docs.oracle.com/javase/7/docs/api/java/io/Serializable.html"><code>Serializable</code></a></td>
+</tr>
+<tr>
+<td align="left"><code>jackson-json</code></td>
+<td align="left"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/serialization/JacksonJsonSerializer.html"><code>JacksonJsonSerializer</code></a></td>
+<td align="left">all Jackson-compatible classes</td>
+</tr>
+<tr>
+<td align="left"><code>proto</code></td>
+<td align="left"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/serialization/ProtobufSerializer.html"><code>ProtobufSerializer</code></a></td>
+<td align="left">Protobuf <a href="https://developers.google.com/protocol-buffers/docs/reference/java/com/google/protobuf/Message"><code>Message</code></a></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><a href="https://github.com/FasterXML/jackson">Serialization with Jackson</a> is a good choice in many cases
+  and our recommendation if you don’t have other preferences.</li>
+<li><a href="https://developers.google.com/protocol-buffers">Google Protocol Buffers</a> is good if you want more
+  control over the schema evolution of your messages, but it requires more work to develop and
+  maintain the mapping between serialized representation and domain representation.</li>
+</ul>
+<p>Before binding arbitrary classes to a Serializer, please read the security notes below.</p>
+<h2 id="security-notes">Security notes<a class="headerlink" href="#security-notes" title="Permanent link">&para;</a></h2>
+<p>With this configuration, a developer guarantees that all classes are secure and cannot be misused as
+a deserialization gadget in the context of the Serializer. A reckless implementation of a permitted
 class can leave the entire application and all executing machines vulnerable to remote code
 execution.</p>
 <div class="admonition important">
@@ -564,39 +730,6 @@ An attacker can choose the URL arbitrarily. By calling getConnection, Server Sid
 <li><a href="https://frohoff.github.io/appseccali-marshalling-pickles/">Marshalling Pickles by Chris Frohoff and Garbriel Lawrence</a></li>
 </ul>
 </div>
-<p>By default, this list contains the types <code>java.lang.String</code> and <code>java.lang.Number</code>. 
-If you set this property in your configuration, all existing entries will be removed.
-Therefore, make sure that you re-add these types to the list if needed.</p>
-<h2 id="marshallinginboundallow-all-primitives-marshallingoutboundallow-all-primitives"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingInboundAllowAllPrimitives(boolean)"><code>marshalling.inbound.allow-all-primitives</code></a> / <a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingOutboundAllowAllPrimitives(boolean)"><code>marshalling.outbound.allow-all-primitives</code></a><a class="headerlink" href="#marshallinginboundallow-all-primitives-marshallingoutboundallow-all-primitives" title="Permanent link">&para;</a></h2>
-<p>Whether Java's primitive data types should automatically be allowed. If this setting is activated, drasyl automatically (de-)serializes the types: </p>
-<ul>
-<li><code>java.lang.Boolean</code></li>
-<li><code>java.lang.Character</code></li>
-<li><code>java.lang.Byte</code></li>
-<li><code>java.lang.Short</code></li>
-<li><code>java.lang.Integer</code></li>
-<li><code>java.lang.Long</code></li>
-<li><code>java.lang.Float</code></li>
-<li><code>java.lang.Double</code></li>
-<li><code>java.lang.Void</code></li>
-<li><code>java.lang.Boolean#TYPE</code></li>
-<li><code>java.lang.Character#TYPE</code></li>
-<li><code>java.lang.Byte#TYPE</code></li>
-<li><code>java.lang.Short#TYPE</code></li>
-<li><code>java.lang.Integer#TYPE</code></li>
-<li><code>java.lang.Long#TYPE</code></li>
-<li><code>java.lang.Float#TYPE</code></li>
-<li><code>java.lang.Double#TYPE</code></li>
-<li><code>java.lang.Void#TYPE</code></li>
-</ul>
-<h2 id="marshallinginboundallow-array-of-defined-types-marshallingoutboundallow-array-of-defined-types"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingOutboundAllowArrayOfDefinedTypes(boolean)"><code>marshalling.inbound.allow-array-of-defined-types</code></a> / <a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingOutboundAllowArrayOfDefinedTypes(boolean)"><code>marshalling.outbound.allow-array-of-defined-types</code></a><a class="headerlink" href="#marshallinginboundallow-array-of-defined-types-marshallingoutboundallow-array-of-defined-types" title="Permanent link">&para;</a></h2>
-<p>Whether of all allowed data types their array representations should be allowed automatically.</p>
-<h2 id="marshallinginboundallowed-packages-marshallingoutboundallowed-packages"><a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingInboundAllowedPackages(java.util.List)"><code>marshalling.inbound.allowed-packages</code></a> / <a href="https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/org/drasyl/DrasylConfig.Builder.html#marshallingOutboundAllowedPackages(java.util.List)"><code>marshalling.outbound.allowed-packages</code></a><a class="headerlink" href="#marshallinginboundallowed-packages-marshallingoutboundallowed-packages" title="Permanent link">&para;</a></h2>
-<p>A list of all packages whose classes automatically supported by the default codec of drasyl.</p>
-<div class="admonition danger">
-<p class="admonition-title">Attention</p>
-<p>This setting should only be used in absolute exceptions. All classes in the given package are accepted by the standard codec and will try to (de-)serialize. If there is even one insecure implementation in the package, the whole application is vulnerable.</p>
-</div>
                 
                   
                     
@@ -605,7 +738,7 @@ Therefore, make sure that you re-add these types to the list if needed.</p>
 <div class="md-source-date">
   <small>
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 1, 2021</span>
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 2, 2021</span>
     
   </small>
 </div>
