@@ -73,7 +73,7 @@ import static org.drasyl.util.RandomUtil.randomLong;
  * nodes. If the file system does not support monitoring ({@link WatchService}), a fallback to
  * polling is used.
  * <p>
- * Inspired by: <a href="https://github.com/actoron/jadex/blob/10e464b230d7695dfd9bf2b36f736f93d69ee314/platform/base/src/main/java/jadex/platform/service/awareness/LocalHostAwarenessAgent.java">Jadex</>
+ * Inspired by: <a href="https://github.com/actoron/jadex/blob/10e464b230d7695dfd9bf2b36f736f93d69ee314/platform/base/src/main/java/jadex/platform/service/awareness/LocalHostAwarenessAgent.java">Jadex</a>
  */
 @SuppressWarnings("java:S1192")
 public class LocalHostDiscovery extends SimpleOutboundHandler<SerializedApplicationMessage, CompressedPublicKey> {
