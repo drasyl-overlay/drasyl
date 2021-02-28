@@ -16,8 +16,24 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with drasyl.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.drasyl.util.logging;
 
 /**
- * Logging API (for internal use only).
+ * Logger factory which creates a
+ * <a href="https://docs.oracle.com/javase/7/docs/technotes/guides/logging/">java.util.logging</a>
+ * logger.
+ *
+ * @see JdkLogger
  */
-package org.drasyl.util.logging;
+public final class JdkLoggerFactory extends LoggerFactory {
+    public static final LoggerFactory INSTANCE = new JdkLoggerFactory();
+
+    private JdkLoggerFactory() {
+        // singleton
+    }
+
+    @Override
+    protected Logger newLogger(final String name) {
+        return new JdkLogger(java.util.logging.Logger.getLogger(name));
+    }
+}

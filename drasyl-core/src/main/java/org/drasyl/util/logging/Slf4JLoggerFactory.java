@@ -16,8 +16,24 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with drasyl.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.drasyl.util.logging;
+
+import org.slf4j.helpers.NOPLoggerFactory;
 
 /**
- * Logging API (for internal use only).
+ * Logger factory which creates a <a href="https://www.slf4j.org/">SLF4J</a> logger.
+ *
+ * @see Slf4JLogger
  */
-package org.drasyl.util.logging;
+public final class Slf4JLoggerFactory extends LoggerFactory {
+    public Slf4JLoggerFactory() {
+        if (org.slf4j.LoggerFactory.getILoggerFactory() instanceof NOPLoggerFactory) {
+            throw new NoClassDefFoundError("NOPLoggerFactory not supported");
+        }
+    }
+
+    @Override
+    protected Logger newLogger(final String name) {
+        return new Slf4JLogger(org.slf4j.LoggerFactory.getLogger(name));
+    }
+}
