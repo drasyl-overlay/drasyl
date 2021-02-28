@@ -24,6 +24,7 @@ import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.influx.InfluxConfig;
 import io.micrometer.influx.InfluxMeterRegistry;
+import org.drasyl.annotation.NonNull;
 import org.drasyl.event.Event;
 import org.drasyl.event.NodeDownEvent;
 import org.drasyl.event.NodeUnrecoverableErrorEvent;
@@ -34,7 +35,6 @@ import org.drasyl.pipeline.skeleton.SimpleDuplexHandler;
 import org.drasyl.util.NetworkUtil;
 import org.drasyl.util.logging.Logger;
 import org.drasyl.util.logging.LoggerFactory;
-import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -168,7 +168,8 @@ public class Monitoring extends SimpleDuplexHandler<Object, Object, Address> {
         }
 
         @Override
-        public @NotNull String uri() {
+        @NonNull
+        public String uri() {
             return ctx.config().getMonitoringInfluxUri().toString();
         }
 
@@ -183,7 +184,8 @@ public class Monitoring extends SimpleDuplexHandler<Object, Object, Address> {
         }
 
         @Override
-        public @NotNull String db() {
+        @NonNull
+        public String db() {
             return ctx.config().getMonitoringInfluxDatabase();
         }
 
@@ -193,12 +195,13 @@ public class Monitoring extends SimpleDuplexHandler<Object, Object, Address> {
         }
 
         @Override
-        public @NotNull Duration step() {
+        @NonNull
+        public Duration step() {
             return ctx.config().getMonitoringInfluxReportingFrequency();
         }
 
         @Override
-        public String get(final @NotNull String key) {
+        public String get(final @NonNull String key) {
             return null;
         }
     }

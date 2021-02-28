@@ -120,14 +120,12 @@
         <netty.version>4.1.59.Final</netty.version>
         <guava.version>30.1-jre</guava.version>
         <rxjava.version>3.0.10</rxjava.version>
-        <commons.version>4.4</commons.version>
         <micrometer.version>1.6.4</micrometer.version>
         <maven.scm>1.11.2</maven.scm>
         <nexus.staging>1.6.8</nexus.staging>
         <slf4j.version>1.7.30</slf4j.version>
         <typesafe.config.version>1.4.1</typesafe.config.version>
         <jetbrains.annotations.version>20.1.0</jetbrains.annotations.version>
-        <commons-codec.version>1.15</commons-codec.version>
         <json-unit-assertj.version>2.24.0</json-unit-assertj.version>
         <commons-cli.version>1.4</commons-cli.version>
         <protobuf.version>3.15.1</protobuf.version>
@@ -244,22 +242,7 @@
             </dependency>
 
             <!-- Apache Commons -->
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-collections4</artifactId>
-                <version>${commons.version}</version>
-            </dependency>
 
-            <dependency>
-                <groupId>org.jetbrains</groupId>
-                <artifactId>annotations</artifactId>
-                <version>${jetbrains.annotations.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-codec</groupId>
-                <artifactId>commons-codec</artifactId>
-                <version>${commons-codec.version}</version>
-            </dependency>
             <dependency>
                 <groupId>net.javacrumbs.json-unit</groupId>
                 <artifactId>json-unit-assertj</artifactId>
@@ -470,6 +453,7 @@
                     <!-- Currently not supported by JUnit5: https://github.com/junit-team/junit5/issues/1424#issuecomment-390313944 -->
                     <!--<parallel>all</parallel>-->
                     <!-- Sets the VM argument line used when unit tests are run. -->
+                    <!--suppress MavenModelInspection -->
                     <argLine>-Dio.netty.leakDetectionLevel=PARANOID ${surefireArgLine}</argLine>
                     <runOrder>random</runOrder>
                 </configuration>
@@ -614,6 +598,7 @@
                             <dependency>
                                 <groupId>org.apache.maven.scm</groupId>
                                 <artifactId>maven-scm-provider-gitexe</artifactId>
+                                <!--suppress MavenModelInspection -->
                                 <version>1.11.2</version>
                             </dependency>
                         </dependencies>

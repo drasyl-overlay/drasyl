@@ -22,13 +22,13 @@ import io.netty.util.internal.SystemPropertyUtil;
 import org.drasyl.DrasylConfig;
 import org.drasyl.DrasylException;
 import org.drasyl.DrasylNode;
+import org.drasyl.annotation.NonNull;
 import org.drasyl.event.Event;
 import org.drasyl.event.NodeNormalTerminationEvent;
 import org.drasyl.event.NodeUnrecoverableErrorEvent;
 import org.drasyl.event.NodeUpEvent;
 import org.drasyl.identity.Identity;
 import org.drasyl.util.RandomUtil;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -97,7 +97,7 @@ public class StartNodes {
                                 .build();
                         final DrasylNode node = new DrasylNode(config) {
                             @Override
-                            public void onEvent(final @NotNull Event event) {
+                            public void onEvent(final @NonNull Event event) {
                                 if (event instanceof NodeUpEvent || event instanceof NodeNormalTerminationEvent) {
                                     System.out.println(event);
                                 }
