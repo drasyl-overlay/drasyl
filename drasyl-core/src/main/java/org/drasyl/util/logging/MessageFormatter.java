@@ -103,6 +103,7 @@ final class MessageFormatter {
     private static final char ESCAPE_CHAR = '\\';
 
     private MessageFormatter() {
+        // util class
     }
 
     /**

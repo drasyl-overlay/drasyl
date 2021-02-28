@@ -34,114 +34,122 @@
  */
 package org.drasyl.util.logging;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.drasyl.util.logging.MessageFormatter.arrayFormat;
+import static org.drasyl.util.logging.MessageFormatter.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
+@ExtendWith(MockitoExtension.class)
 class MessageFormatterTest {
+    @Nested
+    class Format {
+    }
+
+    @Nested
+    class ArrayFormat {
+        @Test
+        void whenArrayIsEmpty() {
+            assertEquals(new FormattingTuple("No value."), arrayFormat("No value.", new Object[]{}));
+        }
+
+        @Test
+        void whenPatternIsNullAndThrowableLastArgument(@Mock final Throwable throwable) {
+            assertEquals(new FormattingTuple(null, throwable), arrayFormat(null, new Object[]{
+                    throwable
+            }));
+        }
+
+        @Test
+        void whenPatternIsSimpleString(@Mock final Object arg) {
+            assertEquals(new FormattingTuple("No value.", null), arrayFormat("No value.", new Object[]{
+                    arg
+            }));
+        }
+
+        @Test
+        void whenPatternContainEscapedPlaceholder() {
+            assertEquals(new FormattingTuple("Escaped {} subst"), arrayFormat("Escaped \\{} subst", new Object[]{}));
+        }
+    }
+
     @Test
     void testNull() {
-        final String result = MessageFormatter.format(null, 1).getMessage();
-        assertNull(result);
+        assertEquals(new FormattingTuple(null), format(null, 1));
     }
 
     @Test
     void nullParametersShouldBeHandledWithoutBarfing() {
-        String result = MessageFormatter.format("Value is {}.", null).getMessage();
-        assertEquals("Value is null.", result);
+        assertEquals(new FormattingTuple("Value is null."), format("Value is {}.", null));
 
-        result = MessageFormatter.format("Val1 is {}, val2 is {}.", null, null).getMessage();
-        assertEquals("Val1 is null, val2 is null.", result);
+        assertEquals(new FormattingTuple("Val1 is null, val2 is null."), format("Val1 is {}, val2 is {}.", null, null));
 
-        result = MessageFormatter.format("Val1 is {}, val2 is {}.", 1, null).getMessage();
-        assertEquals("Val1 is 1, val2 is null.", result);
+        assertEquals(new FormattingTuple("Val1 is 1, val2 is null."), format("Val1 is {}, val2 is {}.", 1, null));
 
-        result = MessageFormatter.format("Val1 is {}, val2 is {}.", null, 2).getMessage();
-        assertEquals("Val1 is null, val2 is 2.", result);
+        assertEquals(new FormattingTuple("Val1 is null, val2 is 2."), format("Val1 is {}, val2 is {}.", null, 2));
 
-        result = MessageFormatter.arrayFormat(
-                "Val1 is {}, val2 is {}, val3 is {}", new Integer[]{
-                        null,
-                        null,
-                        null
-                }).getMessage();
-        assertEquals("Val1 is null, val2 is null, val3 is null", result);
+        assertEquals(new FormattingTuple("Val1 is null, val2 is null, val3 is null"), arrayFormat("Val1 is {}, val2 is {}, val3 is {}", new Integer[]{
+                null,
+                null,
+                null
+        }));
 
-        result = MessageFormatter.arrayFormat(
-                "Val1 is {}, val2 is {}, val3 is {}", new Integer[]{ null, 2, 3 }).getMessage();
-        assertEquals("Val1 is null, val2 is 2, val3 is 3", result);
+        assertEquals(new FormattingTuple("Val1 is null, val2 is 2, val3 is 3"), arrayFormat(
+                "Val1 is {}, val2 is {}, val3 is {}", new Integer[]{ null, 2, 3 }));
 
-        result = MessageFormatter.arrayFormat(
-                "Val1 is {}, val2 is {}, val3 is {}", new Integer[]{ null, null, 3 }).getMessage();
-        assertEquals("Val1 is null, val2 is null, val3 is 3", result);
+        assertEquals(new FormattingTuple("Val1 is null, val2 is null, val3 is 3"), arrayFormat(
+                "Val1 is {}, val2 is {}, val3 is {}", new Integer[]{ null, null, 3 }));
     }
 
     @Test
     void verifyOneParameterIsHandledCorrectly() {
-        String result = MessageFormatter.format("Value is {}.", 3).getMessage();
-        assertEquals("Value is 3.", result);
+        assertEquals(new FormattingTuple("Value is 3."), format("Value is {}.", 3));
 
-        result = MessageFormatter.format("Value is {", 3).getMessage();
-        assertEquals("Value is {", result);
+        assertEquals(new FormattingTuple("Value is {"), format("Value is {", 3));
 
-        result = MessageFormatter.format("{} is larger than 2.", 3).getMessage();
-        assertEquals("3 is larger than 2.", result);
+        assertEquals(new FormattingTuple("3 is larger than 2."), format("{} is larger than 2.", 3));
 
-        result = MessageFormatter.format("No subst", 3).getMessage();
-        assertEquals("No subst", result);
+        assertEquals(new FormattingTuple("No subst"), format("No subst", 3));
 
-        result = MessageFormatter.format("Incorrect {subst", 3).getMessage();
-        assertEquals("Incorrect {subst", result);
+        assertEquals(new FormattingTuple("Incorrect {subst"), format("Incorrect {subst", 3));
 
-        result = MessageFormatter.format("Value is {bla} {}", 3).getMessage();
-        assertEquals("Value is {bla} 3", result);
+        assertEquals(new FormattingTuple("Value is {bla} 3"), format("Value is {bla} {}", 3));
 
-        result = MessageFormatter.format("Escaped \\{} subst", 3).getMessage();
-        assertEquals("Escaped {} subst", result);
+        assertEquals(new FormattingTuple("Escaped {} subst"), format("Escaped \\{} subst", 3));
 
-        result = MessageFormatter.format("{Escaped", 3).getMessage();
-        assertEquals("{Escaped", result);
+        assertEquals(new FormattingTuple("{Escaped"), format("{Escaped", 3));
 
-        result = MessageFormatter.format("\\{}Escaped", 3).getMessage();
-        assertEquals("{}Escaped", result);
+        assertEquals(new FormattingTuple("{}Escaped"), format("\\{}Escaped", 3));
 
-        result = MessageFormatter.format("File name is {{}}.", "App folder.zip").getMessage();
-        assertEquals("File name is {App folder.zip}.", result);
+        assertEquals(new FormattingTuple("File name is {App folder.zip}."), format("File name is {{}}.", "App folder.zip"));
 
         // escaping the escape character
-        result = MessageFormatter.format("File name is C:\\\\{}.", "App folder.zip").getMessage();
-        assertEquals("File name is C:\\App folder.zip.", result);
+        assertEquals(new FormattingTuple("File name is C:\\App folder.zip."), format("File name is C:\\\\{}.", "App folder.zip"));
     }
 
     @Test
     void testTwoParameters() {
-        String result = MessageFormatter.format("Value {} is smaller than {}.", 1, 2).getMessage();
-        assertEquals("Value 1 is smaller than 2.", result);
+        assertEquals(new FormattingTuple("Value 1 is smaller than 2."), format("Value {} is smaller than {}.", 1, 2));
 
-        result = MessageFormatter.format("Value {} is smaller than {}", 1, 2).getMessage();
-        assertEquals("Value 1 is smaller than 2", result);
+        assertEquals(new FormattingTuple("Value 1 is smaller than 2"), format("Value {} is smaller than {}", 1, 2));
 
-        result = MessageFormatter.format("{}{}", 1, 2).getMessage();
-        assertEquals("12", result);
+        assertEquals(new FormattingTuple("12"), format("{}{}", 1, 2));
 
-        result = MessageFormatter.format("Val1={}, Val2={", 1, 2).getMessage();
-        assertEquals("Val1=1, Val2={", result);
+        assertEquals(new FormattingTuple("Val1=1, Val2={"), format("Val1={}, Val2={", 1, 2));
 
-        result = MessageFormatter.format("Value {} is smaller than \\{}", 1, 2).getMessage();
-        assertEquals("Value 1 is smaller than {}", result);
+        assertEquals(new FormattingTuple("Value 1 is smaller than {}"), format("Value {} is smaller than \\{}", 1, 2));
 
-        result = MessageFormatter.format("Value {} is smaller than \\{} tail", 1, 2).getMessage();
-        assertEquals("Value 1 is smaller than {} tail", result);
+        assertEquals(new FormattingTuple("Value 1 is smaller than {} tail"), format("Value {} is smaller than \\{} tail", 1, 2));
 
-        result = MessageFormatter.format("Value {} is smaller than \\{", 1, 2).getMessage();
-        assertEquals("Value 1 is smaller than \\{", result);
+        assertEquals(new FormattingTuple("Value 1 is smaller than \\{"), format("Value {} is smaller than \\{", 1, 2));
 
-        result = MessageFormatter.format("Value {} is smaller than {tail", 1, 2).getMessage();
-        assertEquals("Value 1 is smaller than {tail", result);
+        assertEquals(new FormattingTuple("Value 1 is smaller than {tail"), format("Value {} is smaller than {tail", 1, 2));
 
-        result = MessageFormatter.format("Value \\{} is smaller than {}", 1, 2).getMessage();
-        assertEquals("Value {} is smaller than 1", result);
+        assertEquals(new FormattingTuple("Value {} is smaller than 1"), format("Value \\{} is smaller than {}", 1, 2));
     }
 
     @Test
@@ -152,8 +160,7 @@ class MessageFormatterTest {
                 throw new IllegalStateException("a");
             }
         };
-        final String result = MessageFormatter.format("Troublesome object {}", o).getMessage();
-        assertEquals("Troublesome object [FAILED toString()]", result);
+        assertEquals(new FormattingTuple("Troublesome object [FAILED toString()]"), format("Troublesome object {}", o));
     }
 
     @Test
@@ -165,17 +172,13 @@ class MessageFormatterTest {
 
         final Object[] args = null;
 
-        String result = MessageFormatter.arrayFormat(msg0, args).getMessage();
-        assertEquals(msg0, result);
+        assertEquals(new FormattingTuple(msg0), arrayFormat(msg0, args));
 
-        result = MessageFormatter.arrayFormat(msg1, args).getMessage();
-        assertEquals(msg1, result);
+        assertEquals(new FormattingTuple(msg1), arrayFormat(msg1, args));
 
-        result = MessageFormatter.arrayFormat(msg2, args).getMessage();
-        assertEquals(msg2, result);
+        assertEquals(new FormattingTuple(msg2), arrayFormat(msg2, args));
 
-        result = MessageFormatter.arrayFormat(msg3, args).getMessage();
-        assertEquals(msg3, result);
+        assertEquals(new FormattingTuple(msg3), arrayFormat(msg3, args));
     }
 
     // tests the case when the parameters are supplied in a single array
@@ -183,66 +186,53 @@ class MessageFormatterTest {
     void testArrayFormat() {
         final Integer[] ia0 = { 1, 2, 3 };
 
-        String result = MessageFormatter.arrayFormat("Value {} is smaller than {} and {}.", ia0).getMessage();
-        assertEquals("Value 1 is smaller than 2 and 3.", result);
+        assertEquals(new FormattingTuple("Value 1 is smaller than 2 and 3."), arrayFormat("Value {} is smaller than {} and {}.", ia0));
 
-        result = MessageFormatter.arrayFormat("{}{}{}", ia0).getMessage();
-        assertEquals("123", result);
+        assertEquals(new FormattingTuple("123"), arrayFormat("{}{}{}", ia0));
 
-        result = MessageFormatter.arrayFormat("Value {} is smaller than {}.", ia0).getMessage();
-        assertEquals("Value 1 is smaller than 2.", result);
+        assertEquals(new FormattingTuple("Value 1 is smaller than 2."), arrayFormat("Value {} is smaller than {}.", ia0));
 
-        result = MessageFormatter.arrayFormat("Value {} is smaller than {}", ia0).getMessage();
-        assertEquals("Value 1 is smaller than 2", result);
+        assertEquals(new FormattingTuple("Value 1 is smaller than 2"), arrayFormat("Value {} is smaller than {}", ia0));
 
-        result = MessageFormatter.arrayFormat("Val={}, {, Val={}", ia0).getMessage();
-        assertEquals("Val=1, {, Val=2", result);
+        assertEquals(new FormattingTuple("Val=1, {, Val=2"), arrayFormat("Val={}, {, Val={}", ia0));
 
-        result = MessageFormatter.arrayFormat("Val={}, {, Val={}", ia0).getMessage();
-        assertEquals("Val=1, {, Val=2", result);
+        assertEquals(new FormattingTuple("Val=1, {, Val=2"), arrayFormat("Val={}, {, Val={}", ia0));
 
-        result = MessageFormatter.arrayFormat("Val1={}, Val2={", ia0).getMessage();
-        assertEquals("Val1=1, Val2={", result);
+        assertEquals(new FormattingTuple("Val1=1, Val2={"), arrayFormat("Val1={}, Val2={", ia0));
     }
 
     @Test
     void testArrayValues() {
         final Integer[] p1 = { 2, 3 };
 
-        String result = MessageFormatter.format("{}{}", 1, p1).getMessage();
-        assertEquals("1[2, 3]", result);
+        assertEquals(new FormattingTuple("1[2, 3]"), format("{}{}", 1, p1));
 
         // Integer[]
-        result = MessageFormatter.arrayFormat("{}{}", new Object[]{ "a", p1 }).getMessage();
-        assertEquals("a[2, 3]", result);
+        assertEquals(new FormattingTuple("a[2, 3]"), arrayFormat("{}{}", new Object[]{ "a", p1 }));
 
         // byte[]
-        result = MessageFormatter.arrayFormat("{}{}", new Object[]{
+        assertEquals(new FormattingTuple("a[1, 2]"), arrayFormat("{}{}", new Object[]{
                 "a",
                 new byte[]{ 1, 2 }
-        }).getMessage();
-        assertEquals("a[1, 2]", result);
+        }));
 
         // int[]
-        result = MessageFormatter.arrayFormat("{}{}", new Object[]{
+        assertEquals(new FormattingTuple("a[1, 2]"), arrayFormat("{}{}", new Object[]{
                 "a",
                 new int[]{ 1, 2 }
-        }).getMessage();
-        assertEquals("a[1, 2]", result);
+        }));
 
         // float[]
-        result = MessageFormatter.arrayFormat("{}{}", new Object[]{
+        assertEquals(new FormattingTuple("a[1.0, 2.0]"), arrayFormat("{}{}", new Object[]{
                 "a",
                 new float[]{ 1, 2 }
-        }).getMessage();
-        assertEquals("a[1.0, 2.0]", result);
+        }));
 
         // double[]
-        result = MessageFormatter.arrayFormat("{}{}", new Object[]{
+        assertEquals(new FormattingTuple("a[1.0, 2.0]"), arrayFormat("{}{}", new Object[]{
                 "a",
                 new double[]{ 1, 2 }
-        }).getMessage();
-        assertEquals("a[1.0, 2.0]", result);
+        }));
     }
 
     @Test
@@ -251,53 +241,56 @@ class MessageFormatterTest {
         final Integer[] ia1 = { 10, 20, 30 };
 
         final Integer[][] multiIntegerA = { ia0, ia1 };
-        String result = MessageFormatter.arrayFormat("{}{}", new Object[]{
+        assertEquals(new FormattingTuple("a[[1, 2, 3], [10, 20, 30]]"), arrayFormat("{}{}", new Object[]{
                 "a",
                 multiIntegerA
-        }).getMessage();
-        assertEquals("a[[1, 2, 3], [10, 20, 30]]", result);
+        }));
 
         final int[][] multiIntA = { { 1, 2 }, { 10, 20 } };
-        result = MessageFormatter.arrayFormat("{}{}", new Object[]{ "a", multiIntA }).getMessage();
-        assertEquals("a[[1, 2], [10, 20]]", result);
+        assertEquals(new FormattingTuple("a[[1, 2], [10, 20]]"), arrayFormat("{}{}", new Object[]{
+                "a",
+                multiIntA
+        }));
 
         final float[][] multiFloatA = { { 1, 2 }, { 10, 20 } };
-        result = MessageFormatter.arrayFormat("{}{}", new Object[]{
+        assertEquals(new FormattingTuple("a[[1.0, 2.0], [10.0, 20.0]]"), arrayFormat("{}{}", new Object[]{
                 "a",
                 multiFloatA
-        }).getMessage();
-        assertEquals("a[[1.0, 2.0], [10.0, 20.0]]", result);
+        }));
 
         final Object[][] multiOA = { ia0, ia1 };
-        result = MessageFormatter.arrayFormat("{}{}", new Object[]{ "a", multiOA }).getMessage();
-        assertEquals("a[[1, 2, 3], [10, 20, 30]]", result);
+        assertEquals(new FormattingTuple("a[[1, 2, 3], [10, 20, 30]]"), arrayFormat("{}{}", new Object[]{
+                "a",
+                multiOA
+        }));
 
         final Object[][][] _3DOA = { multiOA, multiOA };
-        result = MessageFormatter.arrayFormat("{}{}", new Object[]{ "a", _3DOA }).getMessage();
-        assertEquals("a[[[1, 2, 3], [10, 20, 30]], [[1, 2, 3], [10, 20, 30]]]", result);
+        assertEquals(new FormattingTuple("a[[[1, 2, 3], [10, 20, 30]], [[1, 2, 3], [10, 20, 30]]]"), arrayFormat("{}{}", new Object[]{
+                "a",
+                _3DOA
+        }));
 
         final Byte[] ba0 = { 0, Byte.MAX_VALUE, Byte.MIN_VALUE };
         final Short[] sa0 = { 0, Short.MIN_VALUE, Short.MAX_VALUE };
-        result = MessageFormatter.arrayFormat("{}\\{}{}", new Object[]{
+        assertEquals(new FormattingTuple("[[0, 127, -128], [0, -32768, 32767]]{}[10, 20, 30]"), arrayFormat("{}\\{}{}", new Object[]{
                 new Object[]{ ba0, sa0 },
                 ia1
-        }).getMessage();
-        assertEquals("[[0, 127, -128], [0, -32768, 32767]]{}[10, 20, 30]", result);
+        }));
     }
 
     @Test
     void testCyclicArrays() {
         final Object[] cyclicA = new Object[1];
         cyclicA[0] = cyclicA;
-        assertEquals("[[...]]", MessageFormatter.arrayFormat("{}", cyclicA).getMessage());
+        assertEquals(new FormattingTuple("[[...]]"), arrayFormat("{}", cyclicA));
 
         final Object[] a = new Object[2];
         a[0] = 1;
         final Object[] c = { 3, a };
         final Object[] b = { 2, c };
         a[1] = b;
-        assertEquals("1[2, [3, [1, [...]]]]",
-                MessageFormatter.arrayFormat("{}{}", a).getMessage());
+        assertEquals(new FormattingTuple("1[2, [3, [1, [...]]]]"),
+                arrayFormat("{}{}", a));
     }
 
     @Test
@@ -306,40 +299,22 @@ class MessageFormatterTest {
         final Throwable t = new Throwable();
         final Object[] ia = { 1, 2, 3, t };
 
-        ft = MessageFormatter.arrayFormat("Value {} is smaller than {} and {}.", ia);
-        assertEquals("Value 1 is smaller than 2 and 3.", ft.getMessage());
-        assertEquals(t, ft.getThrowable());
+        assertEquals(new FormattingTuple("Value 1 is smaller than 2 and 3.", t), arrayFormat("Value {} is smaller than {} and {}.", ia));
 
-        ft = MessageFormatter.arrayFormat("{}{}{}", ia);
-        assertEquals("123", ft.getMessage());
-        assertEquals(t, ft.getThrowable());
+        assertEquals(new FormattingTuple("123", t), arrayFormat("{}{}{}", ia));
 
-        ft = MessageFormatter.arrayFormat("Value {} is smaller than {}.", ia);
-        assertEquals("Value 1 is smaller than 2.", ft.getMessage());
-        assertEquals(t, ft.getThrowable());
+        assertEquals(new FormattingTuple("Value 1 is smaller than 2.", t), arrayFormat("Value {} is smaller than {}.", ia));
 
-        ft = MessageFormatter.arrayFormat("Value {} is smaller than {}", ia);
-        assertEquals("Value 1 is smaller than 2", ft.getMessage());
-        assertEquals(t, ft.getThrowable());
+        assertEquals(new FormattingTuple("Value 1 is smaller than 2", t), arrayFormat("Value {} is smaller than {}", ia));
 
-        ft = MessageFormatter.arrayFormat("Val={}, {, Val={}", ia);
-        assertEquals("Val=1, {, Val=2", ft.getMessage());
-        assertEquals(t, ft.getThrowable());
+        assertEquals(new FormattingTuple("Val=1, {, Val=2", t), arrayFormat("Val={}, {, Val={}", ia));
 
-        ft = MessageFormatter.arrayFormat("Val={}, \\{, Val={}", ia);
-        assertEquals("Val=1, \\{, Val=2", ft.getMessage());
-        assertEquals(t, ft.getThrowable());
+        assertEquals(new FormattingTuple("Val=1, \\{, Val=2", t), arrayFormat("Val={}, \\{, Val={}", ia));
 
-        ft = MessageFormatter.arrayFormat("Val1={}, Val2={", ia);
-        assertEquals("Val1=1, Val2={", ft.getMessage());
-        assertEquals(t, ft.getThrowable());
+        assertEquals(new FormattingTuple("Val1=1, Val2={", t), arrayFormat("Val1={}, Val2={", ia));
 
-        ft = MessageFormatter.arrayFormat("Value {} is smaller than {} and {}.", ia);
-        assertEquals("Value 1 is smaller than 2 and 3.", ft.getMessage());
-        assertEquals(t, ft.getThrowable());
+        assertEquals(new FormattingTuple("Value 1 is smaller than 2 and 3.", t), arrayFormat("Value {} is smaller than {} and {}.", ia));
 
-        ft = MessageFormatter.arrayFormat("{}{}{}{}", ia);
-        assertEquals("123java.lang.Throwable", ft.getMessage());
-        assertNull(ft.getThrowable());
+        assertEquals(new FormattingTuple("123java.lang.Throwable", null), arrayFormat("{}{}{}{}", ia));
     }
 }
