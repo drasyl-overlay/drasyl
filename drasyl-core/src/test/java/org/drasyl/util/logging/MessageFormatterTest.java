@@ -34,10 +34,8 @@
  */
 package org.drasyl.util.logging;
 
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.drasyl.util.logging.MessageFormatter.arrayFormat;
@@ -46,37 +44,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
 class MessageFormatterTest {
-    @Nested
-    class Format {
-    }
-
-    @Nested
-    class ArrayFormat {
-        @Test
-        void whenArrayIsEmpty() {
-            assertEquals(new FormattingTuple("No value."), arrayFormat("No value.", new Object[]{}));
-        }
-
-        @Test
-        void whenPatternIsNullAndThrowableLastArgument(@Mock final Throwable throwable) {
-            assertEquals(new FormattingTuple(null, throwable), arrayFormat(null, new Object[]{
-                    throwable
-            }));
-        }
-
-        @Test
-        void whenPatternIsSimpleString(@Mock final Object arg) {
-            assertEquals(new FormattingTuple("No value.", null), arrayFormat("No value.", new Object[]{
-                    arg
-            }));
-        }
-
-        @Test
-        void whenPatternContainEscapedPlaceholder() {
-            assertEquals(new FormattingTuple("Escaped {} subst"), arrayFormat("Escaped \\{} subst", new Object[]{}));
-        }
-    }
-
     @Test
     void testNull() {
         assertEquals(new FormattingTuple(null), format(null, 1));
@@ -188,6 +155,10 @@ class MessageFormatterTest {
 
         assertEquals(new FormattingTuple("Value 1 is smaller than 2 and 3."), arrayFormat("Value {} is smaller than {} and {}.", ia0));
 
+        assertEquals(new FormattingTuple("Value 1.0 is smaller than 2.0 and 3.0."), arrayFormat("Value {} is smaller than {} and {}.", new Float[] { 1F, 2F, 3F, }));
+
+        assertEquals(new FormattingTuple("Value 1.0 is smaller than 2.0 and 3.0."), arrayFormat("Value {} is smaller than {} and {}.", new Double[] { 1.0, 2.0, 3.0, }));
+
         assertEquals(new FormattingTuple("123"), arrayFormat("{}{}{}", ia0));
 
         assertEquals(new FormattingTuple("Value 1 is smaller than 2."), arrayFormat("Value {} is smaller than {}.", ia0));
@@ -210,16 +181,40 @@ class MessageFormatterTest {
         // Integer[]
         assertEquals(new FormattingTuple("a[2, 3]"), arrayFormat("{}{}", new Object[]{ "a", p1 }));
 
+        // boolean[]
+        assertEquals(new FormattingTuple("a[false, true]"), arrayFormat("{}{}", new Object[]{
+                "a",
+                new boolean[]{ false, true }
+        }));
+
         // byte[]
         assertEquals(new FormattingTuple("a[1, 2]"), arrayFormat("{}{}", new Object[]{
                 "a",
                 new byte[]{ 1, 2 }
         }));
 
+        // char[]
+        assertEquals(new FormattingTuple("a[A, b]"), arrayFormat("{}{}", new Object[]{
+                "a",
+                new char[]{ 'A', 'b' }
+        }));
+
+        // short[]
+        assertEquals(new FormattingTuple("a[1, 2]"), arrayFormat("{}{}", new Object[]{
+                "a",
+                new short[]{ 1, 2 }
+        }));
+
         // int[]
         assertEquals(new FormattingTuple("a[1, 2]"), arrayFormat("{}{}", new Object[]{
                 "a",
                 new int[]{ 1, 2 }
+        }));
+
+        // long[]
+        assertEquals(new FormattingTuple("a[1, 2]"), arrayFormat("{}{}", new Object[]{
+                "a",
+                new long[]{ 1, 2 }
         }));
 
         // float[]
@@ -295,7 +290,6 @@ class MessageFormatterTest {
 
     @Test
     void testArrayThrowable() {
-        FormattingTuple ft;
         final Throwable t = new Throwable();
         final Object[] ia = { 1, 2, 3, t };
 
