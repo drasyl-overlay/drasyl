@@ -28,21 +28,6 @@
         </encoder>
     </appender>
 
-    <!-- Configure the Sentry appender, overriding the logging threshold to the WARN level -->
-    <appender name="Sentry" class="io.sentry.logback.SentryAppender">
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>WARN</level>
-        </filter>
-        <!-- Optionally add an encoder -->
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <!-- hide "Couldn't find a suitable DSN" warning -->
-    <logger name="io.sentry" level="ERROR">
-    </logger>
-
     <logger name="io.netty" level="WARN">
     </logger>
 
@@ -50,6 +35,5 @@
 
     <root level="WARN">
         <appender-ref ref="Console"/>
-        <appender-ref ref="Sentry"/>
     </root>
 </configuration>

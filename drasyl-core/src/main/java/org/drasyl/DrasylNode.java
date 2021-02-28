@@ -19,9 +19,6 @@
 package org.drasyl;
 
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.reactivex.rxjava3.core.Scheduler;
 import org.drasyl.annotation.Beta;
 import org.drasyl.annotation.NonNull;
@@ -58,6 +55,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
+import static org.drasyl.util.NettyUtil.getBestEventLoopGroup;
 import static org.drasyl.util.scheduler.DrasylSchedulerUtil.getInstanceHeavy;
 
 /**
@@ -225,22 +223,6 @@ public abstract class DrasylNode {
     public static void irrevocablyTerminate() {
         if (INSTANCES.isEmpty() && BOSS_GROUP_CREATED) {
             LazyBossGroupHolder.INSTANCE.shutdownGracefully().syncUninterruptibly();
-        }
-    }
-
-    /**
-     * Returns the {@link EventLoopGroup} that fits best to the current environment. Under Linux the
-     * more performant {@link EpollEventLoopGroup} is returned.
-     *
-     * @return {@link EventLoopGroup} that fits best to the current environment
-     */
-    @NonNull
-    public static EventLoopGroup getBestEventLoop(final int poolSize) {
-        if (Epoll.isAvailable()) {
-            return new EpollEventLoopGroup(poolSize);
-        }
-        else {
-            return new NioEventLoopGroup(poolSize);
         }
     }
 
@@ -453,7 +435,7 @@ public abstract class DrasylNode {
 
     private static final class LazyBossGroupHolder {
         // https://github.com/netty/netty/issues/639#issuecomment-9263566
-        static final EventLoopGroup INSTANCE = getBestEventLoop(2);
+        static final EventLoopGroup INSTANCE = getBestEventLoopGroup(2);
 
         private LazyBossGroupHolder() {
         }

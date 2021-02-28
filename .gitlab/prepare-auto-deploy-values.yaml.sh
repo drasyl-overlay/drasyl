@@ -58,10 +58,6 @@ podEnv:
     value: "$DRASYL_MONITORING_PASSWORD"
   - name: CONFIG_FORCE_drasyl_monitoring_influx_reporting__frequency
     value: 10s
-  - name: SENTRY_DNS
-    value: "$SENTRY_DNS"
-  - name: SENTRY_ENVIRONMENT
-    value: "$CI_ENVIRONMENT_NAME"
   - name: JAVA_OPTS
     value: "$JAVA_OPTS"
 

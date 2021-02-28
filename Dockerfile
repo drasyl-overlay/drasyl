@@ -21,24 +21,11 @@ RUN echo '<configuration>\n\
         </encoder>\n\
     </appender>\n\
 \n\
-    <appender name="Sentry" class="io.sentry.logback.SentryAppender">\n\
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">\n\
-            <level>WARN</level>\n\
-        </filter>\n\
-        <encoder>\n\
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>\n\
-        </encoder>\n\
-    </appender>\n\
-\n\
-    <logger name="io.sentry" level="ERROR">\n\
-    </logger>\n\
-\n\
     <logger name="io.netty" level="WARN">\n\
     </logger>\n\
 \n\
     <root level="WARN">\n\
         <appender-ref ref="Console"/>\n\
-        <appender-ref ref="Sentry"/>\n\
     </root>\n\
 </configuration>' >> /usr/local/share/drasyl/logback.xml
 

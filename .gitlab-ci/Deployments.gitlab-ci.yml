@@ -3,28 +3,6 @@ variables:
   ROLLOUT_STATUS_DISABLED: 1
   AUTO_DEVOPS_DEPLOY_DEBUG: 1
 
-.deploy-base-docker: &deploy-base-docker
-  image: drasyl/drasyl-build-images:docker-18.02-docker-compose-1.19-git-2.15.4
-  script:
-    - sh ./prepare-environment-docker-compose.sh > docker-compose.yml
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - docker-compose pull
-    - docker-compose --project-name ${CI_PROJECT_NAME}-${CI_PROJECT_ID}-${CI_ENVIRONMENT_SLUG} up -d --remove-orphans
-  # We don't need cache for stop a environment
-  cache: {}
-
-.stop-base-docker: &stop-base-docker
-  image: drasyl/drasyl-build-images:docker-18.02-docker-compose-1.19-git-2.15.4
-  before_script:
-    - git clone -n $CI_REPOSITORY_URL $CI_PROJECT_NAME
-    - cd $CI_PROJECT_NAME
-    - git checkout $CI_COMMIT_SHA || git checkout master
-  script:
-    - sh ./prepare-environment-docker-compose.sh > docker-compose.yml
-    - docker-compose --project-name ${CI_PROJECT_NAME}-${CI_PROJECT_ID}-${CI_ENVIRONMENT_SLUG} down
-  # We don't need cache for stop a environment
-  cache: {}
-
 .auto-deploy:
   image: "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v2.0.0"
   dependencies: []
@@ -119,51 +97,3 @@ staging:
   tags:
     - kubernetes
     - staging
-
-production:
-  <<: *deploy-base-docker
-  stage: production
-  variables:
-    APP_IMAGE: "${CI_REGISTRY_IMAGE}:latest"
-    APP_DEPLOY_HOST: "production.${APP_HOST}"
-    PORT: 22527
-    DRASYL_NETWORK_ID: 1
-    DRASYL_PROOF_OF_WORK: 10992904
-    DRASYL_PUBLIC_KEY: 025fff6f625f5dee816d9f8fe43895479aecfda187cb6a3330894a07e698bc5bd8
-    # DRASYL_PRIVATE_KEY is defined securely in GitLab CI/CD Settings
-    SENTRY_ENVIRONMENT: production
-  environment:
-    name: production
-    url: https://$APP_HOST
-    on_stop: stop_production
-  only:
-    - master
-    - /^v\d+\.\d+/
-  when: manual
-  tags:
-    - docker
-    - production
-
-stop_production:
-  <<: *stop-base-docker
-  stage: cleanup
-  variables:
-    GIT_STRATEGY: none
-    APP_IMAGE: "${CI_REGISTRY_IMAGE}:latest"
-    APP_DEPLOY_HOST: "production.${APP_HOST}"
-    PORT: 22527
-    SENTRY_ENVIRONMENT: production
-    DRASYL_NETWORK_ID: 1
-    DRASYL_PROOF_OF_WORK: 10992904
-    DRASYL_PUBLIC_KEY: 025fff6f625f5dee816d9f8fe43895479aecfda187cb6a3330894a07e698bc5bd8
-    # DRASYL_PRIVATE_KEY is defined securely in GitLab CI/CD Settings
-  only:
-    - master
-    - /^v\d+\.\d+/
-  when: manual
-  environment:
-    name: production
-    action: stop
-  tags:
-    - docker
-    - production

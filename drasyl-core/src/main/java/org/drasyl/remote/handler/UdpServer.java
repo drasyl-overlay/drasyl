@@ -26,11 +26,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollDatagramChannel;
-import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.DatagramPacket;
-import io.netty.channel.socket.nio.NioDatagramChannel;
 import org.drasyl.DrasylConfig;
 import org.drasyl.event.Event;
 import org.drasyl.event.Node;
@@ -56,6 +52,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.requireNonNull;
+import static org.drasyl.util.NettyUtil.getBestDatagramChannel;
 import static org.drasyl.util.NetworkUtil.MAX_PORT_NUMBER;
 import static org.drasyl.util.NetworkUtil.getAddresses;
 
@@ -72,7 +70,7 @@ public class UdpServer extends SimpleOutboundHandler<AddressedByteBuf, InetSocke
 
     UdpServer(final Bootstrap bootstrap,
               final Channel channel) {
-        this.bootstrap = bootstrap;
+        this.bootstrap = requireNonNull(bootstrap);
         this.channel = channel;
     }
 
@@ -84,21 +82,6 @@ public class UdpServer extends SimpleOutboundHandler<AddressedByteBuf, InetSocke
                         .option(ChannelOption.SO_BROADCAST, false),
                 null
         );
-    }
-
-    /**
-     * Returns the {@link DatagramChannel} that fits best to the current environment. Under Linux
-     * the more performant {@link EpollDatagramChannel} is returned.
-     *
-     * @return {@link DatagramChannel} that fits best to the current environment
-     */
-    static Class<? extends DatagramChannel> getBestDatagramChannel() {
-        if (Epoll.isAvailable()) {
-            return EpollDatagramChannel.class;
-        }
-        else {
-            return NioDatagramChannel.class;
-        }
     }
 
     static Set<Endpoint> determineActualEndpoints(final Identity identity,

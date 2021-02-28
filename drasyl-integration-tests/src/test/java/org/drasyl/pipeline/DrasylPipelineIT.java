@@ -51,7 +51,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.IntStream;
 
-import static org.drasyl.DrasylNode.getBestEventLoop;
+import static org.drasyl.util.NettyUtil.getBestEventLoopGroup;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -93,7 +93,7 @@ class DrasylPipelineIT {
                 .build();
 
         final PeersManager peersManager = new PeersManager(receivedEvents::onNext, identity1);
-        pipeline = new DrasylPipeline(receivedEvents::onNext, config, identity1, peersManager, getBestEventLoop(2));
+        pipeline = new DrasylPipeline(receivedEvents::onNext, config, identity1, peersManager, getBestEventLoopGroup(2));
         pipeline.addFirst("outboundMessages", new SimpleOutboundHandler<>() {
             @Override
             protected void matchedWrite(final HandlerContext ctx,

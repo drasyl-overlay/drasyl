@@ -54,8 +54,6 @@ services:
       CONFIG_FORCE_drasyl_monitoring_influx_user: drasyl
       CONFIG_FORCE_drasyl_monitoring_influx_password: $DRASYL_MONITORING_PASSWORD
       CONFIG_FORCE_drasyl_monitoring_influx_reporting__frequency: 10s
-      SENTRY_DNS: ${SENTRY_DNS}
-      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT}
       JAVA_OPTS: ${JAVA_OPTS}
     ports:
       - "${PORT}:22527/udp"

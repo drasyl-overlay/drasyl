@@ -46,10 +46,6 @@
     <logger name="io.netty.util.ResourceLeakDetector" level="debug">
     </logger>
 
-    <!-- hide "Couldn't find a suitable DSN" warning -->
-    <logger name="io.sentry" level="ERROR">
-    </logger>
-
     <logger name="io.netty" level="WARN">
     </logger>
 

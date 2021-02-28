@@ -18,7 +18,6 @@
  */
 package org.drasyl.cli.command;
 
-import io.sentry.Sentry;
 import org.apache.commons.cli.CommandLine;
 import org.drasyl.DrasylConfig;
 import org.drasyl.DrasylException;
@@ -47,14 +46,6 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class NodeCommand extends AbstractCommand {
     private static final Logger LOG = LoggerFactory.getLogger(NodeCommand.class);
-
-    static {
-        Sentry.init(options -> {
-            options.setEnableExternalConfiguration(true);
-            options.setRelease(DrasylNode.getVersion());
-        });
-    }
-
     private final Function<DrasylConfig, Pair<DrasylNode, CompletableFuture<Void>>> nodeSupplier;
     private final Consumer<Integer> exitSupplier;
     private DrasylNode node;
