@@ -14,15 +14,15 @@ Maven:
 <dependency>
     <groupId>org.drasyl</groupId>
     <artifactId>drasyl-plugin-groups-client</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.5.0-SNAPSHOT</version>
 </dependency>
 ```
 
 Other dependency managers:
 ```java
-Gradle : compile "org.drasyl:drasyl-plugin-groups-client:0.4.0-SNAPSHOT" // build.gradle 
-   Ivy : <dependency org="org.drasyl" name="drasyl-plugin-groups-client" rev="0.4.0-SNAPSHOT" conf="build" /> // ivy.xml
-   SBT : libraryDependencies += "org.drasyl" % "drasyl-plugin-groups-client" % "0.4.0-SNAPSHOT" // build.sbt
+Gradle : compile "org.drasyl:drasyl-plugin-groups-client:0.5.0-SNAPSHOT" // build.gradle 
+   Ivy : <dependency org="org.drasyl" name="drasyl-plugin-groups-client" rev="0.5.0-SNAPSHOT" conf="build" /> // ivy.xml
+   SBT : libraryDependencies += "org.drasyl" % "drasyl-plugin-groups-client" % "0.5.0-SNAPSHOT" // build.sbt
 ```
 
 ### Configuration
@@ -57,15 +57,15 @@ Maven:
 <dependency>
     <groupId>org.drasyl</groupId>
     <artifactId>drasyl-plugin-groups-manager</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.5.0-SNAPSHOT</version>
 </dependency>
 ```
 
 Other dependency managers:
 ```java
-Gradle : compile "org.drasyl:drasyl-plugin-groups-manager:0.4.0-SNAPSHOT" // build.gradle 
-   Ivy : <dependency org="org.drasyl" name="drasyl-plugin-groups-manager" rev="0.4.0-SNAPSHOT" conf="build" /> // ivy.xml
-   SBT : libraryDependencies += "org.drasyl" % "drasyl-plugin-groups-manager" % "0.4.0-SNAPSHOT" // build.sbt
+Gradle : compile "org.drasyl:drasyl-plugin-groups-manager:0.5.0-SNAPSHOT" // build.gradle 
+   Ivy : <dependency org="org.drasyl" name="drasyl-plugin-groups-manager" rev="0.5.0-SNAPSHOT" conf="build" /> // ivy.xml
+   SBT : libraryDependencies += "org.drasyl" % "drasyl-plugin-groups-manager" % "0.5.0-SNAPSHOT" // build.sbt
 ```
 
 ### Configuration

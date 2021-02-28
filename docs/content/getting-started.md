@@ -32,15 +32,15 @@ Maven:
 <dependency>
     <groupId>org.drasyl</groupId>
     <artifactId>drasyl-core</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.5.0-SNAPSHOT</version>
 </dependency>
 ```
 
 Other dependency managers:
 ```java
-Gradle : compile "org.drasyl:drasyl-core:0.4.0-SNAPSHOT" // build.gradle 
-   Ivy : <dependency org="org.drasyl" name="drasyl-core" rev="0.4.0-SNAPSHOT" conf="build" /> // ivy.xml
-   SBT : libraryDependencies += "org.drasyl" % "drasyl-core" % "0.4.0-SNAPSHOT" // build.sbt
+Gradle : compile "org.drasyl:drasyl-core:0.5.0-SNAPSHOT" // build.gradle 
+   Ivy : <dependency org="org.drasyl" name="drasyl-core" rev="0.5.0-SNAPSHOT" conf="build" /> // ivy.xml
+   SBT : libraryDependencies += "org.drasyl" % "drasyl-core" % "0.5.0-SNAPSHOT" // build.sbt
 ```
 
 ## Implementing `DrasylNode`
