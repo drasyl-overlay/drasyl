@@ -126,7 +126,7 @@
                 <configuration>
                     <imageName>drasyl</imageName>
                     <mainClass>org.drasyl.cli.Cli</mainClass>
-                    <buildArgs>-H:+PrintClassInitialization -H:+ReportExceptionStackTraces</buildArgs>
+                    <buildArgs>-H:+PrintClassInitialization -H:+ReportExceptionStackTraces --no-fallback --report-unsupported-elements-at-runtime --allow-incomplete-classpath</buildArgs>
                 </configuration>
             </plugin>
         </plugins>
