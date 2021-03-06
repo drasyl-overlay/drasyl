@@ -6,9 +6,9 @@ We run some public super peers, so you don't have to.
 
 | **Endpoint**  | **Used drasyl version**  |  
 |---------------|--------------------------|
-| `udp://sp-ham1.drasyl.org:22527?publicKey=0211d40b6e57c8da1780f6b326e9c972cb8f62c522984fb43aec42049efb5b564f&networkId=1` | Latest stable [release](https://github.com/drasyl-overlay/drasyl/releases) | 
-| `udp://sp-nue1.drasyl.org:22527?publicKey=0261ee8817141b626d3573a76715aad053ccee7410d7a820c2fc98faa4c485a580&networkId=1` | Latest stable [release](https://github.com/drasyl-overlay/drasyl/releases) |
-| `udp://staging.env.drasyl.org?publicKey=03096ae3080a369829a44847d5af1f652bef3f9921e9e1bbad64970babe6d3c502&networkId=-25421`  | Latest [nightly](https://git.informatik.uni-hamburg.de/sane-public/drasyl/-/pipelines?page=1&scope=all&ref=master&status=success)  |  
+| `udp://sp-ham1.drasyl.org:22527?publicKey=AhHUC25XyNoXgPazJunJcsuPYsUimE+0OuxCBJ77W1ZP&networkId=1` | Latest stable [release](https://github.com/drasyl-overlay/drasyl/releases) | 
+| `udp://sp-nue1.drasyl.org:22527?publicKey=AmHuiBcUG2JtNXOnZxWq0FPM7nQQ16ggwvyY+qTEhaWA&networkId=1` | Latest stable [release](https://github.com/drasyl-overlay/drasyl/releases) |
+| `udp://staging.env.drasyl.org?publicKey=Awlq4wgKNpgppEhH1a8fZSvvP5kh6eG7rWSXC6vm08UC&networkId=-25421`  | Latest [nightly](https://git.informatik.uni-hamburg.de/sane-public/drasyl/-/pipelines?page=1&scope=all&ref=master&status=success)  |  
 
 By default, all drasyl nodes are configured to use the super peers `sp-ham1.drasyl.org`
 and `sp-nue1.drasyl.org`.

@@ -22,7 +22,7 @@ Example:
 DrasylConfig config = DrasylConfig.newBuilder()
     .identityPath(Path.of("/Users/heiko/drasyl.identity.json"))
     .networkId(-25421)
-    .remoteSuperPeerEndpoint(Endpoint.of("udp://staging.env.drasyl.org#03096ae3080a369829a44847d5af1f652bef3f9921e9e1bbad64970babe6d3c502"))
+    .remoteSuperPeerEndpoint(Endpoint.of("udp://staging.env.drasyl.org#Awlq4wgKNpgppEhH1a8fZSvvP5kh6eG7rWSXC6vm08UC"))
     .remoteEnabled(false)
     .build();
 ```
@@ -39,7 +39,7 @@ Example:
 ```hocon
 drasyl.identity.path = /Users/heiko/drasyl.identity.json
 drasyl.network.id = -25421
-drasyl.remote.super-peer.endpoint = "udp://staging.env.drasyl.org#03096ae3080a369829a44847d5af1f652bef3f9921e9e1bbad64970babe6d3c502"
+drasyl.remote.super-peer.endpoint = "udp://staging.env.drasyl.org#Awlq4wgKNpgppEhH1a8fZSvvP5kh6eG7rWSXC6vm08UC"
 ```
 
 ### Use environment variables
@@ -59,7 +59,7 @@ Example:
 ```bash
 $ CONFIG_FORCE_drasyl_identity_path=/Users/heiko/drasyl.identity.json \
     CONFIG_FORCE_drasyl_network_id=-25421 \
-    CONFIG_FORCE_drasyl_remote_super__peer_endpoint=udp://staging.env.drasyl.org#03096ae3080a369829a44847d5af1f652bef3f9921e9e1bbad64970babe6d3c502 \
+    CONFIG_FORCE_drasyl_remote_super__peer_endpoint=udp://staging.env.drasyl.org#Awlq4wgKNpgppEhH1a8fZSvvP5kh6eG7rWSXC6vm08UC \
     your-application.jar
 ```
 

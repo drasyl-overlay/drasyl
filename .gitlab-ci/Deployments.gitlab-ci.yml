@@ -74,7 +74,7 @@ staging:
     PORT: 22527
     DRASYL_NETWORK_ID: -25421
     DRASYL_PROOF_OF_WORK: 10724607
-    DRASYL_PUBLIC_KEY: 03096ae3080a369829a44847d5af1f652bef3f9921e9e1bbad64970babe6d3c502
+    DRASYL_PUBLIC_KEY: Awlq4wgKNpgppEhH1a8fZSvvP5kh6eG7rWSXC6vm08UC
     # DRASYL_PRIVATE_KEY is defined securely in GitLab CI/CD Settings
     JAVA_OPTS: "-Dio.netty.leakDetectionLevel=PARANOID -Dlogback.configurationFile=/usr/local/share/drasyl/logback.xml"
   before_script:
