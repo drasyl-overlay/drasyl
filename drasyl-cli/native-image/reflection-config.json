@@ -363,19 +363,37 @@
     "methods":[{"name":"<init>","parameterTypes":[] }]
   },
   {
+    "name":"org.drasyl.cli.command.perf.message.SessionRequest",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
+  },
+  {
+    "name":"org.drasyl.cli.command.perf.message.TestResults",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
+  },
+  {
     "name":"org.drasyl.cli.command.wormhole.PasswordMessage",
-    "methods":[{"name":"<init>","parameterTypes":[] }]
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
   },
   {
     "name":"org.drasyl.cli.command.wormhole.TextMessage",
-    "methods":[{"name":"<init>","parameterTypes":[] }]
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
   },
   {
     "name":"org.drasyl.cli.command.wormhole.WrongPasswordMessage",
-    "methods":[{"name":"<init>","parameterTypes":[] }]
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
   },
   {
     "name":"org.drasyl.identity.AbstractCompressedKey",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
+  },
+  {
+    "name":"org.drasyl.identity.CompressedKeyPair",
     "allDeclaredFields":true,
     "allDeclaredMethods":true
   },
@@ -393,6 +411,95 @@
   },
   {
     "name":"org.drasyl.identity.Identity",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "name":"org.drasyl.identity.ProofOfWork",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "name":"org.drasyl.peer.Endpoint",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "name":"org.drasyl.remote.protocol.Protocol$Acknowledgement",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
+  },
+  {
+    "name":"org.drasyl.remote.protocol.Protocol$Acknowledgement$Builder",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
+  },
+  {
+    "name":"org.drasyl.remote.protocol.Protocol$Application",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
+  },
+  {
+    "name":"org.drasyl.remote.protocol.Protocol$Application$Builder",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
+  },
+  {
+    "name":"org.drasyl.remote.protocol.Protocol$Discovery",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
+  },
+  {
+    "name":"org.drasyl.remote.protocol.Protocol$Discovery$Builder",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
+  },
+  {
+    "name":"org.drasyl.remote.protocol.Protocol$MessageType",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
+  },
+  {
+    "name":"org.drasyl.remote.protocol.Protocol$PrivateHeader",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
+  },
+  {
+    "name":"org.drasyl.remote.protocol.Protocol$PrivateHeader$Builder",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
+  },
+  {
+    "name":"org.drasyl.remote.protocol.Protocol$PublicHeader",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
+  },
+  {
+    "name":"org.drasyl.remote.protocol.Protocol$PublicHeader$Builder",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
+  },
+  {
+    "name":"org.drasyl.remote.protocol.Protocol$Unite",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
+  },
+  {
+    "name":"org.drasyl.remote.protocol.Protocol$Unite$Builder",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
+  },
+  {
+    "name":"org.drasyl.util.Pair",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "name":"org.drasyl.util.Triple",
     "allDeclaredFields":true,
     "allDeclaredMethods":true,
     "allDeclaredConstructors":true
