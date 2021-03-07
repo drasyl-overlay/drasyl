@@ -63,7 +63,7 @@ public class PerfCommand extends AbstractCommand {
                 final PrintStream err,
                 final ThrowingBiFunction<DrasylConfig, PrintStream, PerfServerNode, DrasylException> serverNodeSupplier,
                 final ThrowingBiFunction<DrasylConfig, PrintStream, PerfClientNode, DrasylException> clientNodeSupplier,
-                Consumer<Integer> exitSupplier) {
+                final Consumer<Integer> exitSupplier) {
         super(out, err);
         this.serverNodeSupplier = requireNonNull(serverNodeSupplier);
         this.clientNodeSupplier = requireNonNull(clientNodeSupplier);
