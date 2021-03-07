@@ -51,13 +51,13 @@ public class ObservableDrasylNode extends DrasylNode {
         events.onNext(event);
     }
 
-    public static void main(final String[] args) throws DrasylException {
-        final ObservableDrasylNode node = new ObservableDrasylNode(DrasylConfig.newBuilder().remoteLocalHostDiscoveryEnabled(false).remoteExposeEnabled(false).build());
-        node.events().subscribeOn(DrasylSchedulerUtil.getInstanceLight()).subscribe(System.out::println, System.err::println);
-        node.start().join();
-    }
-
     public Observable<Event> events() {
         return events;
+    }
+
+    public static void main(final String[] args) throws DrasylException {
+        final ObservableDrasylNode node = new ObservableDrasylNode();
+        node.events().subscribe(System.out::println, System.err::println);
+        node.start().join();
     }
 }

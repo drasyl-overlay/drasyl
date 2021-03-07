@@ -22,6 +22,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.kqueue.KQueue;
+import io.netty.channel.kqueue.KQueueDatagramChannel;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
@@ -36,8 +39,11 @@ public final class NettyUtil {
     }
 
     /**
-     * Returns the {@link EventLoopGroup} that fits best to the current environment. Under Linux the
-     * more performant {@link EpollEventLoopGroup} is returned.
+     * Returns the {@link EventLoopGroup} that fits best to the current environment.
+     * <p>
+     * Under Linux the more performant {@link EpollEventLoopGroup} is returned.
+     * <p>
+     * Under MacOS/BSD the more performant {@link KQueueEventLoopGroup} is returned.
      *
      * @return {@link EventLoopGroup} that fits best to the current environment
      */
@@ -46,20 +52,29 @@ public final class NettyUtil {
         if (Epoll.isAvailable()) {
             return new EpollEventLoopGroup(nThreads);
         }
+        else if (KQueue.isAvailable()) {
+            return new KQueueEventLoopGroup(nThreads);
+        }
         else {
             return new NioEventLoopGroup(nThreads);
         }
     }
 
     /**
-     * Returns the {@link DatagramChannel} that fits best to the current environment. Under Linux
-     * the more performant {@link EpollDatagramChannel} is returned.
+     * Returns the {@link DatagramChannel} that fits best to the current environment.
+     * <p>
+     * Under Linux the more performant {@link EpollDatagramChannel} is returned.
+     * <p>
+     * Under MacOS/BSD the more performant {@link KQueueDatagramChannel} is returned.
      *
      * @return {@link DatagramChannel} that fits best to the current environment
      */
     public static Class<? extends DatagramChannel> getBestDatagramChannel() {
         if (Epoll.isAvailable()) {
             return EpollDatagramChannel.class;
+        }
+        else if (KQueue.isAvailable()) {
+            return KQueueDatagramChannel.class;
         }
         else {
             return NioDatagramChannel.class;

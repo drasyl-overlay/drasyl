@@ -18,21 +18,22 @@
  */
 package org.drasyl.pipeline;
 
+import io.netty.util.concurrent.FastThreadLocal;
 import org.drasyl.event.Event;
 import org.drasyl.pipeline.address.Address;
 import org.drasyl.util.logging.Logger;
 import org.drasyl.util.logging.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.CompletableFuture;
 
 /**
  * Class to compute the mask of a given {@link Handler}. Inspired by the corresponding netty
- * implementation.
+ * implementation: https://github.com/netty/netty/blob/master/transport/src/main/java/io/netty/channel/ChannelHandlerMask.java
  */
 public final class HandlerMask {
     // Using fast bitwise operations to compute if a method must be called
@@ -43,10 +44,13 @@ public final class HandlerMask {
     public static final int ALL = EVENT_TRIGGERED_MASK |
             EXCEPTION_CAUGHT_MASK | READ_MASK | WRITE_MASK;
     private static final Logger LOG = LoggerFactory.getLogger(HandlerMask.class);
-    // Tests shows, that a synchronized HashMap is for a small instances
-    // faster than the ConcurrentHashMap: https://stackoverflow.com/a/25002229
-    private static final Map<Class<? extends Handler>, Integer> MASK_CACHE =
-            Collections.synchronizedMap(new HashMap<>(32, 1.0F));
+    private static final FastThreadLocal<Map<Class<? extends Handler>, Integer>> MASK_CACHE =
+            new FastThreadLocal<>() {
+                @Override
+                protected Map<Class<? extends Handler>, Integer> initialValue() {
+                    return new WeakHashMap<>(32);
+                }
+            };
 
     private HandlerMask() {
     }
@@ -58,10 +62,11 @@ public final class HandlerMask {
      * @return the handler mask
      */
     public static int mask(final Class<? extends Handler> handlerClass) {
-        Integer mask = MASK_CACHE.get(handlerClass);
+        final Map<Class<? extends Handler>, Integer> cache = MASK_CACHE.get();
+        Integer mask = cache.get(handlerClass);
         if (mask == null) {
             mask = calcMask(handlerClass);
-            MASK_CACHE.put(handlerClass, mask);
+            cache.put(handlerClass, mask);
         }
 
         return mask;
@@ -116,13 +121,16 @@ public final class HandlerMask {
                                final Class<?>... paramTypes) {
         try {
             return AccessController.doPrivileged((PrivilegedExceptionAction<Boolean>) () -> {
+                final Method m;
                 try {
-                    return handlerClass.getMethod(methodName, paramTypes).isAnnotationPresent(Skip.class);
+                    m = handlerClass.getMethod(methodName, paramTypes);
                 }
                 catch (final NoSuchMethodException e) {
-                    LOG.debug("Class {} missing method {}, assume we can not skip execution", handlerClass, methodName, e);
+                    LOG.trace("Class {} missing method {}, assume we can not skip execution", () -> handlerClass, () -> methodName);
                     return false;
                 }
+
+                return m != null && m.isAnnotationPresent(Skip.class); // avoid GraalVM error: https://github.com/netty/netty/commit/f48d9ad15f9379d808d6553ce18f99894a32cca5
             });
         }
         catch (final Exception e) { // NOSONAR

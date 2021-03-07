@@ -261,25 +261,29 @@ class LocalHostDiscoveryTest {
             when(message.getContent()).thenReturn(new byte[0]);
 
             final LocalHostDiscovery handler = new LocalHostDiscovery(jacksonWriter, routes, watchDisposable, postDisposable);
-            final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, handler);
-            final TestObserver<AddressedIntermediateEnvelope> outboundMessages = pipeline.outboundMessages(AddressedIntermediateEnvelope.class).test();
+            final TestObserver<AddressedIntermediateEnvelope> outboundMessages;
+            try (final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, handler)) {
+                outboundMessages = pipeline.outboundMessages(AddressedIntermediateEnvelope.class).test();
 
-            pipeline.processOutbound(publicKey, message).join();
+                pipeline.processOutbound(publicKey, message).join();
 
-            outboundMessages.awaitCount(1)
-                    .assertValueAt(0, m -> m.getRecipient().equals(address));
+                outboundMessages.awaitCount(1)
+                        .assertValueAt(0, m -> m.getRecipient().equals(address));
+            }
         }
 
         @Test
         void shouldPassthroughMessageWhenStaticRouteIsAbsent(@Mock final CompressedPublicKey publicKey,
                                                              @Mock(answer = RETURNS_DEEP_STUBS) final SerializedApplicationMessage message) {
             final LocalHostDiscovery handler = new LocalHostDiscovery(jacksonWriter, routes, watchDisposable, postDisposable);
-            final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, handler);
-            final TestObserver<SerializedApplicationMessage> outboundMessages = pipeline.outboundMessages(SerializedApplicationMessage.class).test();
+            final TestObserver<SerializedApplicationMessage> outboundMessages;
+            try (final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, handler)) {
+                outboundMessages = pipeline.outboundMessages(SerializedApplicationMessage.class).test();
 
-            pipeline.processOutbound(publicKey, message).join();
+                pipeline.processOutbound(publicKey, message).join();
 
-            outboundMessages.awaitCount(1);
+                outboundMessages.awaitCount(1);
+            }
         }
     }
 

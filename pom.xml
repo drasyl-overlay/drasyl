@@ -113,13 +113,13 @@
         <logback.version>1.2.3</logback.version>
         <junit.version>5.7.1</junit.version>
         <mockito.version>3.8.0</mockito.version>
-        <jackson.version>2.12.1</jackson.version>
+        <jackson.version>2.12.2</jackson.version>
         <hamcrest.version>2.2</hamcrest.version>
         <bouncycastle.version>1.68</bouncycastle.version>
         <awaitility.version>4.0.3</awaitility.version>
         <netty.version>4.1.59.Final</netty.version>
         <guava.version>30.1-jre</guava.version>
-        <rxjava.version>3.0.10</rxjava.version>
+        <rxjava.version>3.0.11</rxjava.version>
         <micrometer.version>1.6.4</micrometer.version>
         <maven.scm>1.11.2</maven.scm>
         <nexus.staging>1.6.8</nexus.staging>
@@ -128,7 +128,7 @@
         <jetbrains.annotations.version>20.1.0</jetbrains.annotations.version>
         <json-unit-assertj.version>2.24.0</json-unit-assertj.version>
         <commons-cli.version>1.4</commons-cli.version>
-        <protobuf.version>3.15.3</protobuf.version>
+        <protobuf.version>3.15.5</protobuf.version>
     </properties>
 
     <dependencyManagement>
@@ -186,12 +186,6 @@
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
                 <version>${netty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-transport-native-epoll</artifactId>
-                <version>${netty.version}</version>
-                <classifier>linux-x86_64</classifier>
             </dependency>
 
             <!-- Jackson -->

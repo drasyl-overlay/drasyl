@@ -22,6 +22,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.kqueue.KQueue;
+import io.netty.channel.kqueue.KQueueDatagramChannel;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
@@ -48,6 +51,9 @@ class NettyUtilTest {
                 if (Epoll.isAvailable()) {
                     assertThat(group, instanceOf(EpollEventLoopGroup.class));
                 }
+                else if (KQueue.isAvailable()) {
+                    assertThat(group, instanceOf(KQueueEventLoopGroup.class));
+                }
                 else {
                     assertThat(group, instanceOf(NioEventLoopGroup.class));
                 }
@@ -66,6 +72,9 @@ class NettyUtilTest {
 
             if (Epoll.isAvailable()) {
                 assertEquals(EpollDatagramChannel.class, channel);
+            }
+            else if (KQueue.isAvailable()) {
+                assertEquals(KQueueDatagramChannel.class, channel);
             }
             else {
                 assertEquals(NioDatagramChannel.class, channel);

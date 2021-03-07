@@ -80,50 +80,51 @@ class MessagesThroughputHandlerTest {
         });
 
         final Handler handler = new MessagesThroughputHandler(consumeOutbound, consumeInbound, outboundMessages, inboundMessages, scheduler, printStream, null);
-        final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, handler);
+        try (final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, handler)) {
+            pipeline.processInbound(nodeUp).join();
 
-        pipeline.processInbound(nodeUp).join();
-
-        verify(printStream).printf(anyString(), any(), any(), any(), any());
+            verify(printStream).printf(anyString(), any(), any(), any(), any());
+        }
     }
 
     @Test
     void shouldStopTaskOnNodeUnrecoverableErrorEvent(@Mock final NodeUnrecoverableErrorEvent event) {
         final Handler handler = new MessagesThroughputHandler(consumeOutbound, consumeInbound, outboundMessages, inboundMessages, scheduler, printStream, disposable);
-        final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, handler);
+        try (final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, handler)) {
+            pipeline.processInbound(event).join();
 
-        pipeline.processInbound(event).join();
-
-        verify(disposable).dispose();
+            verify(disposable).dispose();
+        }
     }
 
     @Test
     void shouldStopTaskOnNodeDownEvent(@Mock final NodeDownEvent event) {
         final Handler handler = new MessagesThroughputHandler(consumeOutbound, consumeInbound, outboundMessages, inboundMessages, scheduler, printStream, disposable);
-        final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, handler);
+        try (final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, handler)) {
+            pipeline.processInbound(event).join();
 
-        pipeline.processInbound(event).join();
-
-        verify(disposable).dispose();
+            verify(disposable).dispose();
+        }
     }
 
     @Test
     void shouldRecordOutboundMessage(@Mock final Address address) {
         final Handler handler = new MessagesThroughputHandler(consumeOutbound, consumeInbound, outboundMessages, inboundMessages, scheduler, printStream, null);
-        final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, handler);
+        try (final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, handler)) {
+            pipeline.processOutbound(address, new Object()).join();
 
-        pipeline.processOutbound(address, new Object()).join();
-
-        verify(outboundMessages).increment();
-        verify(inboundMessages, never()).increment();
+            verify(outboundMessages).increment();
+            verify(inboundMessages, never()).increment();
+        }
     }
 
     @Test
     void shouldRecordInboundMessage(@Mock final Address address) {
         final Handler handler = new MessagesThroughputHandler(consumeOutbound, consumeInbound, outboundMessages, inboundMessages, scheduler, printStream, null);
-        final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, handler);
+        try (final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, handler)) {
 
-        pipeline.processInbound(address, new Object()).join();
+            pipeline.processInbound(address, new Object()).join();
+        }
 
         verify(outboundMessages, never()).increment();
         verify(inboundMessages).increment();
@@ -132,22 +133,26 @@ class MessagesThroughputHandlerTest {
     @Test
     void shouldConsumeMatchingOutboundMessage(@Mock final Address address) {
         final Handler handler = new MessagesThroughputHandler((myAddress, msg) -> true, consumeInbound, outboundMessages, inboundMessages, scheduler, printStream, null);
-        final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, handler);
-        final TestObserver<Object> observable = pipeline.outboundMessages().test();
+        final TestObserver<Object> observable;
+        try (final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, handler)) {
+            observable = pipeline.outboundMessages().test();
 
-        pipeline.processOutbound(address, new Object()).join();
+            pipeline.processOutbound(address, new Object()).join();
 
-        observable.assertEmpty();
+            observable.assertEmpty();
+        }
     }
 
     @Test
     void shouldConsumeMatchingInboundMessage(@Mock final Address address) {
         final Handler handler = new MessagesThroughputHandler(consumeOutbound, (myAddress, msg) -> true, outboundMessages, inboundMessages, scheduler, printStream, null);
-        final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, handler);
-        final TestObserver<Object> observable = pipeline.inboundMessages().test();
+        final TestObserver<Object> observable;
+        try (final EmbeddedPipeline pipeline = new EmbeddedPipeline(config, identity, peersManager, handler)) {
+            observable = pipeline.inboundMessages().test();
 
-        pipeline.processInbound(address, new Object()).join();
+            pipeline.processInbound(address, new Object()).join();
 
-        observable.assertEmpty();
+            observable.assertEmpty();
+        }
     }
 }
