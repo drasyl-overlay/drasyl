@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 
 /**
  * Holder for the JSON serializer and JSON deserializer.
@@ -34,7 +33,6 @@ public final class JSONUtil {
 
     static {
         JACKSON_MAPPER = new ObjectMapper();
-        JACKSON_MAPPER.registerModule(new AfterburnerModule());
         JACKSON_MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
         JACKSON_WRITER = JACKSON_MAPPER.writer();
