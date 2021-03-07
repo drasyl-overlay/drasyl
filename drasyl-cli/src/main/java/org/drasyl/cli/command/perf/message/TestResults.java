@@ -46,8 +46,8 @@ public class TestResults implements PerfMessage {
                 @JsonProperty("totalMessages") final long totalMessages,
                 @JsonProperty("lostMessages") final long lostMessages,
                 @JsonProperty("outOfOrderMessages") final long outOfOrderMessages,
-                @JsonProperty("intervalStartTime") final long startTime,
-                @JsonProperty("intervalStopTime") final long stopTime) {
+                @JsonProperty("startTime") final long startTime,
+                @JsonProperty("stopTime") final long stopTime) {
         this.messageSize = messageSize;
         this.testStartTime = testStartTime;
         if (testStartTime < 1) {
@@ -140,7 +140,7 @@ public class TestResults implements PerfMessage {
         final double relativeIntervalStartTime = ((double) startTime - testStartTime) / MICROSECONDS;
         final double relativeIntervalStopTime = ((double) stopTime - testStartTime) / MICROSECONDS;
         final double intervalDuration = relativeIntervalStopTime - relativeIntervalStartTime;
-        long currentTotalMessages = totalMessages.sum();
+        final long currentTotalMessages = totalMessages.sum();
         final String transfer = numberToHumanData(currentTotalMessages * messageSize);
         final String bitrate = numberToHumanDataRate(currentTotalMessages * messageSize * 8 * (1 / intervalDuration));
         final double lostPercent;
