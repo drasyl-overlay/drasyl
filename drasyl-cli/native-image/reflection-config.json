@@ -1,5 +1,12 @@
 [
   {
+    "name":"byte[]"
+  },
+  {
+    "name":"io.netty.channel.socket.nio.NioDatagramChannel",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
     "name":"org.bouncycastle.jcajce.provider.asymmetric.COMPOSITE$Mappings",
     "methods":[{"name":"<init>","parameterTypes":[] }]
   },
@@ -53,6 +60,14 @@
   },
   {
     "name":"org.bouncycastle.jcajce.provider.asymmetric.ec.KeyPairGeneratorSpi$ECDSA",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"org.bouncycastle.jcajce.provider.asymmetric.ec.KeyFactorySpi$ECDSA",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"org.bouncycastle.jcajce.provider.asymmetric.ec.SignatureSpi$ecDSA256",
     "methods":[{"name":"<init>","parameterTypes":[] }]
   },
   {
@@ -348,6 +363,18 @@
     "methods":[{"name":"<init>","parameterTypes":[] }]
   },
   {
+    "name":"org.drasyl.cli.command.wormhole.PasswordMessage",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"org.drasyl.cli.command.wormhole.TextMessage",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"org.drasyl.cli.command.wormhole.WrongPasswordMessage",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
     "name":"org.drasyl.identity.AbstractCompressedKey",
     "allDeclaredFields":true,
     "allDeclaredMethods":true
@@ -369,5 +396,84 @@
     "allDeclaredFields":true,
     "allDeclaredMethods":true,
     "allDeclaredConstructors":true
+  },
+  {
+    "name":"org.drasyl.serialization.BooleanSerializer",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"org.drasyl.serialization.ByteArraySerializer",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"org.drasyl.serialization.ByteSerializer",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"org.drasyl.serialization.CharacterSerializer",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"org.drasyl.serialization.FloatSerializer",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"org.drasyl.serialization.IntegerSerializer",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"org.drasyl.serialization.JacksonJsonSerializer",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"org.drasyl.serialization.JavaSerializer",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"org.drasyl.serialization.LongSerializer",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"org.drasyl.serialization.ProtobufSerializer",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"org.drasyl.serialization.ShortSerializer",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"org.drasyl.serialization.StringSerializer",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"java.lang.Boolean"
+  },
+  {
+    "name":"java.lang.Byte"
+  },
+  {
+    "name":"java.lang.Character"
+  },
+  {
+    "name":"java.lang.Float"
+  },
+  {
+    "name":"java.util.HashSet",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"java.lang.Integer"
+  },
+  {
+    "name":"java.lang.Long"
+  },
+  {
+    "name":"java.lang.Short"
+  },
+  {
+    "name":"java.lang.String"
+  },
+  {
+    "name":"java.lang.String[]"
   }
 ]
