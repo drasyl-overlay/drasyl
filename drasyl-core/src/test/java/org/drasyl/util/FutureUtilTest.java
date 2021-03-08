@@ -127,6 +127,41 @@ class FutureUtilTest {
         }
 
         @Test
+        void shouldCompleteFutureExceptionallyIfAnyFutureInCollectionIsAlreadyCompletedExceptionally() {
+            final CompletableFuture<?> future1 = new CompletableFuture<>();
+            final CompletableFuture<?> future2 = new CompletableFuture<>();
+            final CompletableFuture<Void> futureToComplete = new CompletableFuture<>();
+            final Collection<CompletableFuture<?>> futures = List.of(future1, future2);
+
+            future1.completeExceptionally(new Exception());
+            FutureUtil.completeOnAnyOfExceptionally(futureToComplete, futures);
+
+            assertTrue(futureToComplete.isDone());
+            assertTrue(futureToComplete.isCompletedExceptionally());
+            assertTrue(future1.isDone());
+            assertTrue(future1.isCompletedExceptionally());
+            assertFalse(future2.isDone());
+            assertThrows(Exception.class, future1::join);
+            assertThrows(Exception.class, futureToComplete::join);
+        }
+
+        @Test
+        void shouldCompleteFutureExceptionallyIfFutureItSelfCompletesExceptionally() {
+            final CompletableFuture<Void> future = new CompletableFuture<>();
+            final CompletableFuture<?> future1 = new CompletableFuture<>();
+            final CompletableFuture<?> future2 = new CompletableFuture<>();
+
+            FutureUtil.completeOnAnyOfExceptionally(future, future1, future2);
+            future.completeExceptionally(new Exception());
+
+            assertTrue(future.isDone());
+            assertTrue(future.isCompletedExceptionally());
+            assertFalse(future1.isDone());
+            assertFalse(future2.isDone());
+            assertThrows(Exception.class, future::join);
+        }
+
+        @Test
         void shouldReturnImmediatelyWhenListIsEmpty() {
             final CompletableFuture<Void> futureToComplete = new CompletableFuture<>();
 
@@ -165,6 +200,39 @@ class FutureUtilTest {
             assertFalse(future2.isDone());
             assertThrows(Exception.class, future1::join);
             assertThrows(Exception.class, futureToComplete::join);
+        }
+
+        @Test
+        void shouldCompleteFutureIfAnyFutureInCollectionIsAlreadyCompletedExceptionally() {
+            final CompletableFuture<?> future1 = CompletableFuture.failedFuture(new Exception());
+            final CompletableFuture<?> future2 = new CompletableFuture<>();
+            final Collection<CompletableFuture<?>> futures = List.of(future1, future2);
+
+            final CompletableFuture<Void> futureToComplete = FutureUtil.getCompleteOnAllOf(futures);
+
+            assertTrue(futureToComplete.isDone());
+            assertTrue(futureToComplete.isCompletedExceptionally());
+            assertTrue(future1.isDone());
+            assertTrue(future1.isCompletedExceptionally());
+            assertFalse(future2.isDone());
+            assertThrows(Exception.class, future1::join);
+            assertThrows(Exception.class, futureToComplete::join);
+        }
+
+        @Test
+        void shouldCompleteFutureIfFutureItSelfCompletesExceptionally() {
+            final CompletableFuture<Void> future = new CompletableFuture<>();
+            final CompletableFuture<?> future1 = new CompletableFuture<>();
+            final CompletableFuture<?> future2 = new CompletableFuture<>();
+
+            FutureUtil.completeOnAllOf(future, future1, future2);
+            future.completeExceptionally(new Exception());
+
+            assertTrue(future.isDone());
+            assertTrue(future.isCompletedExceptionally());
+            assertFalse(future1.isDone());
+            assertFalse(future2.isDone());
+            assertThrows(Exception.class, future::join);
         }
 
         @Test

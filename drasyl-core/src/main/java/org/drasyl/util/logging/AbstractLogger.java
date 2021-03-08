@@ -24,7 +24,7 @@ import java.util.function.Supplier;
 import static java.util.Objects.requireNonNull;
 
 /**
- * A {@link Logger} that supports lazy evaluation of passend values.
+ * A {@link Logger} that supports lazy evaluation of passed arguments.
  * <p>
  * Example:
  * <pre><code>
@@ -50,122 +50,122 @@ abstract class AbstractLogger implements Logger {
     }
 
     @Override
-    public void trace(final String format, final Supplier<Object> arg) {
+    public void trace(final String format, final Supplier<Object> supplier) {
         if (isTraceEnabled()) {
-            trace(format, arg.get());
+            trace(format, supplier.get());
         }
     }
 
     @Override
     public void trace(final String format,
-                      final Supplier<Object> arg1,
-                      final Supplier<Object> arg2) {
+                      final Supplier<Object> supplier1,
+                      final Supplier<Object> supplier2) {
         if (isTraceEnabled()) {
-            trace(format, arg1.get(), arg2.get());
+            trace(format, supplier1.get(), supplier2.get());
         }
     }
 
     @Override
     @SafeVarargs
-    public final void trace(final String format, final Supplier<Object>... arguments) {
+    public final void trace(final String format, final Supplier<Object>... suppliers) {
         if (isTraceEnabled()) {
-            trace(format, Arrays.stream(arguments).map(Supplier::get).toArray());
+            trace(format, Arrays.stream(suppliers).map(Supplier::get).toArray());
         }
     }
 
     @Override
-    public void debug(final String format, final Supplier<Object> arg) {
+    public void debug(final String format, final Supplier<Object> supplier) {
         if (isDebugEnabled()) {
-            debug(format, arg.get());
+            debug(format, supplier.get());
         }
     }
 
     @Override
     public void debug(final String format,
-                      final Supplier<Object> arg1,
-                      final Supplier<Object> arg2) {
+                      final Supplier<Object> supplier1,
+                      final Supplier<Object> supplier2) {
         if (isDebugEnabled()) {
-            debug(format, arg1.get(), arg2.get());
+            debug(format, supplier1.get(), supplier2.get());
         }
     }
 
     @Override
     @SafeVarargs
-    public final void debug(final String format, final Supplier<Object>... arguments) {
+    public final void debug(final String format, final Supplier<Object>... suppliers) {
         if (isDebugEnabled()) {
-            debug(format, Arrays.stream(arguments).map(Supplier::get).toArray());
+            debug(format, Arrays.stream(suppliers).map(Supplier::get).toArray());
         }
     }
 
     @Override
-    public void info(final String format, final Supplier<Object> arg) {
+    public void info(final String format, final Supplier<Object> supplier) {
         if (isInfoEnabled()) {
-            info(format, arg.get());
+            info(format, supplier.get());
         }
     }
 
     @Override
     public void info(final String format,
-                     final Supplier<Object> arg1,
-                     final Supplier<Object> arg2) {
+                     final Supplier<Object> supplier1,
+                     final Supplier<Object> supplier2) {
         if (isInfoEnabled()) {
-            info(format, arg1.get(), arg2.get());
+            info(format, supplier1.get(), supplier2.get());
         }
     }
 
     @Override
     @SafeVarargs
-    public final void info(final String format, final Supplier<Object>... arguments) {
+    public final void info(final String format, final Supplier<Object>... suppliers) {
         if (isInfoEnabled()) {
-            info(format, Arrays.stream(arguments).map(Supplier::get).toArray());
+            info(format, Arrays.stream(suppliers).map(Supplier::get).toArray());
         }
     }
 
     @Override
-    public void warn(final String format, final Supplier<Object> arg) {
+    public void warn(final String format, final Supplier<Object> supplier) {
         if (isWarnEnabled()) {
-            warn(format, arg.get());
+            warn(format, supplier.get());
         }
     }
 
     @Override
     public void warn(final String format,
-                     final Supplier<Object> arg1,
-                     final Supplier<Object> arg2) {
+                     final Supplier<Object> supplier1,
+                     final Supplier<Object> supplier2) {
         if (isWarnEnabled()) {
-            warn(format, arg1.get(), arg2.get());
+            warn(format, supplier1.get(), supplier2.get());
         }
     }
 
     @Override
     @SafeVarargs
-    public final void warn(final String format, final Supplier<Object>... arguments) {
+    public final void warn(final String format, final Supplier<Object>... suppliers) {
         if (isWarnEnabled()) {
-            warn(format, Arrays.stream(arguments).map(Supplier::get).toArray());
+            warn(format, Arrays.stream(suppliers).map(Supplier::get).toArray());
         }
     }
 
     @Override
-    public void error(final String format, final Supplier<Object> arg) {
+    public void error(final String format, final Supplier<Object> supplier) {
         if (isErrorEnabled()) {
-            error(format, arg.get());
+            error(format, supplier.get());
         }
     }
 
     @Override
     public void error(final String format,
-                      final Supplier<Object> arg1,
-                      final Supplier<Object> arg2) {
+                      final Supplier<Object> supplier1,
+                      final Supplier<Object> supplier2) {
         if (isErrorEnabled()) {
-            error(format, arg1.get(), arg2.get());
+            error(format, supplier1.get(), supplier2.get());
         }
     }
 
     @Override
     @SafeVarargs
-    public final void error(final String format, final Supplier<Object>... arguments) {
+    public final void error(final String format, final Supplier<Object>... suppliers) {
         if (isErrorEnabled()) {
-            error(format, Arrays.stream(arguments).map(Supplier::get).toArray());
+            error(format, Arrays.stream(suppliers).map(Supplier::get).toArray());
         }
     }
 }

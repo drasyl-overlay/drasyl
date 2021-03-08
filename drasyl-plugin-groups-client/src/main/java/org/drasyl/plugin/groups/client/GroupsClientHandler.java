@@ -19,7 +19,7 @@
 package org.drasyl.plugin.groups.client;
 
 import io.reactivex.rxjava3.disposables.Disposable;
-import org.drasyl.event.NodeOnlineEvent;
+import org.drasyl.event.NodeUpEvent;
 import org.drasyl.identity.CompressedPublicKey;
 import org.drasyl.identity.ProofOfWork;
 import org.drasyl.pipeline.HandlerContext;
@@ -39,35 +39,42 @@ import org.drasyl.plugin.groups.client.message.GroupsServerMessage;
 import org.drasyl.plugin.groups.client.message.MemberJoinedMessage;
 import org.drasyl.plugin.groups.client.message.MemberLeftMessage;
 import org.drasyl.serialization.JacksonJsonSerializer;
+import org.drasyl.util.FutureUtil;
 import org.drasyl.util.logging.Logger;
 import org.drasyl.util.logging.LoggerFactory;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-public class GroupsClientHandler extends SimpleInboundEventAwareHandler<GroupsServerMessage, NodeOnlineEvent, Address> {
+public class GroupsClientHandler extends SimpleInboundEventAwareHandler<GroupsServerMessage, NodeUpEvent, Address> {
     private static final Logger LOG = LoggerFactory.getLogger(GroupsClientHandler.class);
+    private static final Duration RETRY_DELAY = Duration.ofSeconds(10);
+    private static final Duration FIRST_JOIN_DELAY = Duration.ofSeconds(5);
+    private final Duration firstJoinDelay;
     private final Map<Group, GroupUri> groups;
-    private final List<Disposable> renewTasks;
+    private final Map<Group, Disposable> renewTasks;
 
     @SuppressWarnings("java:S2384")
-    GroupsClientHandler(final Map<Group, GroupUri> groups, final List<Disposable> renewTasks) {
+    GroupsClientHandler(final Map<Group, GroupUri> groups,
+                        final Map<Group, Disposable> renewTasks,
+                        final Duration firstJoinDelay) {
         this.groups = requireNonNull(groups);
         this.renewTasks = requireNonNull(renewTasks);
+        this.firstJoinDelay = requireNonNull(firstJoinDelay);
     }
 
     public GroupsClientHandler(final Set<GroupUri> groups) {
-        this(groups.stream().collect(Collectors.toMap(GroupUri::getGroup, groupURI -> groupURI)), new ArrayList<>());
+        this(groups.stream().collect(Collectors.toMap(GroupUri::getGroup, groupURI -> groupURI)),
+                new ConcurrentHashMap<>(), FIRST_JOIN_DELAY);
     }
 
     @Override
@@ -79,7 +86,7 @@ public class GroupsClientHandler extends SimpleInboundEventAwareHandler<GroupsSe
     @Override
     public void handlerRemoved(final HandlerContext ctx) {
         // Stop all renew tasks
-        for (final Disposable renewTask : renewTasks) {
+        for (final Disposable renewTask : renewTasks.values()) {
             renewTask.dispose();
         }
         renewTasks.clear();
@@ -97,6 +104,7 @@ public class GroupsClientHandler extends SimpleInboundEventAwareHandler<GroupsSe
             }
             catch (final InterruptedException e) {
                 Thread.currentThread().interrupt();
+                LOG.warn("Exception occurred during de-registration from group '{}': ", group.getName(), e);
             }
             catch (final ExecutionException e) {
                 LOG.warn("Exception occurred during de-registration from group '{}': ", group.getName(), e);
@@ -106,10 +114,12 @@ public class GroupsClientHandler extends SimpleInboundEventAwareHandler<GroupsSe
 
     @Override
     protected void matchedEventTriggered(final HandlerContext ctx,
-                                         final NodeOnlineEvent event,
+                                         final NodeUpEvent event,
                                          final CompletableFuture<Void> future) {
-        // join every group
-        ctx.independentScheduler().scheduleDirect(() -> groups.values().forEach(group -> joinGroup(ctx, group)));
+        // join every group but we will wait 5 seconds, to give it the chance to connect to some super peer if needed
+        ctx.independentScheduler().scheduleDirect(() -> groups.values().forEach(group ->
+                joinGroup(ctx, group, false)), firstJoinDelay.toMillis(), MILLISECONDS);
+
         ctx.fireEventTriggered(event, future);
     }
 
@@ -119,16 +129,16 @@ public class GroupsClientHandler extends SimpleInboundEventAwareHandler<GroupsSe
                                final GroupsServerMessage msg,
                                final CompletableFuture<Void> future) {
         if (msg instanceof MemberJoinedMessage) {
-            ctx.independentScheduler().scheduleDirect(() -> onMemberJoined(ctx, (MemberJoinedMessage) msg, future));
+            onMemberJoined(ctx, (MemberJoinedMessage) msg, future);
         }
         else if (msg instanceof MemberLeftMessage) {
-            ctx.independentScheduler().scheduleDirect(() -> onMemberLeft(ctx, (MemberLeftMessage) msg, future));
+            onMemberLeft(ctx, (MemberLeftMessage) msg, future);
         }
         else if (msg instanceof GroupWelcomeMessage) {
-            ctx.independentScheduler().scheduleDirect(() -> onWelcome(ctx, sender, (GroupWelcomeMessage) msg, future));
+            onWelcome(ctx, sender, (GroupWelcomeMessage) msg, future);
         }
         else if (msg instanceof GroupJoinFailedMessage) {
-            ctx.independentScheduler().scheduleDirect(() -> onJoinFailed(ctx, (GroupJoinFailedMessage) msg, future));
+            onJoinFailed(ctx, (GroupJoinFailedMessage) msg, future);
         }
     }
 
@@ -142,8 +152,8 @@ public class GroupsClientHandler extends SimpleInboundEventAwareHandler<GroupsSe
     private static void onMemberJoined(final HandlerContext ctx,
                                        final MemberJoinedMessage msg,
                                        final CompletableFuture<Void> future) {
-        ctx.pipeline().processInbound(new GroupMemberJoinedEvent(msg.getMember(), msg.getGroup()));
-        future.complete(null);
+        FutureUtil.completeOnAllOf(future,
+                ctx.pipeline().processInbound(new GroupMemberJoinedEvent(msg.getMember(), msg.getGroup())));
     }
 
     /**
@@ -158,8 +168,14 @@ public class GroupsClientHandler extends SimpleInboundEventAwareHandler<GroupsSe
                               final CompletableFuture<Void> future) {
         final Group group = msg.getGroup();
 
-        ctx.pipeline().processInbound(new GroupJoinFailedEvent(group, msg.getReason(), () -> joinGroup(ctx, groups.get(group))));
-        future.complete(null);
+        // cancel renew task
+        final Disposable disposable = renewTasks.remove(group);
+        if (disposable != null) {
+            disposable.dispose();
+        }
+
+        FutureUtil.completeOnAllOf(future, ctx.pipeline().processInbound(new GroupJoinFailedEvent(group, msg.getReason(),
+                () -> joinGroup(ctx, groups.get(group), false))));
     }
 
     /**
@@ -175,13 +191,19 @@ public class GroupsClientHandler extends SimpleInboundEventAwareHandler<GroupsSe
         final Group group = msg.getGroup();
 
         if (msg.getMember().equals(ctx.identity().getPublicKey())) {
-            ctx.pipeline().processInbound(new GroupLeftEvent(group, () -> joinGroup(ctx, groups.get(group))));
+            // cancel renew task
+            final Disposable disposable = renewTasks.remove(group);
+            if (disposable != null) {
+                disposable.dispose();
+            }
+
+            FutureUtil.completeOnAllOf(future,
+                    ctx.pipeline().processInbound(new GroupLeftEvent(group, () -> joinGroup(ctx, groups.get(group), false))));
         }
         else {
-            ctx.pipeline().processInbound(new GroupMemberLeftEvent(msg.getMember(), group));
+            FutureUtil.completeOnAllOf(future,
+                    ctx.pipeline().processInbound(new GroupMemberLeftEvent(msg.getMember(), group)));
         }
-
-        future.complete(null);
     }
 
     /**
@@ -199,17 +221,22 @@ public class GroupsClientHandler extends SimpleInboundEventAwareHandler<GroupsSe
         final Group group = msg.getGroup();
         final Duration timeout = groups.get(group).getTimeout();
 
+        // replace old re-try task with renew task
+        final Disposable disposable = renewTasks.remove(group);
+        if (disposable != null) {
+            disposable.dispose();
+        }
+
         // Add renew task
-        renewTasks.add(ctx.independentScheduler().schedulePeriodicallyDirect(() ->
-                        joinGroup(ctx, groups.get(group)),
+        renewTasks.put(group, ctx.independentScheduler().schedulePeriodicallyDirect(() ->
+                        joinGroup(ctx, groups.get(group), true),
                 timeout.dividedBy(2).toMillis(), timeout.dividedBy(2).toMillis(), MILLISECONDS));
 
-        ctx.pipeline().processInbound(
+        FutureUtil.completeOnAllOf(future, ctx.pipeline().processInbound(
                 new GroupJoinedEvent(
                         group,
                         msg.getMembers(),
-                        () -> ctx.pipeline().processOutbound(sender, new GroupLeaveMessage(group))));
-        future.complete(null);
+                        () -> ctx.pipeline().processOutbound(sender, new GroupLeaveMessage(group)))));
     }
 
     /**
@@ -217,11 +244,24 @@ public class GroupsClientHandler extends SimpleInboundEventAwareHandler<GroupsSe
      *
      * @param ctx   the handler context
      * @param group the group to join
+     * @param renew if this is a renew message or not
      */
-    private static void joinGroup(final HandlerContext ctx, final GroupUri group) {
+    private void joinGroup(final HandlerContext ctx,
+                           final GroupUri group,
+                           final boolean renew) {
         final ProofOfWork proofOfWork = ctx.identity().getProofOfWork();
         final CompressedPublicKey groupManager = group.getManager();
 
-        ctx.pipeline().processOutbound(groupManager, new GroupJoinMessage(group.getGroup(), group.getCredentials(), proofOfWork));
+        ctx.pipeline().processOutbound(groupManager, new GroupJoinMessage(group.getGroup(), group.getCredentials(), proofOfWork, renew));
+
+        // Add re-try task
+        if (!renewTasks.containsKey(group.getGroup())) {
+            renewTasks.put(group.getGroup(), ctx.independentScheduler().schedulePeriodicallyDirect(() ->
+                            joinGroup(ctx, groups.get(group.getGroup()), false),
+                    RETRY_DELAY.toMillis(),
+                    RETRY_DELAY.toMillis(), MILLISECONDS));
+        }
+
+        LOG.debug("Send join (renew={}) request for group '{}'", () -> renew, () -> group);
     }
 }

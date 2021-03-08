@@ -62,26 +62,24 @@ class GroupsManagerPluginTest {
             final GroupsManagerPlugin plugin = new GroupsManagerPlugin(groupsManagerConfig, databaseAdapter);
             final Group group = Group.of("group", "secret", (byte) 0, Duration.ofSeconds(60));
             when(groupsManagerConfig.getGroups()).thenReturn(Map.of(group.getName(), group));
+            when(env.getPipeline()).thenReturn(pipeline);
 
             plugin.onBeforeStart(env);
 
             verify(databaseAdapter).addGroup(group);
         }
-    }
 
-    @Nested
-    class OnAfterStart {
         @Test
         void shouldAddHandlerToPipeline() {
-            final GroupsManagerPlugin plugin = new GroupsManagerPlugin(ConfigFactory.parseMap(Map.of(
+            final GroupsManagerPlugin plugin = new GroupsManagerPlugin(new GroupsManagerConfig(ConfigFactory.parseMap(Map.of(
                     DATABASE_URI, "",
                     GROUPS, Map.of(),
                     API_ENABLED, false,
                     API_BIND_HOST, "0.0.0.0",
-                    API_BIND_PORT, 8080)));
+                    API_BIND_PORT, 8080))), databaseAdapter);
             when(env.getPipeline()).thenReturn(pipeline);
 
-            plugin.onAfterStart(env);
+            plugin.onBeforeStart(env);
 
             verify(pipeline).addLast(eq(GROUPS_MANAGER_HANDLER), isA(GroupsManagerHandler.class));
         }

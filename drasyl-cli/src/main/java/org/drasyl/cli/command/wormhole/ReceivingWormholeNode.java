@@ -167,7 +167,7 @@ public class ReceivingWormholeNode extends BehavioralDrasylNode {
                     .onEvent(NodeNormalTerminationEvent.class, event -> terminate())
                     .onEvent(RequestTextTimeout.class, event -> fail())
                     .onMessage(TextMessage.class, (sender, payload) -> sender.equals(request.getSender()), (sender, payload) -> {
-                        LOG.debug("Got text from '{}': {}", () -> sender, payload::getText);
+                        LOG.debug("Got text from '{}': {}", () -> sender, () -> payload.getText());
                         out.println(payload.getText());
                         return terminate();
                     })

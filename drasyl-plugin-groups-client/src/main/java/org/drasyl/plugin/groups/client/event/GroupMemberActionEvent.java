@@ -23,6 +23,9 @@ import org.drasyl.plugin.groups.client.Group;
 
 import java.util.Objects;
 
+import static java.util.Objects.hash;
+import static java.util.Objects.requireNonNull;
+
 @SuppressWarnings("java:S118")
 abstract class GroupMemberActionEvent implements GroupEvent {
     protected final CompressedPublicKey member;
@@ -30,8 +33,8 @@ abstract class GroupMemberActionEvent implements GroupEvent {
 
     protected GroupMemberActionEvent(
             final CompressedPublicKey member, final Group group) {
-        this.member = member;
-        this.group = group;
+        this.member = requireNonNull(member);
+        this.group = requireNonNull(group);
     }
 
     public CompressedPublicKey getMember() {
@@ -45,7 +48,7 @@ abstract class GroupMemberActionEvent implements GroupEvent {
 
     @Override
     public int hashCode() {
-        return Objects.hash(member, group);
+        return hash(member, group);
     }
 
     @Override

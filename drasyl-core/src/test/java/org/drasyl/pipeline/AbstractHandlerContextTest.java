@@ -39,7 +39,6 @@ import java.util.concurrent.CompletableFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Answers.CALLS_REAL_METHODS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
@@ -369,22 +368,9 @@ class AbstractHandlerContextTest {
     }
 
     @Test
-    void shouldThrowExceptionOnPipelineException(@Mock final PipelineException exception) {
-        when(dependentScheduler.isCalledFromThisScheduler()).thenReturn(true);
-        final AbstractHandlerContext context = new AbstractHandlerContext("test", config, pipeline, dependentScheduler, independentScheduler, identity, peersManager, inboundSerialization, outboundSerialization) {
-            @Override
-            public Handler handler() {
-                return null;
-            }
-        };
-
-        assertThrows(PipelineException.class, () -> context.fireExceptionCaught(exception));
-    }
-
-    @Test
-    void shouldThrowExceptionOnPipelineExceptionOnNextHandler(@Mock final Handler newHandler,
-                                                              @Mock final Exception exception,
-                                                              @Mock(answer = CALLS_REAL_METHODS) final AbstractHandlerContext context1) {
+    void shouldNotThrowExceptionOnExceptionOnNextHandler(@Mock final Handler newHandler,
+                                                         @Mock final Exception exception,
+                                                         @Mock(answer = CALLS_REAL_METHODS) final AbstractHandlerContext context1) {
         when(dependentScheduler.isCalledFromThisScheduler()).thenReturn(true);
         final AbstractHandlerContext context = new AbstractHandlerContext("test", config, pipeline, dependentScheduler, independentScheduler, identity, peersManager, inboundSerialization, outboundSerialization) {
             @Override
@@ -395,9 +381,9 @@ class AbstractHandlerContextTest {
 
         context.setNextHandlerContext(context1);
         when(context1.handler()).thenReturn(newHandler);
-        doThrow(PipelineException.class).when(newHandler).exceptionCaught(any(), any());
+        doThrow(RuntimeException.class).when(newHandler).exceptionCaught(any(), any());
 
-        assertThrows(PipelineException.class, () -> context.fireExceptionCaught(exception));
+        assertDoesNotThrow(() -> context.fireExceptionCaught(exception));
     }
 
     @Test

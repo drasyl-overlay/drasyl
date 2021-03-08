@@ -90,6 +90,7 @@ public class GroupsManagerHandler extends SimpleInboundHandler<GroupsClientMessa
 
                 ctx.pipeline().processOutbound(member.getMember().getPublicKey(), leftMessage);
                 notifyMembers(ctx, member.getGroup().getName(), leftMessage, new CompletableFuture<>());
+                LOG.debug("Remove stale member '{}' from group '{}'", member.getMember()::getPublicKey, member.getGroup()::getName);
             }
         }
         catch (final DatabaseException e) {
@@ -160,7 +161,7 @@ public class GroupsManagerHandler extends SimpleInboundHandler<GroupsClientMessa
 
             if (group != null) {
                 if (msg.getProofOfWork().isValid(sender, group.getMinDifficulty())) {
-                    doJoin(ctx, sender, group, future);
+                    doJoin(ctx, sender, group, future, msg.isRenew());
                 }
                 else {
                     ctx.pipeline().processOutbound(sender, new GroupJoinFailedMessage(org.drasyl.plugin.groups.client.Group.of(groupName), ERROR_PROOF_TO_WEAK));
@@ -216,31 +217,34 @@ public class GroupsManagerHandler extends SimpleInboundHandler<GroupsClientMessa
     /**
      * This message does the actual join state transition.
      *
-     * @param ctx    the handler context
-     * @param sender the sender
-     * @param group  the group to join
-     * @param future the message future
+     * @param ctx     the handler context
+     * @param sender  the sender
+     * @param group   the group to join
+     * @param future  the message future
+     * @param isRenew if this is a renew
      */
     private void doJoin(final HandlerContext ctx,
                         final CompressedPublicKey sender,
                         final Group group,
-                        final CompletableFuture<Void> future) {
+                        final CompletableFuture<Void> future,
+                        final boolean isRenew) {
         try {
             if (database.addGroupMember(
                     Membership.of(
                             Member.of(sender),
                             group,
-                            System.currentTimeMillis() + group.getTimeout().toMillis()))) {
-
-                final Set<Membership> memberships = database.getGroupMembers(group.getName());
-                final CompletableFuture<Void> future1 = ctx.pipeline().processOutbound(sender, new GroupWelcomeMessage(org.drasyl.plugin.groups.client.Group.of(group.getName()), memberships.stream()
-                        .filter(v -> !v.getMember().getPublicKey().equals(sender) && v.getStaleAt() > System.currentTimeMillis())
+                            System.currentTimeMillis() + group.getTimeout().toMillis())) || !isRenew) {
+                final Set<CompressedPublicKey> memberships = database.getGroupMembers(group.getName()).stream()
+                        .sequential()
                         .map(v -> v.getMember().getPublicKey())
-                        .collect(Collectors.toSet())));
+                        .collect(Collectors.toSet());
+                final CompletableFuture<Void> future1 = ctx.pipeline().processOutbound(sender,
+                        new GroupWelcomeMessage(org.drasyl.plugin.groups.client.Group.of(group.getName()), memberships));
                 final CompletableFuture<Void> future2 = new CompletableFuture<>();
+                FutureUtil.completeOnAllOf(future, future1, future2);
+
                 notifyMembers(ctx, group.getName(), new MemberJoinedMessage(sender, org.drasyl.plugin.groups.client.Group.of(group.getName())), future2);
 
-                FutureUtil.completeOnAllOf(future, future1, future2);
                 LOG.debug("Added member '{}' to group '{}'", () -> sender, group::getName);
             }
             else {

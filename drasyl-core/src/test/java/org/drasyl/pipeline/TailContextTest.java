@@ -35,8 +35,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -112,10 +112,21 @@ class TailContextTest {
     @Nested
     class OnException {
         @Test
-        void shouldThrowException(@Mock final Exception exception) {
+        void shouldSkipOnException(@Mock final Exception exception) {
             final TailContext tailContext = new TailContext(eventConsumer, config, pipeline, dependentScheduler, independentScheduler, identity, peersManager, inboundSerialization, outboundSerialization);
+            final AbstractHandlerContext actx = new AbstractHandlerContext(tailContext, tailContext, "", config, pipeline, dependentScheduler, independentScheduler, identity, peersManager, inboundSerialization, outboundSerialization) {
+                @Override
+                public Handler handler() {
+                    return null;
+                }
 
-            assertThrows(Exception.class, () -> tailContext.exceptionCaught(ctx, exception));
+                @Override
+                void executeOnDependentScheduler(final Runnable task) {
+                    task.run();
+                }
+            };
+
+            assertDoesNotThrow(() -> actx.fireExceptionCaught(exception));
             verifyNoInteractions(ctx);
         }
     }

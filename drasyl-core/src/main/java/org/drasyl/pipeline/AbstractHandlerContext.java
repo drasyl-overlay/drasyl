@@ -124,18 +124,11 @@ abstract class AbstractHandlerContext implements HandlerContext {
 
     @SuppressWarnings("java:S2221")
     private void invokeExceptionCaught(final Exception cause) {
-        if (cause instanceof PipelineException) {
-            throw (PipelineException) cause;
-        }
-
         final AbstractHandlerContext inboundCtx = findNextInbound(EXCEPTION_CAUGHT_MASK);
         try {
             if (inboundCtx != null) {
                 inboundCtx.handler().exceptionCaught(inboundCtx, cause);
             }
-        }
-        catch (final PipelineException e) {
-            throw e;
         }
         catch (final Exception e) {
             LOG.warn("Failed to invoke exceptionCaught() on next handler `{}` do to the following error: ", inboundCtx::name, () -> e);

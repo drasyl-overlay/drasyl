@@ -40,14 +40,21 @@ public class GroupJoinMessage extends GroupActionMessage implements GroupsClient
      */
     private final String credentials;
     private final ProofOfWork proofOfWork;
+    private final boolean renew;
 
     @JsonCreator
     public GroupJoinMessage(@JsonProperty("group") final Group group,
                             @JsonProperty("credentials") final String credentials,
-                            @JsonProperty("proofOfWork") final ProofOfWork proofOfWork) {
+                            @JsonProperty("proofOfWork") final ProofOfWork proofOfWork,
+                            @JsonProperty("renew") final boolean renew) {
         super(group);
         this.credentials = requireNonNull(credentials);
         this.proofOfWork = requireNonNull(proofOfWork);
+        this.renew = renew;
+    }
+
+    public boolean isRenew() {
+        return renew;
     }
 
     public String getCredentials() {
@@ -63,7 +70,8 @@ public class GroupJoinMessage extends GroupActionMessage implements GroupsClient
         return "GroupJoinMessage{" +
                 "credentials='" + maskSecret(credentials) + '\'' +
                 ", group='" + group + '\'' +
-                ", proofOfWork=" + proofOfWork +
+                ", proofOfWork=" + proofOfWork + '\'' +
+                ", renew=" + renew +
                 '}';
     }
 
@@ -80,11 +88,12 @@ public class GroupJoinMessage extends GroupActionMessage implements GroupsClient
         }
         final GroupJoinMessage that = (GroupJoinMessage) o;
         return Objects.equals(credentials, that.credentials) &&
-                Objects.equals(proofOfWork, that.proofOfWork);
+                Objects.equals(proofOfWork, that.proofOfWork) &&
+                Objects.equals(renew, that.renew);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), credentials, proofOfWork);
+        return Objects.hash(super.hashCode(), credentials, proofOfWork, renew);
     }
 }

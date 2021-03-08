@@ -49,7 +49,7 @@ class GroupsClientPluginTest {
         final GroupsClientPlugin plugin = new GroupsClientPlugin(groupsClientConfig);
         when(env.getPipeline()).thenReturn(pipeline);
 
-        plugin.onAfterStart(env);
+        plugin.onBeforeStart(env);
 
         verify(pipeline).addLast(eq(GROUPS_CLIENT_HANDLER), isA(GroupsClientHandler.class));
     }
@@ -68,7 +68,6 @@ class GroupsClientPluginTest {
     void shouldDoNothingOnNotUsedEvents() {
         final GroupsClientPlugin plugin = new GroupsClientPlugin(groupsClientConfig);
 
-        plugin.onBeforeStart(env);
         plugin.onAfterShutdown(env);
 
         verifyNoInteractions(pipeline);

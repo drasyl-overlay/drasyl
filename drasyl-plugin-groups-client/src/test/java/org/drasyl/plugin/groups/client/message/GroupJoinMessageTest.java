@@ -40,28 +40,28 @@ class GroupJoinMessageTest {
         @Test
         void shouldRejectNullValues() {
             final Group group = Group.of("my-squad");
-            assertThrows(NullPointerException.class, () -> new GroupJoinMessage(group, "", null));
-            assertThrows(NullPointerException.class, () -> new GroupJoinMessage(null, "", proofOfWork));
-            assertThrows(NullPointerException.class, () -> new GroupJoinMessage(group, null, proofOfWork));
+            assertThrows(NullPointerException.class, () -> new GroupJoinMessage(group, "", null, false));
+            assertThrows(NullPointerException.class, () -> new GroupJoinMessage(null, "", proofOfWork, false));
+            assertThrows(NullPointerException.class, () -> new GroupJoinMessage(group, null, proofOfWork, false));
         }
 
         @Test
         void shouldReturnCorrectCredentials() {
-            final GroupJoinMessage msg = new GroupJoinMessage(Group.of("my-squad"), "", proofOfWork);
+            final GroupJoinMessage msg = new GroupJoinMessage(Group.of("my-squad"), "", proofOfWork, false);
 
             assertEquals("", msg.getCredentials());
         }
 
         @Test
         void shouldReturnCorrectGroupName() {
-            final GroupJoinMessage msg = new GroupJoinMessage(Group.of("my-squad"), "", proofOfWork);
+            final GroupJoinMessage msg = new GroupJoinMessage(Group.of("my-squad"), "", proofOfWork, false);
 
             assertEquals(Group.of("my-squad"), msg.getGroup());
         }
 
         @Test
         void shouldReturnCorrectProofOfWork() {
-            final GroupJoinMessage msg = new GroupJoinMessage(Group.of("my-squad"), "", proofOfWork);
+            final GroupJoinMessage msg = new GroupJoinMessage(Group.of("my-squad"), "", proofOfWork, false);
 
             assertEquals(proofOfWork, msg.getProofOfWork());
         }
@@ -71,16 +71,16 @@ class GroupJoinMessageTest {
     class Equals {
         @Test
         void shouldBeEquals() {
-            final GroupJoinMessage msg1 = new GroupJoinMessage(Group.of("my-squad"), "", proofOfWork);
-            final GroupJoinMessage msg2 = new GroupJoinMessage(Group.of("my-squad"), "", proofOfWork);
+            final GroupJoinMessage msg1 = new GroupJoinMessage(Group.of("my-squad"), "", proofOfWork, false);
+            final GroupJoinMessage msg2 = new GroupJoinMessage(Group.of("my-squad"), "", proofOfWork, false);
 
             assertEquals(msg1, msg2);
         }
 
         @Test
         void shouldNotBeEquals() {
-            final GroupJoinMessage msg1 = new GroupJoinMessage(Group.of("my-squad"), "a", proofOfWork);
-            final GroupJoinMessage msg2 = new GroupJoinMessage(Group.of("your-squad"), "b", proofOfWork);
+            final GroupJoinMessage msg1 = new GroupJoinMessage(Group.of("my-squad"), "a", proofOfWork, false);
+            final GroupJoinMessage msg2 = new GroupJoinMessage(Group.of("your-squad"), "b", proofOfWork, false);
 
             assertNotEquals(msg1, msg2);
         }
@@ -90,16 +90,16 @@ class GroupJoinMessageTest {
     class HashCode {
         @Test
         void shouldBeEquals() {
-            final GroupJoinMessage msg1 = new GroupJoinMessage(Group.of("my-squad"), "", proofOfWork);
-            final GroupJoinMessage msg2 = new GroupJoinMessage(Group.of("my-squad"), "", proofOfWork);
+            final GroupJoinMessage msg1 = new GroupJoinMessage(Group.of("my-squad"), "", proofOfWork, false);
+            final GroupJoinMessage msg2 = new GroupJoinMessage(Group.of("my-squad"), "", proofOfWork, false);
 
             assertEquals(msg1.hashCode(), msg2.hashCode());
         }
 
         @Test
         void shouldNotBeEquals() {
-            final GroupJoinMessage msg1 = new GroupJoinMessage(Group.of("my-squad"), "a", proofOfWork);
-            final GroupJoinMessage msg2 = new GroupJoinMessage(Group.of("your-squad"), "b", proofOfWork);
+            final GroupJoinMessage msg1 = new GroupJoinMessage(Group.of("my-squad"), "a", proofOfWork, false);
+            final GroupJoinMessage msg2 = new GroupJoinMessage(Group.of("your-squad"), "b", proofOfWork, false);
 
             assertNotEquals(msg1.hashCode(), msg2.hashCode());
         }

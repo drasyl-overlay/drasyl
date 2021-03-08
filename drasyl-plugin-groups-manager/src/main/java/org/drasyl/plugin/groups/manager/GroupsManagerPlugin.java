@@ -74,6 +74,10 @@ public class GroupsManagerPlugin implements DrasylPlugin {
                     LOG.debug("Group '{}' was added.", name);
                 }
             }
+
+            env.getPipeline().addLast(GROUPS_MANAGER_HANDLER, new GroupsManagerHandler(database));
+
+            LOG.debug("Groups Manager Plugin was started with options: {}", config);
         }
         catch (final DatabaseException e) {
             LOG.error("Database Error: ", e);
@@ -82,15 +86,11 @@ public class GroupsManagerPlugin implements DrasylPlugin {
 
     @Override
     public void onAfterStart(final PluginEnvironment env) {
-        env.getPipeline().addLast(GROUPS_MANAGER_HANDLER, new GroupsManagerHandler(database));
-
         // start api
         if (config.isApiEnabled()) {
             api = new GroupsManagerApi(config, database);
             api.start();
         }
-
-        LOG.debug("Groups Manager Plugin was started with options: {}", config);
     }
 
     @Override

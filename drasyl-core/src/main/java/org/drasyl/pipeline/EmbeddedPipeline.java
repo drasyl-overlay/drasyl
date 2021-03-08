@@ -38,6 +38,7 @@ import org.drasyl.util.scheduler.DrasylSchedulerUtil;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -102,6 +103,7 @@ public class EmbeddedPipeline extends AbstractPipeline implements AutoCloseable 
                               final Object msg,
                               final CompletableFuture<Void> future) {
                 outboundMessages.onNext(msg);
+
                 future.complete(null);
             }
         };
@@ -192,6 +194,14 @@ public class EmbeddedPipeline extends AbstractPipeline implements AutoCloseable 
     @SuppressWarnings("unchecked")
     @Override
     public void close() {
+        outboundMessages.onComplete();
+        inboundMessages.onComplete();
+        inboundEvents.onComplete();
+
+        // remove all handler from pipeline
+        for (final String ctx : new HashMap<>(handlerNames).keySet()) {
+            this.remove(ctx);
+        }
         for (final Object o : outboundMessages.getValues()) {
             ReferenceCountUtil.safeRelease(o);
         }

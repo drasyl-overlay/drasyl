@@ -122,7 +122,6 @@
         <rxjava.version>3.0.11</rxjava.version>
         <micrometer.version>1.6.4</micrometer.version>
         <maven.scm>1.11.2</maven.scm>
-        <nexus.staging>1.6.8</nexus.staging>
         <slf4j.version>1.7.30</slf4j.version>
         <typesafe.config.version>1.4.1</typesafe.config.version>
         <jetbrains.annotations.version>20.1.0</jetbrains.annotations.version>
@@ -383,6 +382,21 @@
                     <artifactId>protoc-jar-maven-plugin</artifactId>
                     <version>3.11.4</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.5.3</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>nexus-staging-maven-plugin</artifactId>
+                    <version>1.6.8</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>3.1.2</version>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -483,7 +497,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
-                <version>2.5.3</version>
                 <configuration>
                     <tagNameFormat>v@{project.version}</tagNameFormat>
                 </configuration>
@@ -491,7 +504,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.1.2</version>
                 <configuration>
                     <consoleOutput>true</consoleOutput>
                     <logViolationsToConsole>true</logViolationsToConsole>
@@ -504,7 +516,7 @@
                 <version>3.0.0-M3</version>
                 <configuration>
                     <rules>
-                        <dependencyConvergence />
+                        <dependencyConvergence/>
                     </rules>
                 </configuration>
             </plugin>
@@ -540,9 +552,11 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
+                <!--suppress UnresolvedMavenProperty -->
                 <gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
+                <!--suppress UnresolvedMavenProperty -->
                 <gpg.executable>${env.GPG_EXECUTABLE}</gpg.executable>
-                <gpg.passphrase />
+                <gpg.passphrase/>
             </properties>
         </profile>
         <profile>
@@ -578,7 +592,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-release-plugin</artifactId>
-                        <version>2.5.3</version>
                         <configuration>
                             <tagNameFormat>@{project.version}</tagNameFormat>
                             <localCheckout>true</localCheckout>
@@ -600,7 +613,6 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>${nexus.staging}</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>ossrh</serverId>

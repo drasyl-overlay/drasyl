@@ -24,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Objects;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
@@ -63,7 +64,7 @@ class WeakPoolTest {
         System.gc();
 
         assertNull(a);
-        assertNull(pool.get(b));
+        await().untilAsserted(() -> assertNull(pool.get(b)));
     }
 
     static class MyObject {

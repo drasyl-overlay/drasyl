@@ -48,7 +48,7 @@ public class GroupsClientPlugin implements DrasylPlugin {
     }
 
     @Override
-    public void onAfterStart(final PluginEnvironment environment) {
+    public void onBeforeStart(final PluginEnvironment environment) {
         LOG.debug("Start Groups Client Plugin with options: {}", config);
 
         environment.getPipeline().addLast(GROUPS_CLIENT_HANDLER, new GroupsClientHandler(config.getGroups()));
