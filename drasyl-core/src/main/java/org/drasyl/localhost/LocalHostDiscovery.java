@@ -170,12 +170,14 @@ public class LocalHostDiscovery extends SimpleOutboundHandler<SerializedApplicat
             postDisposable.dispose();
         }
 
-        try {
-            final Path discoveryPath = discoveryPath(ctx);
-            Files.delete(discoveryPath.resolve(ctx.identity().getPublicKey().toString() + ".json"));
-        }
-        catch (final IOException e) {
-            LOG.debug("Unable to delete `{}`", path, e);
+        final Path filePath = discoveryPath(ctx).resolve(ctx.identity().getPublicKey().toString() + ".json");
+        if (filePath.toFile().exists()) {
+            try {
+                Files.delete(filePath);
+            }
+            catch (final IOException e) {
+                LOG.debug("Unable to delete `{}`", filePath, e);
+            }
         }
 
         routes.keySet().forEach(publicKey -> ctx.peersManager().removePath(publicKey, LocalHostDiscovery.path));
@@ -250,6 +252,7 @@ public class LocalHostDiscovery extends SimpleOutboundHandler<SerializedApplicat
      *
      * @param ctx handler's context
      */
+    @SuppressWarnings("java:S134")
     synchronized void scan(final HandlerContext ctx) {
         final Path discoveryPath = discoveryPath(ctx);
         LOG.debug("Scan directory {} for new peers.", discoveryPath);

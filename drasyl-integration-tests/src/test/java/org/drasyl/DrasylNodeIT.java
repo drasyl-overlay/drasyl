@@ -20,9 +20,7 @@ package org.drasyl;
 
 import io.reactivex.rxjava3.observers.TestObserver;
 import org.drasyl.event.MessageEvent;
-import org.drasyl.event.NodeEvent;
 import org.drasyl.event.NodeOfflineEvent;
-import org.drasyl.event.NodeUpEvent;
 import org.drasyl.event.PeerDirectEvent;
 import org.drasyl.event.PeerEvent;
 import org.drasyl.identity.CompressedPrivateKey;
@@ -92,7 +90,6 @@ class DrasylNodeIT {
             private EmbeddedNode client1;
             private EmbeddedNode client2;
 
-            @SuppressWarnings("ConstantConditions")
             @BeforeEach
             void setUp() throws DrasylException {
                 //
@@ -115,11 +112,10 @@ class DrasylNodeIT {
                         .remoteMessageMtu(MESSAGE_MTU)
                         .build();
                 superPeer = new EmbeddedNode(config).started();
-                final NodeEvent superPeerNodeUp = superPeer.events(NodeUpEvent.class).firstElement().blockingGet();
-                final int superPeerPort = superPeerNodeUp.getNode().getPort();
                 colorizedPrintln("CREATED superPeer", COLOR_CYAN, STYLE_REVERSED);
 
                 // client1
+                System.err.println(superPeer.getPort());
                 config = DrasylConfig.newBuilder()
                         .networkId(0)
                         .identityProofOfWork(ProofOfWork.of(12304070))
@@ -130,7 +126,7 @@ class DrasylNodeIT {
                         .remoteBindPort(0)
                         .remotePingInterval(ofSeconds(1))
                         .remotePingTimeout(ofSeconds(2))
-                        .remoteSuperPeerEndpoints(Set.of(Endpoint.of("udp://127.0.0.1:" + superPeerPort + "?publicKey=030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22")))
+                        .remoteSuperPeerEndpoints(Set.of(Endpoint.of("udp://127.0.0.1:" + superPeer.getPort() + "?publicKey=030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22")))
                         .intraVmDiscoveryEnabled(false)
                         .remoteLocalHostDiscoveryEnabled(false)
                         .remoteMessageMtu(MESSAGE_MTU)
@@ -149,7 +145,7 @@ class DrasylNodeIT {
                         .remoteBindPort(0)
                         .remotePingInterval(ofSeconds(1))
                         .remotePingTimeout(ofSeconds(2))
-                        .remoteSuperPeerEndpoints(Set.of(Endpoint.of("udp://127.0.0.1:" + superPeerPort + "?publicKey=030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22")))
+                        .remoteSuperPeerEndpoints(Set.of(Endpoint.of("udp://127.0.0.1:" + superPeer.getPort() + "?publicKey=030e54504c1b64d9e31d5cd095c6e470ea35858ad7ef012910a23c9d3b8bef3f22")))
                         .intraVmDiscoveryEnabled(false)
                         .remoteLocalHostDiscoveryEnabled(false)
                         .remoteMessageMtu(MESSAGE_MTU)

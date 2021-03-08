@@ -204,7 +204,7 @@ public class PerfCommand extends AbstractCommand {
             throw new CliException("Unable to create/run perf client", e);
         }
         catch (final ParseException e) {
-            throw new CliException("Unable parse options", e);
+            throw new CliException("Unable to parse options", e);
         }
         catch (final InterruptedException e) {
             Thread.currentThread().interrupt();

@@ -16,16 +16,15 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with drasyl.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.drasyl.cli.command;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
 import org.drasyl.DrasylConfig;
 import org.drasyl.DrasylException;
 import org.drasyl.cli.command.wormhole.ReceivingWormholeNode;
 import org.drasyl.cli.command.wormhole.SendingWormholeNode;
-import org.drasyl.util.ThrowingFunction;
-import org.drasyl.util.Triple;
+import org.drasyl.util.ThrowingBiFunction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -58,9 +57,9 @@ class WormholeCommandTest {
     @Mock
     private Supplier<Scanner> scannerSupplier;
     @Mock
-    private ThrowingFunction<Triple<DrasylConfig, PrintStream, PrintStream>, SendingWormholeNode, DrasylException> sendingNodeSupplier;
+    private ThrowingBiFunction<DrasylConfig, PrintStream, SendingWormholeNode, DrasylException> sendingNodeSupplier;
     @Mock
-    private ThrowingFunction<Triple<DrasylConfig, PrintStream, PrintStream>, ReceivingWormholeNode, DrasylException> receivingNodeSupplier;
+    private ThrowingBiFunction<DrasylConfig, PrintStream, ReceivingWormholeNode, DrasylException> receivingNodeSupplier;
     @Mock
     private Consumer<Integer> exitSupplier;
     private WormholeCommand underTest;
@@ -98,11 +97,11 @@ class WormholeCommandTest {
         private CommandLine cmd;
 
         @Test
-        void shouldStartSendingNode(@Mock(answer = RETURNS_DEEP_STUBS) final SendingWormholeNode node) throws DrasylException {
+        void shouldRequestTextAndStartSendingNode(@Mock(answer = RETURNS_DEEP_STUBS) final SendingWormholeNode node) throws DrasylException {
             when(cmd.getArgList().size()).thenReturn(2);
             when(cmd.getArgList().get(1)).thenReturn("send");
             when(scannerSupplier.get()).thenReturn(new Scanner("Hallo Welt"));
-            when(sendingNodeSupplier.apply(any())).thenReturn(node);
+            when(sendingNodeSupplier.apply(any(), any())).thenReturn(node);
 
             underTest.execute(cmd);
 
@@ -110,11 +109,37 @@ class WormholeCommandTest {
         }
 
         @Test
-        void shouldStartReceivingNode(@Mock(answer = RETURNS_DEEP_STUBS) final ReceivingWormholeNode node) throws DrasylException {
+        void shouldUseGivenTextAndStartSendingNode(@Mock(answer = RETURNS_DEEP_STUBS) final SendingWormholeNode node) throws DrasylException, ParseException {
+            when(cmd.getArgList().size()).thenReturn(2);
+            when(cmd.getArgList().get(1)).thenReturn("send");
+            when(cmd.hasOption("config")).thenReturn(false);
+            when(cmd.hasOption("text")).thenReturn(true);
+            when(cmd.getParsedOptionValue("text")).thenReturn("Hallo Welt");
+            when(sendingNodeSupplier.apply(any(), any())).thenReturn(node);
+
+            underTest.execute(cmd);
+
+            verify(node).start();
+        }
+
+        @Test
+        void shouldRequestCodeAndStartReceivingNode(@Mock(answer = RETURNS_DEEP_STUBS) final ReceivingWormholeNode node) throws DrasylException {
+            when(cmd.getArgList().size()).thenReturn(2);
+            when(cmd.getArgList().get(1)).thenReturn("receive");
+            when(scannerSupplier.get()).thenReturn(new Scanner("022e170caf9292de6af36562d2773e62d573e33d09550e1620b9cae75b1a3a98281ff73f2346d55195d0cd274c101c4775"));
+            when(receivingNodeSupplier.apply(any(), any())).thenReturn(node);
+
+            underTest.execute(cmd);
+
+            verify(node).start();
+        }
+
+        @Test
+        void shouldUseGivenCodeAndStartReceivingNode(@Mock(answer = RETURNS_DEEP_STUBS) final ReceivingWormholeNode node) throws DrasylException {
             when(cmd.getArgList().size()).thenReturn(3);
             when(cmd.getArgList().get(1)).thenReturn("receive");
             when(cmd.getArgList().get(2)).thenReturn("022e170caf9292de6af36562d2773e62d573e33d09550e1620b9cae75b1a3a98281ff73f2346d55195d0cd274c101c4775");
-            when(receivingNodeSupplier.apply(any())).thenReturn(node);
+            when(receivingNodeSupplier.apply(any(), any())).thenReturn(node);
 
             underTest.execute(cmd);
 
@@ -126,7 +151,7 @@ class WormholeCommandTest {
             when(cmd.getArgList().size()).thenReturn(3);
             when(cmd.getArgList().get(1)).thenReturn("receive");
             when(cmd.getArgList().get(2)).thenReturn("022e170caf9292de6af36562d2773e62d573e33d09550e1620b9cae75b1a3a9");
-            when(receivingNodeSupplier.apply(any())).thenReturn(node);
+            when(receivingNodeSupplier.apply(any(), any())).thenReturn(node);
 
             underTest.execute(cmd);
 

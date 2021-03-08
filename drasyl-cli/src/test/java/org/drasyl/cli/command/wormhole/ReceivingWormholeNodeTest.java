@@ -58,8 +58,6 @@ import static org.mockito.Mockito.when;
 class ReceivingWormholeNodeTest {
     private ByteArrayOutputStream outStream;
     private PrintStream out;
-    private ByteArrayOutputStream errStream;
-    private PrintStream err;
     @Mock
     private CompletableFuture<Void> doneFuture;
     @Mock(answer = RETURNS_DEEP_STUBS)
@@ -84,9 +82,7 @@ class ReceivingWormholeNodeTest {
     void setUp() {
         outStream = new ByteArrayOutputStream();
         out = new PrintStream(outStream, true);
-        errStream = new ByteArrayOutputStream();
-        err = new PrintStream(errStream, true);
-        underTest = new ReceivingWormholeNode(doneFuture, out, err, request, config, identity, peersManager, pipeline, pluginManager, startFuture, shutdownFuture, scheduler);
+        underTest = new ReceivingWormholeNode(doneFuture, out, request, config, identity, peersManager, pipeline, pluginManager, startFuture, shutdownFuture, scheduler);
     }
 
     @Nested
@@ -95,13 +91,9 @@ class ReceivingWormholeNodeTest {
         class OnNodeUnrecoverableErrorEvent {
             @Test
             void shouldCompleteExceptionally(@Mock(answer = RETURNS_DEEP_STUBS) final NodeUnrecoverableErrorEvent event) {
-                when(event.getError().toString()).thenReturn("Boom!");
-
                 underTest.onEvent(event);
 
-                final String output = errStream.toString();
-                assertThat(output, containsString("ERR: Boom!"));
-                verify(doneFuture).complete(null);
+                verify(doneFuture).completeExceptionally(any());
             }
         }
 
@@ -146,9 +138,7 @@ class ReceivingWormholeNodeTest {
                     underTest.onEvent(nodeOnline);
                     underTest.onEvent(event);
 
-                    final String output = errStream.toString();
-                    assertThat(output, containsString("ERR: Code confirmation failed."));
-                    verify(doneFuture).complete(null);
+                    verify(doneFuture).completeExceptionally(any());
                 }
             }
 
@@ -156,7 +146,7 @@ class ReceivingWormholeNodeTest {
             class OnRequestText {
                 @Test
                 void shouldRequestText(@Mock(answer = RETURNS_DEEP_STUBS) final RequestText event) {
-                    underTest = new ReceivingWormholeNode(doneFuture, out, err, null, config, identity, peersManager, pipeline, pluginManager, startFuture, shutdownFuture, scheduler);
+                    underTest = new ReceivingWormholeNode(doneFuture, out, null, config, identity, peersManager, pipeline, pluginManager, startFuture, shutdownFuture, scheduler);
 
                     underTest.onEvent(nodeOnline);
                     underTest.onEvent(event);
@@ -170,7 +160,7 @@ class ReceivingWormholeNodeTest {
         class OnRequestText {
             @Test
             void shouldNotRequestTextBecauseNotOffline(@Mock(answer = RETURNS_DEEP_STUBS) final RequestText event) {
-                underTest = new ReceivingWormholeNode(doneFuture, out, err, null, config, identity, peersManager, pipeline, pluginManager, startFuture, shutdownFuture, scheduler);
+                underTest = new ReceivingWormholeNode(doneFuture, out, null, config, identity, peersManager, pipeline, pluginManager, startFuture, shutdownFuture, scheduler);
 
                 underTest.onEvent(event);
 
@@ -184,9 +174,7 @@ class ReceivingWormholeNodeTest {
             void shouldComplete(@Mock(answer = RETURNS_DEEP_STUBS) final OnlineTimeout event) {
                 underTest.onEvent(event);
 
-                final String output = errStream.toString();
-                assertThat(output, containsString("ERR: Node did not come online within 10s. Look like super peer is unavailable."));
-                verify(doneFuture).complete(null);
+                verify(doneFuture).completeExceptionally(any());
             }
         }
     }

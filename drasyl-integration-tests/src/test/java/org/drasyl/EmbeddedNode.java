@@ -27,6 +27,7 @@ import org.drasyl.event.MessageEvent;
 import org.drasyl.event.NodeNormalTerminationEvent;
 import org.drasyl.event.NodeOnlineEvent;
 import org.drasyl.event.NodeUnrecoverableErrorEvent;
+import org.drasyl.event.NodeUpEvent;
 
 import java.io.Closeable;
 import java.util.Arrays;
@@ -35,6 +36,7 @@ import static java.util.Objects.requireNonNull;
 
 public class EmbeddedNode extends DrasylNode implements Closeable {
     private final Subject<Event> events;
+    private int port;
 
     private EmbeddedNode(final DrasylConfig config,
                          final Subject<Event> events) throws DrasylException {
@@ -52,6 +54,10 @@ public class EmbeddedNode extends DrasylNode implements Closeable {
             events.onError(((NodeUnrecoverableErrorEvent) event).getError());
         }
         else {
+            if (event instanceof NodeUpEvent) {
+                port = ((NodeUpEvent) event).getNode().getPort();
+            }
+
             events.onNext(event);
 
             if (event instanceof NodeNormalTerminationEvent) {
@@ -81,6 +87,7 @@ public class EmbeddedNode extends DrasylNode implements Closeable {
 
     public EmbeddedNode started() {
         start();
+        events(NodeUpEvent.class).test().awaitCount(1).assertValueCount(1);
         return this;
     }
 
@@ -92,5 +99,12 @@ public class EmbeddedNode extends DrasylNode implements Closeable {
     @Override
     public void close() {
         shutdown().join();
+    }
+
+    public int getPort() {
+        if (port == 0) {
+            throw new IllegalStateException("Port not set. You have to start the node first.");
+        }
+        return port;
     }
 }

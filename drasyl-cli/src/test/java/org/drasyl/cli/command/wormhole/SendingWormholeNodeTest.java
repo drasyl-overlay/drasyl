@@ -16,7 +16,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with drasyl.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.drasyl.cli.command.wormhole;
 
 import io.reactivex.rxjava3.core.Scheduler;
@@ -43,8 +42,6 @@ import java.io.PrintStream;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
@@ -61,10 +58,6 @@ class SendingWormholeNodeTest {
     private ByteArrayOutputStream outStream;
     @SuppressWarnings("FieldCanBeLocal")
     private PrintStream out;
-    @SuppressWarnings("FieldCanBeLocal")
-    private ByteArrayOutputStream errStream;
-    @SuppressWarnings("FieldCanBeLocal")
-    private PrintStream err;
     @SuppressWarnings("FieldCanBeLocal")
     private final String password = "123";
     @Mock
@@ -87,9 +80,7 @@ class SendingWormholeNodeTest {
     void setUp() {
         outStream = new ByteArrayOutputStream();
         out = new PrintStream(outStream, true);
-        errStream = new ByteArrayOutputStream();
-        err = new PrintStream(errStream, true);
-        underTest = new SendingWormholeNode(doneFuture, out, err, password, config, identity, peersManager, pipeline, pluginManager, startFuture, shutdownFuture, scheduler);
+        underTest = new SendingWormholeNode(doneFuture, out, password, config, identity, peersManager, pipeline, pluginManager, startFuture, shutdownFuture, scheduler);
     }
 
     @Nested
@@ -98,13 +89,9 @@ class SendingWormholeNodeTest {
         class OnNodeUnrecoverableErrorEvent {
             @Test
             void shouldCompleteExceptionally(@Mock(answer = RETURNS_DEEP_STUBS) final NodeUnrecoverableErrorEvent event) {
-                when(event.getError().toString()).thenReturn("Boom!");
-
                 underTest.onEvent(event);
 
-                final String output = errStream.toString();
-                assertThat(output, containsString("ERR: Boom!"));
-                verify(doneFuture).complete(null);
+                verify(doneFuture).completeExceptionally(any());
             }
         }
 
@@ -163,9 +150,7 @@ class SendingWormholeNodeTest {
             void shouldComplete(@Mock(answer = RETURNS_DEEP_STUBS) final OnlineTimeout event) {
                 underTest.onEvent(event);
 
-                final String output = errStream.toString();
-                assertThat(output, containsString("ERR: Node did not come online within 10s. Look like super peer is unavailable."));
-                verify(doneFuture).complete(null);
+                verify(doneFuture).completeExceptionally(any());
             }
         }
     }
