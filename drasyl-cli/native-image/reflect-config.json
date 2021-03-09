@@ -1116,6 +1116,10 @@
     "name": "java.lang.String[]"
   },
   {
+    "name": "org.drasyl.pipeline.HandlerMask",
+    "allDeclaredMethods": true
+  },
+  {
     "name": "org.drasyl.pipeline.skeleton.HandlerAdapter",
     "methods": [
       {
