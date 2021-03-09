@@ -71,7 +71,7 @@ public class Crypto {
         try {
             prng = SecureRandom.getInstance("Windows-PRNG");
         }
-        catch (final NoSuchAlgorithmException e1) { //NOSONAR
+        catch (final Throwable t) { //NOSONAR
             // the windows PRNG is not available switch over to default provider
             // default for Unix-like systems is NativePRNG
             prng = new SecureRandom();
