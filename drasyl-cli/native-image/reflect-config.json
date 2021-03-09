@@ -1114,5 +1114,107 @@
   },
   {
     "name": "java.lang.String[]"
+  },
+  {
+    "name": "org.drasyl.pipeline.skeleton.HandlerAdapter",
+    "methods": [
+      {
+        "name": "eventTriggered",
+        "parameterTypes": [
+          "org.drasyl.pipeline.HandlerContext",
+          "org.drasyl.event.Event",
+          "java.util.concurrent.CompletableFuture"
+        ]
+      },
+      {
+        "name": "exceptionCaught",
+        "parameterTypes": [
+          "org.drasyl.pipeline.HandlerContext",
+          "java.lang.Exception"
+        ]
+      },
+      {
+        "name": "read",
+        "parameterTypes": [
+          "org.drasyl.pipeline.HandlerContext",
+          "org.drasyl.pipeline.address.Address",
+          "java.lang.Object",
+          "java.util.concurrent.CompletableFuture"
+        ]
+      },
+      {
+        "name": "write",
+        "parameterTypes": [
+          "org.drasyl.pipeline.HandlerContext",
+          "org.drasyl.pipeline.address.Address",
+          "java.lang.Object",
+          "java.util.concurrent.CompletableFuture"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "org.drasyl.pipeline.AbstractEndHandler",
+    "methods": [
+      {
+        "name": "eventTriggered",
+        "parameterTypes": [
+          "org.drasyl.pipeline.HandlerContext",
+          "org.drasyl.event.Event",
+          "java.util.concurrent.CompletableFuture"
+        ]
+      },
+      {
+        "name": "exceptionCaught",
+        "parameterTypes": [
+          "org.drasyl.pipeline.HandlerContext",
+          "java.lang.Exception"
+        ]
+      },
+      {
+        "name": "read",
+        "parameterTypes": [
+          "org.drasyl.pipeline.HandlerContext",
+          "org.drasyl.pipeline.address.Address",
+          "java.lang.Object",
+          "java.util.concurrent.CompletableFuture"
+        ]
+      },
+      {
+        "name": "write",
+        "parameterTypes": [
+          "org.drasyl.pipeline.HandlerContext",
+          "org.drasyl.pipeline.address.Address",
+          "java.lang.Object",
+          "java.util.concurrent.CompletableFuture"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "org.drasyl.pipeline.skeleton.SimpleDuplexHandler",
+    "methods": [
+      {
+        "name": "eventTriggered",
+        "parameterTypes": [
+          "org.drasyl.pipeline.HandlerContext",
+          "org.drasyl.event.Event",
+          "java.util.concurrent.CompletableFuture"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "org.drasyl.pipeline.skeleton.SimpleInboundHandler",
+    "methods": [
+      {
+        "name": "eventTriggered",
+        "parameterTypes": [
+          "org.drasyl.pipeline.HandlerContext",
+          "org.drasyl.event.Event",
+          "java.util.concurrent.CompletableFuture"
+        ]
+      }
+    ]
   }
 ]
