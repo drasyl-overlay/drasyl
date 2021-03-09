@@ -1216,5 +1216,17 @@
         ]
       }
     ]
+  },
+  {
+    "name": "sun.security.mscapi.PRNG.State",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "sun.security.mscapi.PRNG",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
   }
 ]
