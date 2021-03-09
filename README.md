@@ -1,4 +1,4 @@
-# drasyl
+# <img src="https://docs.drasyl.org/master/assets/img/logo.svg" alt="drasyl" width="200"/>
 
 [![Build Status](https://git.informatik.uni-hamburg.de/sane-public/drasyl/badges/master/pipeline.svg)](https://git.informatik.uni-hamburg.de/sane-public/drasyl/-/pipelines)
 [![LGPL v3](https://img.shields.io/badge/license-LGPL%20v3-blue)](https://www.gnu.org/licenses/lgpl-3.0)

@@ -17,7 +17,7 @@ theme:
   language: en
   include_sidebar: true
   favicon: assets/img/favicon.ico
-  logo: assets/img/drasyl.png
+  logo: assets/img/drasyl.svg
   feature:
     tabs: false
   palette:

@@ -29,6 +29,8 @@ import org.drasyl.identity.ProofOfWork;
 import org.drasyl.peer.Endpoint;
 import org.drasyl.pipeline.address.InetSocketAddressWrapper;
 import org.drasyl.util.RandomUtil;
+import org.drasyl.util.logging.Logger;
+import org.drasyl.util.logging.LoggerFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -45,13 +47,12 @@ import java.util.concurrent.ExecutionException;
 
 import static java.time.Duration.ofSeconds;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.drasyl.util.AnsiColor.COLOR_CYAN;
-import static org.drasyl.util.AnsiColor.STYLE_REVERSED;
+import static org.drasyl.util.Ansi.ansi;
 import static org.drasyl.util.NetworkUtil.createInetAddress;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static testutils.TestHelper.colorizedPrintln;
 
 class DrasylNodeIT {
+    private static final Logger LOG = LoggerFactory.getLogger(DrasylNodeIT.class);
     public static final long TIMEOUT = 15000L;
     public static final int MESSAGE_MTU = 1024;
 
@@ -59,12 +60,12 @@ class DrasylNodeIT {
     void setup(final TestInfo info) {
         System.setProperty("io.netty.leakDetection.level", "PARANOID");
 
-        colorizedPrintln("STARTING " + info.getDisplayName(), COLOR_CYAN, STYLE_REVERSED);
+        LOG.debug(ansi().cyan().swap().format("# %-140s #", "STARTING " + info.getDisplayName()));
     }
 
     @AfterEach
     void cleanUp(final TestInfo info) {
-        colorizedPrintln("FINISHED " + info.getDisplayName(), COLOR_CYAN, STYLE_REVERSED);
+        LOG.debug(ansi().cyan().swap().format("# %-140s #", "FINISHED " + info.getDisplayName()));
     }
 
     @Nested
@@ -112,7 +113,7 @@ class DrasylNodeIT {
                         .remoteMessageMtu(MESSAGE_MTU)
                         .build();
                 superPeer = new EmbeddedNode(config).started();
-                colorizedPrintln("CREATED superPeer", COLOR_CYAN, STYLE_REVERSED);
+                LOG.debug(ansi().cyan().swap().format("# %-140s #", "CREATED superPeer"));
 
                 // client1
                 System.err.println(superPeer.getPort());
@@ -132,7 +133,7 @@ class DrasylNodeIT {
                         .remoteMessageMtu(MESSAGE_MTU)
                         .build();
                 client1 = new EmbeddedNode(config).started().online();
-                colorizedPrintln("CREATED client1", COLOR_CYAN, STYLE_REVERSED);
+                LOG.debug(ansi().cyan().swap().format("# %-140s #", "CREATED client1"));
 
                 // client2
                 config = DrasylConfig.newBuilder()
@@ -151,7 +152,7 @@ class DrasylNodeIT {
                         .remoteMessageMtu(MESSAGE_MTU)
                         .build();
                 client2 = new EmbeddedNode(config).started().online();
-                colorizedPrintln("CREATED client2", COLOR_CYAN, STYLE_REVERSED);
+                LOG.debug(ansi().cyan().swap().format("# %-140s #", "CREATED client2"));
 
                 superPeer.events(PeerDirectEvent.class).test().awaitCount(2).assertValueCount(2);
                 client1.events(PeerDirectEvent.class).test().awaitCount(1).assertValueCount(1);
@@ -325,7 +326,7 @@ class DrasylNodeIT {
                         .remoteMessageMtu(MESSAGE_MTU)
                         .build();
                 client1 = new EmbeddedNode(config).started();
-                colorizedPrintln("CREATED client1", COLOR_CYAN, STYLE_REVERSED);
+                LOG.debug(ansi().cyan().swap().format("# %-140s #", "CREATED client1"));
 
                 // client2
                 config = DrasylConfig.newBuilder()
@@ -345,7 +346,7 @@ class DrasylNodeIT {
                         .remoteMessageMtu(MESSAGE_MTU)
                         .build();
                 client2 = new EmbeddedNode(config).started();
-                colorizedPrintln("CREATED client2", COLOR_CYAN, STYLE_REVERSED);
+                LOG.debug(ansi().cyan().swap().format("# %-140s #", "CREATED client2"));
 
                 client1.events(PeerDirectEvent.class).test().awaitCount(1).assertValueCount(1);
                 client2.events(PeerDirectEvent.class).test().awaitCount(1).assertValueCount(1);
@@ -442,7 +443,7 @@ class DrasylNodeIT {
                         .remoteLocalHostDiscoveryEnabled(false)
                         .build();
                 node1 = new EmbeddedNode(config).started();
-                colorizedPrintln("CREATED node1", COLOR_CYAN, STYLE_REVERSED);
+                LOG.debug(ansi().cyan().swap().format("# %-140s #", "CREATED node1"));
 
                 // node2
                 config = DrasylConfig.newBuilder()
@@ -456,7 +457,7 @@ class DrasylNodeIT {
                         .remoteLocalHostDiscoveryEnabled(false)
                         .build();
                 node2 = new EmbeddedNode(config).started();
-                colorizedPrintln("CREATED node2", COLOR_CYAN, STYLE_REVERSED);
+                LOG.debug(ansi().cyan().swap().format("# %-140s #", "CREATED node2"));
 
                 // node3
                 config = DrasylConfig.newBuilder()
@@ -470,7 +471,7 @@ class DrasylNodeIT {
                         .remoteLocalHostDiscoveryEnabled(false)
                         .build();
                 node3 = new EmbeddedNode(config).started();
-                colorizedPrintln("CREATED node3", COLOR_CYAN, STYLE_REVERSED);
+                LOG.debug(ansi().cyan().swap().format("# %-140s #", "CREATED node3"));
 
                 // node4
                 config = DrasylConfig.newBuilder()
@@ -484,7 +485,7 @@ class DrasylNodeIT {
                         .remoteLocalHostDiscoveryEnabled(false)
                         .build();
                 node4 = new EmbeddedNode(config).started();
-                colorizedPrintln("CREATED node4", COLOR_CYAN, STYLE_REVERSED);
+                LOG.debug(ansi().cyan().swap().format("# %-140s #", "CREATED node4"));
             }
 
             @AfterEach
@@ -608,7 +609,7 @@ class DrasylNodeIT {
                         .remoteLocalHostDiscoveryPath(localHostDiscoveryPath)
                         .build();
                 node1 = new EmbeddedNode(config).started();
-                colorizedPrintln("CREATED node1", COLOR_CYAN, STYLE_REVERSED);
+                LOG.debug(ansi().cyan().swap().format("# %-140s #", "CREATED node1"));
 
                 // node2
                 config = DrasylConfig.newBuilder()
@@ -626,7 +627,7 @@ class DrasylNodeIT {
                         .remoteLocalHostDiscoveryPath(localHostDiscoveryPath)
                         .build();
                 node2 = new EmbeddedNode(config).started();
-                colorizedPrintln("CREATED node2", COLOR_CYAN, STYLE_REVERSED);
+                LOG.debug(ansi().cyan().swap().format("# %-140s #", "CREATED node2"));
             }
 
             @AfterEach
@@ -712,7 +713,7 @@ class DrasylNodeIT {
                     .remoteLocalHostDiscoveryEnabled(false)
                     .build();
             node = new EmbeddedNode(config).started();
-            colorizedPrintln("CREATED node1", COLOR_CYAN, STYLE_REVERSED);
+            LOG.debug(ansi().cyan().swap().format("# %-140s #", "CREATED node1"));
         }
 
         @AfterEach
@@ -766,7 +767,7 @@ class DrasylNodeIT {
                         .remoteLocalHostDiscoveryEnabled(false)
                         .build();
                 node = new EmbeddedNode(config);
-                colorizedPrintln("CREATED node1", COLOR_CYAN, STYLE_REVERSED);
+                LOG.debug(ansi().cyan().swap().format("# %-140s #", "CREATED node"));
             }
 
             @AfterEach
