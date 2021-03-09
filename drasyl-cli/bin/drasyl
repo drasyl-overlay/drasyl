@@ -97,6 +97,7 @@ fi
 
 exec "$JAVACMD" \
     ${JAVA_OPTS} \
+    -agentlib:native-image-agent=config-output-dir=./drasyl-cli/native-image \
     -Dconfig.override_with_env_vars=true \
     -classpath "$CLASSPATH" \
     org.drasyl.cli.Cli "$@"
