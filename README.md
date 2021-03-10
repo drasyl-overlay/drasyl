@@ -1,4 +1,9 @@
-# <img src="https://docs.drasyl.org/master/assets/img/logo.svg" alt="drasyl" width="200"/>
+# [<img src="https://docs.drasyl.org/master/assets/img/logo.svg" alt="drasyl" width="200"/>](https://drasyl.org)
+
+[Website](https://drasyl.org) |
+[Documentation](https://docs.drasyl.org) |
+[Contributing](CONTRIBUTING.md) |
+[Changelog](CHANGELOG.md)
 
 [![Build Status](https://git.informatik.uni-hamburg.de/sane-public/drasyl/badges/master/pipeline.svg)](https://git.informatik.uni-hamburg.de/sane-public/drasyl/-/pipelines)
 [![LGPL v3](https://img.shields.io/badge/license-LGPL%20v3-blue)](https://www.gnu.org/licenses/lgpl-3.0)
@@ -8,68 +13,42 @@
 [![Chocolatey](https://img.shields.io/chocolatey/v/drasyl)](https://chocolatey.org/packages/drasyl)
 [![Gitter](https://badges.gitter.im/drasyl-overlay/drasyl.svg)](https://gitter.im/drasyl-overlay/drasyl)
 
-drasyl is a general-purpose overlay network framework for rapid development of distributed P2P applications.
+# drasyl
 
-By using drasyl developers can fully concentrate on creating distributed applications.
-With drasyl, boundaries between IP-based networks will be eliminated and secure communication channels between any peers will be provided.
-Zero-configuration is required to use drasyl.
-Developers can run a new drasyl node without having to write configuration files or provide IP addresses of peers.
+drasyl is a general-purpose overlay network framework for rapid development of distributed P2P
+applications.
+
+By using drasyl developers can fully concentrate on creating distributed applications. With drasyl,
+boundaries between IP-based networks will be eliminated and secure communication channels between
+any peers will be provided. Zero-configuration is required to use drasyl. Developers can run a new
+drasyl node without having to write configuration files or provide IP addresses of peers.
 
 ![drasyl architecture](https://docs.drasyl.org/master/assets/img/drasyl-architecture.png)
 
 _As drasyl is primarily developed for the research project
-[Smart Networks for Urban Participation (SANE)](https://sane.city/) and focuses on functionalities necessary for the project. However, drasyl is open to
-contributions made by the community._
+[Smart Networks for Urban Participation (SANE)](https://sane.city/) and focuses on functionalities
+necessary for the project. However, drasyl is open to contributions made by the community._
 
-## Maven/Gradle Dependencies
+# Features
 
-Maven:
-```xml
-<dependency>
-    <groupId>org.drasyl</groupId>
-    <artifactId>drasyl-core</artifactId>
-    <version>0.3.0</version>
-</dependency>
-```
+* Provides Communication Channels between any two Nodes (on the Internet).
+* Automatic Discovery of Peers running within same Process, Computer, LAN, or the Internet.
+* Automatic Handover to most local Communication Channel.
+* Overcomes Network Barriers (Firewalls, NATs).
+* UDP Hole Punching.
+* PortMapping (UPnP-IGD, NAT-PMP, PCP).  
+* Adapts to Network Changes.
+* Lightweight.
+* Extensible.
 
-Gradle:
+# Usage & Documentation
 
-```compile group: 'org.drasyl', name: 'drasyl-core', version: '0.3.0'```
+* [Getting Started](https://docs.drasyl.org/getting-started/)
+* [Configuration](https://docs.drasyl.org/configuration/)
+* [JavaDoc](https://www.javadoc.io/doc/org.drasyl/drasyl-core/latest/index.html)  
+* [Command Line Interface](https://docs.drasyl.org/cli/)
+* [Chat](https://gitter.im/drasyl-overlay/drasyl)
 
-## Standalone Command Line Interface
+# License
 
-There is a drasyl command line interface with some utilities that can be found on the releases page: https://github.com/drasyl-overlay/drasyl/releases
-
-It is also available in docker:
-
-```docker run drasyl/drasyl help```
-
-## Create and Start drasyl Node
-
-```java
-DrasylNode node = new DrasylNode() {
-    @Override
-    public void onEvent(Event event) {
-        // handle incoming events (messages) here
-        System.out.println("Event received: " + event);
-    }
-};
-node.start();
-
-// wait till NodeOnlineEvent has been received
-
-// send message to another node
-node.send("0229041b273dd5ee1c2bef2d77ae17dbd00d2f0a2e939e22d42ef1c4bf05147ea9", "Hello World");
-
-// shutdown node
-node.shutdown();
-```
-
-## Documentation
-
-More information can be found in the [documentation](https://docs.drasyl.org).
-
--------------------------------------
-_Licensed under [GNU Lesser General Public License v3.0](LICENSE)_
-
-_Inspired by [ZeroTier's Peer to Peer Network](https://www.zerotier.com/manual/#2_1)_
+This is free software under the terms of the [GNU Lesser General Public License v3.0](LICENSE)
