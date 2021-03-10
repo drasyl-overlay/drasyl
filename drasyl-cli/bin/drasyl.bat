@@ -70,7 +70,7 @@ set CMD_LINE_ARGS=%$
 set CLASSPATH=%CLASSPATH%;%DRASYL_HOME%;%DRASYL_HOME%\lib\*
 
 @rem Execute Drasyl Node
-"%JAVA_EXE%" %JAVA_OPTS% -Dconfig.override_with_env_vars=true -classpath "%CLASSPATH%" org.drasyl.cli.Cli %CMD_LINE_ARGS%
+"%JAVA_EXE%" %JAVA_OPTS% -agentlib:native-image-agent=config-output-dir=./drasyl-cli/native-image -Dconfig.override_with_env_vars=true -classpath "%CLASSPATH%" org.drasyl.cli.Cli %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell
